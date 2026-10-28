@@ -8,3 +8,4 @@ export async function GET() {
   const insights = computeOwnerInsights(ownerId);
   return NextResponse.json({ insights });
 }
+

@@ -150,3 +150,4 @@ export function getWaitlistForResource(resourceId: string): WaitlistEntry[] {
     ORDER BY w.queue_position ASC, w.priority_score DESC
   `).all(resourceId) as WaitlistEntry[];
 }
+

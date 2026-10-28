@@ -152,3 +152,4 @@ export function computeOwnerInsights(ownerId?: string): OwnerAnalyticsSummary {
     demandTimeline
   };
 }
+

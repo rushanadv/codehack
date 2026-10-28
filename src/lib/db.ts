@@ -177,3 +177,4 @@ function initSchema(db: Database.Database) {
     );
   `);
 }
+

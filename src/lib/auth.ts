@@ -44,3 +44,4 @@ export function getUserById(userId: string): User | null {
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as User | undefined;
   return user || null;
 }
+

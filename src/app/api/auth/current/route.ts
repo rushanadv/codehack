@@ -28,3 +28,4 @@ export async function DELETE() {
   await clearCurrentUser();
   return NextResponse.json({ success: true });
 }
+

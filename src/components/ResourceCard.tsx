@@ -132,3 +132,4 @@ export function ResourceCard({ resource }: ResourceCardProps) {
     </div>
   );
 }
+

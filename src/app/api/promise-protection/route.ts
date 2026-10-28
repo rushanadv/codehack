@@ -5,3 +5,4 @@ export async function GET() {
   const disruptions = getAllDisruptions();
   return NextResponse.json({ disruptions });
 }
+
