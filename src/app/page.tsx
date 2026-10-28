@@ -21,6 +21,7 @@ import {
   Zap
 } from 'lucide-react';
 import { InteractiveDelaySimulator } from '@/components/InteractiveDelaySimulator';
+import RotorCategorySection from '@/components/RotorCategorySection';
 
 export default function HomePage() {
   const [activeStep, setActiveStep] = useState(0);
@@ -270,125 +271,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. THREE RESOURCE CATEGORIES */}
-      <section className="py-24 px-4 lg:px-8 border-b border-white/8 bg-[#090B0E]">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
-            <span>03 / Unified Taxonomy</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-12">
-            Three Core Resource Categories
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Category 1: Physical Equipment */}
-            <div className="p-6 rounded-xl bg-[#0D0F14] border border-white/8 hover:border-[#D4FF00]/40 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00] mb-5 group-hover:scale-110 transition-transform">
-                  <Box className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Physical Equipment</h3>
-                <p className="text-xs text-neutral-400 leading-relaxed mb-6">
-                  Industrial 3D printers, field emission scanning electron microscopes, 8K ultra-high-speed cameras, and 33 GHz real-time oscilloscopes.
-                </p>
-                <ul className="text-xs font-mono space-y-2 text-neutral-300 border-t border-white/5 pt-4">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    Stratasys Fortus 450mc (FDM)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    JEOL JSM-IT800 FE-SEM
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    RED V-Raptor 8K VV Cinema
-                  </li>
-                </ul>
-              </div>
-              <div className="pt-6">
-                <Link
-                  href="/explore?category=equipment"
-                  className="text-xs font-mono text-[#D4FF00] flex items-center gap-1 hover:underline"
-                >
-                  Browse Physical Assets →
-                </Link>
-              </div>
-            </div>
-
-            {/* Category 2: Spaces and Facilities */}
-            <div className="p-6 rounded-xl bg-[#0D0F14] border border-white/8 hover:border-[#D4FF00]/40 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00] mb-5 group-hover:scale-110 transition-transform">
-                  <Building2 className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Spaces & Facilities</h3>
-                <p className="text-xs text-neutral-400 leading-relaxed mb-6">
-                  ISO Class 5 nanofabrication cleanroom bays, autonomous drone flight arenas with 16-camera Vicon MoCap cages, and full anechoic acoustic suites.
-                </p>
-                <ul className="text-xs font-mono space-y-2 text-neutral-300 border-t border-white/5 pt-4">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    ISO Class 5 Cleanroom Bay
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    Autonomous UAV Flight Arena
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    Anechoic Acoustic Chamber
-                  </li>
-                </ul>
-              </div>
-              <div className="pt-6">
-                <Link
-                  href="/explore?category=space"
-                  className="text-xs font-mono text-[#D4FF00] flex items-center gap-1 hover:underline"
-                >
-                  Browse Research Spaces →
-                </Link>
-              </div>
-            </div>
-
-            {/* Category 3: Digital and Technical */}
-            <div className="p-6 rounded-xl bg-[#0D0F14] border border-white/8 hover:border-[#D4FF00]/40 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-lg bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00] mb-5 group-hover:scale-110 transition-transform">
-                  <Cpu className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Digital & Compute</h3>
-                <p className="text-xs text-neutral-400 leading-relaxed mb-6">
-                  Authorized access to NVIDIA H100 SXM5 supercomputing cluster nodes and licensed multiphysics tokens (Ansys Rocky DEM & Fluent CFD).
-                </p>
-                <ul className="text-xs font-mono space-y-2 text-neutral-300 border-t border-white/5 pt-4">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    NVIDIA HGX H100 8x80GB
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    Ansys DEM & Fluent Floating Token
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    Zero raw password leakage
-                  </li>
-                </ul>
-              </div>
-              <div className="pt-6">
-                <Link
-                  href="/explore?category=digital"
-                  className="text-xs font-mono text-[#D4FF00] flex items-center gap-1 hover:underline"
-                >
-                  Browse Compute Allocations →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 4. THREE RESOURCE CATEGORIES: PROCEDURAL 3D ROTOR */}
+      <RotorCategorySection />
 
       {/* 5. SIGNATURE FEATURE LIVE DEMO: PROMISE PROTECTION */}
       <section className="py-24 px-4 lg:px-8 border-b border-white/8 bg-[#07090C]">
