@@ -32,7 +32,9 @@ export default function RootLayout({
             {children}
           </Suspense>
         </main>
-        <Footer />
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
       </body>
     </html>
   );
