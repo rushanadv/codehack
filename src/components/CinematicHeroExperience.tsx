@@ -4,13 +4,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, ArrowRight, ChevronDown, Sparkles, Building2, Cog, Cpu } from 'lucide-react';
 import * as THREE from 'three';
-import { createOrganicMonolithGeometry } from './organic-monolith-geometry';
-import { createOrganicMonolithMaterial } from './organic-monolith-material';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
   createAtmosphericSkyDome,
   createHorizonMistBand,
-  createDistantTerrainRidges,
-  createAtmosphericGround,
   createMultiLayerFogSystem,
   createAtmosphericParticles,
 } from './atmospheric-shaders';
@@ -55,7 +52,7 @@ const CHAPTERS: DimensionChapter[] = [
     copy: 'Discover land, properties, laboratories, workshops and collaborative spaces.',
     ctaText: 'BROWSE SPACES & FACILITIES',
     ctaHref: '/explore?category=space',
-    rotationDeg: 0,
+    rotationDeg: 120,
     prevName: '[00] OVERVIEW',
     nextName: '[02] PHYSICAL ASSETS',
   },
@@ -69,7 +66,7 @@ const CHAPTERS: DimensionChapter[] = [
     copy: 'Find the equipment, instruments and tools that turn ideas into reality.',
     ctaText: 'BROWSE PHYSICAL ASSETS',
     ctaHref: '/explore?category=equipment',
-    rotationDeg: 120,
+    rotationDeg: 240,
     prevName: '[01] PROPERTY & SPACES',
     nextName: '[03] DIGITAL & TECH',
   },
@@ -83,7 +80,7 @@ const CHAPTERS: DimensionChapter[] = [
     copy: 'Discover licensed software, authorised APIs and shared technical capabilities.',
     ctaText: 'EXPLORE DIGITAL & COMPUTE',
     ctaHref: '/explore?category=digital',
-    rotationDeg: 240,
+    rotationDeg: 360,
     prevName: '[02] PHYSICAL ASSETS',
     nextName: '[00] OVERVIEW',
   },
@@ -132,18 +129,19 @@ export default function CinematicHeroExperience() {
       }
       setActiveChapterIndex(chapterIdx);
 
-      // Rotation degrees (from 0° to 240°)
+      // Rotation degrees synchronized with scroll sequence (0° -> 120° -> 240° -> 360°)
       let calculatedDeg = 0;
       if (p <= 0.22) {
-        calculatedDeg = 0;
+        calculatedDeg = (p / 0.22) * 15; // Subtle entrance tilt
       } else if (p <= 0.48) {
         const factor = (p - 0.22) / (0.48 - 0.22);
-        calculatedDeg = factor * 120;
+        calculatedDeg = 15 + factor * 105; // Reaches 120°
       } else if (p <= 0.74) {
         const factor = (p - 0.48) / (0.74 - 0.48);
-        calculatedDeg = 120 + factor * 120;
+        calculatedDeg = 120 + factor * 120; // Reaches 240°
       } else {
-        calculatedDeg = 240;
+        const factor = Math.min(1, (p - 0.74) / (1.00 - 0.74));
+        calculatedDeg = 240 + factor * 120; // Reaches 360°
       }
       setCurrentDeg(Math.round(calculatedDeg));
     };
@@ -166,20 +164,20 @@ export default function CinematicHeroExperience() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Three.js Atmospheric 3D Scene Initialization
+  // Three.js 3D Scene Initialization with Real Procedural Assets from monolith_assets.py
   useEffect(() => {
     const holder = canvasHolderRef.current;
     if (!holder) return;
 
-    // 1. Scene Setup
+    // 1. Scene Setup with dusk atmosphere
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a0504);
-    scene.fog = new THREE.FogExp2(0x1a0d0a, 0.022);
+    scene.fog = new THREE.FogExp2(0x1a0d0a, 0.016);
 
-    // 2. Camera Setup (Tuned to frame organic monolith in upper-middle viewport with expansive desert landscape)
+    // 2. Stable Camera Setup (Maintains stable framing so motion clearly comes from the spinning monolith)
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 180);
+    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 200);
     camera.position.set(0, 0.58, 8.4);
     camera.lookAt(0, 0.38, 0);
 
@@ -192,74 +190,126 @@ export default function CinematicHeroExperience() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.35;
+    renderer.toneMappingExposure = 1.18;
     holder.appendChild(renderer.domElement);
 
     // 4. ATMOSPHERIC WORLD ENVIRONMENT
-    // A. Vast Warm Desert Dusk Sky & Horizon Dome
+    // A. Vast Warm Desert Dusk Sky Dome
     const { mesh: skyDome, material: skyMat } = createAtmosphericSkyDome();
     scene.add(skyDome);
 
-    // B. Horizon Mist Band (Warm Peach-Amber Ribbon across horizon)
-    const { mesh: mistBandMesh, material: mistBandMat, update: updateMistBand, dispose: disposeMistBand } =
+    // B. Horizon Mist Band (Warm Peach-Amber Ribbon across distant horizon)
+    const { mesh: mistBandMesh, update: updateMistBand, dispose: disposeMistBand } =
       createHorizonMistBand();
     scene.add(mistBandMesh);
 
-    // C. Low Desert Mountain Ridge Silhouettes along Horizon
-    const { mesh: ridgesMesh, material: ridgesMat, dispose: disposeRidges } =
-      createDistantTerrainRidges();
-    scene.add(ridgesMesh);
-
-    // D. Dark Desert Ground Plane with Dynamic Contact Shadow
-    const { mesh: groundMesh, material: groundMat, update: updateGround, dispose: disposeGround } =
-      createAtmosphericGround();
-    scene.add(groundMesh);
-
-    // E. Multi-Layer Volumetric Drifting Fog System (Ground mist + midground wisps)
+    // C. Volumetric Drifting Fog System (Ground mist + midground wisps)
     const fogSystem = createMultiLayerFogSystem();
     scene.add(fogSystem.group);
 
-    // F. Floating Atmospheric Particulate Dust Motes
-    const { points: dustPoints, material: dustMat, update: updateDust, dispose: disposeDust } =
+    // D. Floating Atmospheric Particulate Dust Motes
+    const { points: dustPoints, update: updateDust, dispose: disposeDust } =
       createAtmosphericParticles(280);
     scene.add(dustPoints);
 
-    // 5. STUDIO & ENVIRONMENTAL LIGHTING RIG
+    // 5. STUDIO & CINEMATIC DUSK LIGHTING RIG
     const ambientLight = new THREE.AmbientLight(0x2a140e, 2.4);
     scene.add(ambientLight);
 
-    // Key Directional Light (Warm desert sunlight)
-    const keyLight = new THREE.DirectionalLight(0xffeedb, 4.2);
+    // Key Directional Light (Warm desert sunlight illuminating terracotta strata)
+    const keyLight = new THREE.DirectionalLight(0xffeedb, 3.2);
     keyLight.position.set(5.5, 7.0, 5.0);
     scene.add(keyLight);
 
-    // Fill Light (Terracotta atmospheric bounce)
-    const fillLight = new THREE.DirectionalLight(0x7a3a22, 2.4);
+    // Fill Light (Deep terracotta bounce)
+    const fillLight = new THREE.DirectionalLight(0x7a3a22, 2.2);
     fillLight.position.set(-6.0, 3.5, 4.0);
     scene.add(fillLight);
 
-    // Horizon Backlight / Contouring Rim Light (Soft peach rim highlighting sculptural silhouette)
-    const horizonRimLight = new THREE.DirectionalLight(0xf2cfb8, 3.8);
+    // Horizon Backlight / Contouring Rim Light (Soft peach rim highlighting sculptural biomorphic silhouette)
+    const horizonRimLight = new THREE.DirectionalLight(0xf2cfb8, 3.4);
     horizonRimLight.position.set(0.0, 4.5, -6.5);
     scene.add(horizonRimLight);
 
-    // Acid-Lime Underglow Point Light (Subtle brand underglow bounce at the base)
-    const limeAccentLight = new THREE.PointLight(0xd4ff00, 2.4, 9.0);
-    limeAccentLight.position.set(0, -1.8, 1.2);
+    // Acid-Lime Underglow Point Light (Subtle brand bounce at ground level)
+    const limeAccentLight = new THREE.PointLight(0xd4ff00, 1.8, 8.0);
+    limeAccentLight.position.set(0, -2.05, 0.8);
     scene.add(limeAccentLight);
 
-    // 6. ASSEMBLE 3D PROCEDURAL ORGANIC MONOLITH
-    // Weathered, cloud-banded terracotta sculptural stone inspired by "CLARTÉ WORLD"
-    const monolithGeom = createOrganicMonolithGeometry();
-    const monolithMat = createOrganicMonolithMaterial();
-    const monolithMesh = new THREE.Mesh(monolithGeom, monolithMat);
+    // 6. ASSET CONTAINERS: MONOLITH & TERRAIN GROUPS
+    const monolithGroup = new THREE.Group();
+    monolithGroup.position.set(0, 0.55, 0);
+    scene.add(monolithGroup);
 
-    // Balanced scale: occupies ~52% of viewport height, grounded in desert mist
-    monolithMesh.scale.set(0.96, 0.96, 0.96);
-    monolithMesh.position.set(0, 0.62, 0);
-    scene.add(monolithMesh);
+    const terrainGroup = new THREE.Group();
+    terrainGroup.position.set(0, -2.10, 0);
+    scene.add(terrainGroup);
 
-    // 7. Resize Handler
+    // Soft grounded contact shadow decal directly beneath the monolith
+    const shadowGeom = new THREE.CircleGeometry(1.5, 32);
+    shadowGeom.rotateX(-Math.PI / 2);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      color: 0x050201,
+      transparent: true,
+      opacity: 0.60,
+      depthWrite: false,
+    });
+    const contactShadow = new THREE.Mesh(shadowGeom, shadowMat);
+    contactShadow.position.set(0, -2.08, 0);
+    scene.add(contactShadow);
+
+    // 7. LOAD PROCEDURAL 3D ASSETS VIA GLTFLoader
+    const gltfLoader = new GLTFLoader();
+
+    // Load idlex-monolith.glb
+    gltfLoader.load(
+      '/models/idlex-monolith.glb',
+      (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.material = new THREE.MeshStandardMaterial({
+              vertexColors: true,
+              roughness: 0.84,
+              metalness: 0.03,
+              envMapIntensity: 1.1,
+            });
+          }
+        });
+        monolithGroup.clear();
+        monolithGroup.add(model);
+      },
+      undefined,
+      (err) => console.error('Error loading idlex-monolith.glb:', err)
+    );
+
+    // Load idlex-terrain.glb
+    gltfLoader.load(
+      '/models/idlex-terrain.glb',
+      (gltf) => {
+        const terrainModel = gltf.scene;
+        terrainModel.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.receiveShadow = true;
+            mesh.material = new THREE.MeshStandardMaterial({
+              vertexColors: true,
+              roughness: 0.94,
+              metalness: 0.02,
+            });
+          }
+        });
+        terrainGroup.clear();
+        terrainGroup.add(terrainModel);
+      },
+      undefined,
+      (err) => console.error('Error loading idlex-terrain.glb:', err)
+    );
+
+    // 8. Responsive Resize Handler
     const onResize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -277,105 +327,88 @@ export default function CinematicHeroExperience() {
     onResize();
     window.addEventListener('resize', onResize);
 
-    // 8. Continuous Animation Loop (Synchronized to Scroll & Mouse Parallax)
+    // 9. Continuous Animation Loop (Synchronized Spin, Scroll Choreography & Camera Stability)
     let animId: number;
     const startTime = performance.now();
 
-    let currentRotY = 0;
+    let smoothScrollRotY = 0;
     let currentPosX = 0;
-    let currentPosY = 0.62;
+    let currentPosY = 0.55;
+
+    // Smooth controlled rotation rate (~24 seconds per full 360° turnaround)
+    const continuousSpinSpeed = 0.26; // radians per second
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
       const elapsedTime = (performance.now() - startTime) * 0.001;
       const p = progressRef.current; // 0.00 to 1.00
 
-      // Mouse parallax smoothing
+      // Subtle mouse parallax (kept modest so camera remains stable)
       const mouse = mouseRef.current;
       mouse.x += (mouse.targetX - mouse.x) * 0.04;
       mouse.y += (mouse.targetY - mouse.y) * 0.04;
 
-      // Update Environmental Shaders
+      // Update atmospheric shaders
       skyMat.uniforms.uTime.value = elapsedTime;
-      monolithMat.uniforms.uTime.value = elapsedTime;
       updateMistBand(elapsedTime);
-      updateGround(elapsedTime);
       fogSystem.update(elapsedTime, p);
       updateDust(elapsedTime);
 
-      // Choreographed Target Transform based on scroll progress:
-      // The organic monolith rotates smoothly around vertical axis to reveal its sculptural profile
-      let targetRotY = 0;
-      let targetPosX = 0;
-      let targetPosY = 0.62;
-      let targetScale = 0.96;
-
+      // Target transforms per stage
       const isMobile = window.innerWidth < 1024;
+      let targetPosX = 0;
+      let targetPosY = isMobile ? 0.62 : 0.55;
+      let targetScale = isMobile ? 0.84 : 0.96;
 
+      // Continuous autonomous rotation around vertical axis
+      const continuousAngle = elapsedTime * continuousSpinSpeed;
+
+      // Scroll-driven target rotation (radians): 0 -> 120° -> 240° -> 360°
+      let scrollTargetRotY = 0;
       if (p <= 0.22) {
-        // Stage 0: Hero Overview (Front Organic Silhouette)
-        targetRotY = 0;
-        targetPosX = 0;
-        targetPosY = isMobile ? 0.65 : 0.62;
-        targetScale = isMobile ? 0.86 : 0.96;
+        scrollTargetRotY = 0;
       } else if (p <= 0.48) {
-        // Stage 1: Property & Spaces (Rotates ~55° to reveal undulating side contour)
-        const stageFactor = (p - 0.22) / (0.48 - 0.22);
-        targetRotY = -0.95 * Math.min(1, stageFactor * 1.05);
-        targetPosX = 0;
-        targetPosY = isMobile ? 0.68 : 0.64;
-        targetScale = isMobile ? 0.88 : 0.98;
+        const factor = (p - 0.22) / (0.48 - 0.22);
+        scrollTargetRotY = factor * ((2 * Math.PI) / 3); // 0 to 120°
       } else if (p <= 0.74) {
-        // Stage 2: Physical Assets (Rotates ~120° to reveal rear terracotta strata)
-        const stageFactor = (p - 0.48) / (0.74 - 0.48);
-        targetRotY = -0.95 - 1.15 * Math.min(1, stageFactor * 1.05);
-        targetPosX = 0;
-        targetPosY = isMobile ? 0.68 : 0.64;
-        targetScale = isMobile ? 0.88 : 0.98;
+        const factor = (p - 0.48) / (0.74 - 0.48);
+        scrollTargetRotY = ((2 * Math.PI) / 3) + factor * ((2 * Math.PI) / 3); // 120° to 240°
       } else {
-        // Stage 3: Digital & Tech (Rotates ~200° to reveal right sculptural swell & cream band)
-        const stageFactor = Math.min(1, (p - 0.74) / (1.00 - 0.74));
-        targetRotY = -2.10 - 1.35 * stageFactor;
-        targetPosX = 0;
-        targetPosY = isMobile ? 0.68 : 0.64;
-        targetScale = isMobile ? 0.90 : 1.00;
+        const factor = Math.min(1, (p - 0.74) / (1.00 - 0.74));
+        scrollTargetRotY = ((4 * Math.PI) / 3) + factor * ((2 * Math.PI) / 3); // 240° to 360°
       }
 
-      // Smooth damped lerp towards target transforms
-      currentRotY += (targetRotY - currentRotY) * 0.08;
+      // Damped lerp for responsive, reversible scroll rotation
+      smoothScrollRotY += (scrollTargetRotY - smoothScrollRotY) * 0.08;
       currentPosX += (targetPosX - currentPosX) * 0.08;
       currentPosY += (targetPosY - currentPosY) * 0.08;
 
-      monolithMesh.rotation.y = currentRotY;
-      monolithMesh.position.x = currentPosX;
-      monolithMesh.position.y = currentPosY + Math.sin(elapsedTime * 0.7) * 0.015; // Gentle organic float
-      monolithMesh.scale.set(targetScale, targetScale, targetScale);
+      // Total rotation: continuous spin + scroll choreography
+      // The monolith itself visibly spins on its vertical axis
+      monolithGroup.rotation.y = -(continuousAngle + smoothScrollRotY);
+      monolithGroup.position.x = currentPosX;
+      monolithGroup.position.y = currentPosY + Math.sin(elapsedTime * 0.7) * 0.015; // Gentle organic float
+      monolithGroup.scale.set(targetScale, targetScale, targetScale);
 
-      // Subtle dynamic tilt and mouse parallax
-      monolithMesh.rotation.x = Math.sin(elapsedTime * 0.4) * 0.012 + 0.02 + mouse.y * 0.02;
-      monolithMesh.rotation.z = Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.015;
+      // Subtle organic tilt and mouse responsiveness
+      monolithGroup.rotation.x = Math.sin(elapsedTime * 0.4) * 0.012 + 0.02 + mouse.y * 0.015;
+      monolithGroup.rotation.z = Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.015;
 
-      // Update ground contact shadow position to track monolith
-      groundMat.uniforms.uRotorPos.value.set(currentPosX, 0.0);
-
-      // Camera parallax
-      camera.position.x = mouse.x * 0.18;
-      camera.position.y = 0.58 + mouse.y * 0.10;
-      camera.lookAt(currentPosX * 0.15, currentPosY * 0.70, 0);
+      // Stable camera with gentle parallax
+      camera.position.x = mouse.x * 0.08;
+      camera.position.y = 0.58 + mouse.y * 0.05;
+      camera.lookAt(0, 0.38, 0);
 
       // Stage-specific environmental lighting transitions
       if (p >= 0.74) {
-        // Stage 3: Luminous amber-peach dusk
         keyLight.color.setHex(0xffedd8);
         horizonRimLight.color.setHex(0xf4d2be);
         limeAccentLight.intensity = 3.0;
       } else if (p >= 0.48) {
-        // Stage 2: Rich terracotta warmth
         keyLight.color.setHex(0xfff0e2);
         horizonRimLight.color.setHex(0xebae94);
-        limeAccentLight.intensity = 2.4;
+        limeAccentLight.intensity = 2.5;
       } else {
-        // Stage 0 & 1: Deep dusk terracotta
         keyLight.color.setHex(0xffeedb);
         horizonRimLight.color.setHex(0xf2cfb8);
         limeAccentLight.intensity = 2.8;
@@ -386,7 +419,7 @@ export default function CinematicHeroExperience() {
 
     animate();
 
-    // 9. Clean-up WebGL resources on unmount
+    // 10. Clean-up WebGL resources on unmount
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', onResize);
@@ -395,13 +428,11 @@ export default function CinematicHeroExperience() {
       skyMat.dispose();
 
       disposeMistBand();
-      disposeRidges();
-      disposeGround();
       fogSystem.dispose();
       disposeDust();
 
-      monolithGeom.dispose();
-      monolithMat.dispose();
+      shadowGeom.dispose();
+      shadowMat.dispose();
 
       renderer.dispose();
       if (holder.contains(renderer.domElement)) {
@@ -417,7 +448,7 @@ export default function CinematicHeroExperience() {
 
     let targetFraction = 0;
     if (index === 1) targetFraction = 0.35;
-    if (index === 2) targetFraction = 0.60;
+    if (index === 2) targetFraction = 0.61;
     if (index === 3) targetFraction = 0.88;
 
     window.scrollTo({
@@ -485,7 +516,7 @@ export default function CinematicHeroExperience() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#0a0504_98%)] pointer-events-none opacity-25" />
 
         {/* =========================================================================
-            FLANKED ADJACENT CHAPTER LABELS (Reference Style: Angled Outlined Edge Text)
+            FLANKED ADJACENT CHAPTER LABELS (Angled Outlined Edge Text)
             ========================================================================= */}
         {/* Left Edge: Previous Chapter Indicator */}
         <div className="absolute left-6 sm:left-12 bottom-28 sm:bottom-32 pointer-events-auto hidden md:block select-none z-20">
@@ -517,9 +548,9 @@ export default function CinematicHeroExperience() {
           </button>
         </div>
 
-        {/* =====================================================================
+        {/* =========================================================================
             EDITORIAL TYPOGRAPHY STAGES (Centered in Lower-Middle, Reference Style)
-            ===================================================================== */}
+            ========================================================================= */}
         
         {/* STAGE 0: HERO OVERVIEW */}
         <div
@@ -564,7 +595,7 @@ export default function CinematicHeroExperience() {
           </div>
         </div>
 
-        {/* STAGE 1: LAND, PROPERTY & SPACES (Architectural Relief at 0°) */}
+        {/* STAGE 1: LAND, PROPERTY & SPACES (120°) */}
         <div
           className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
             activeChapterIndex === 1
@@ -573,7 +604,7 @@ export default function CinematicHeroExperience() {
           }`}
         >
           <div className="max-w-2xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0a151d]/90 border border-white/10 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
               <Building2 className="w-3.5 h-3.5" />
               <span>01 / ARCHITECTURAL CAPACITY</span>
             </div>
@@ -598,7 +629,7 @@ export default function CinematicHeroExperience() {
           </div>
         </div>
 
-        {/* STAGE 2: PHYSICAL ASSETS (Mechanical Relief at 120°) */}
+        {/* STAGE 2: PHYSICAL ASSETS (240°) */}
         <div
           className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
             activeChapterIndex === 2
@@ -607,7 +638,7 @@ export default function CinematicHeroExperience() {
           }`}
         >
           <div className="max-w-2xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0a151d]/90 border border-white/10 text-xs font-mono text-white mb-2 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-xs font-mono text-white mb-2 backdrop-blur-sm">
               <Cog className="w-3.5 h-3.5 text-[#D4FF00]" />
               <span>02 / PRECISION HARDWARE</span>
             </div>
@@ -632,7 +663,7 @@ export default function CinematicHeroExperience() {
           </div>
         </div>
 
-        {/* STAGE 3: DIGITAL & TECH (Computational Relief at 240°) */}
+        {/* STAGE 3: DIGITAL & TECH (360°) */}
         <div
           className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
             activeChapterIndex === 3
@@ -641,7 +672,7 @@ export default function CinematicHeroExperience() {
           }`}
         >
           <div className="max-w-2xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0a151d]/90 border border-white/10 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
               <Cpu className="w-3.5 h-3.5" />
               <span>03 / COMPUTATIONAL ALLOCATION</span>
             </div>
@@ -674,7 +705,7 @@ export default function CinematicHeroExperience() {
         </div>
 
         {/* =========================================================================
-            MINIMAL PERIMETER LABELS & SCROLL PROGRESS (Art-directed portfolio style)
+            MINIMAL PERIMETER LABELS & SCROLL PROGRESS
             ========================================================================= */}
         <div className="absolute bottom-6 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none z-30">
           
@@ -701,10 +732,10 @@ export default function CinematicHeroExperience() {
             </div>
           </div>
 
-          {/* Bottom-Right: Rotor Angular Telemetry */}
+          {/* Bottom-Right: Angular Telemetry */}
           <div className="flex items-center gap-2 font-mono">
             <span className="hidden sm:inline text-neutral-400">INDEX:</span>
-            <span className="text-white font-bold">{currentDeg.toFixed(1)}°</span>
+            <span className="text-white font-bold">{currentDeg.toFixed(0)}°</span>
             <span className="text-neutral-400">/ 360°</span>
           </div>
 

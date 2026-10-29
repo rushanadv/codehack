@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "generate:assets": ".venv/bin/python monolith_assets.py",
     "test": "npx tsx --test tests/**/*.test.ts",
     "seed": "npx tsx scripts/seed.ts",
     "lint": "eslint"

@@ -43,3 +43,9 @@ data/*.db-wal
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python
+.venv
+.venv/
+__pycache__/
+*.pyc
