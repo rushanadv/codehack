@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
 // ============================================================================
-// GLSL Procedural 2D Simplex Noise Shader Helper
+// GLSL Procedural 2D Simplex Noise & FBM Shader Helper
 // ============================================================================
-const GLSL_SIMPLEX_NOISE = `
+export const GLSL_SIMPLEX_NOISE = `
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -45,13 +45,15 @@ float fbm(vec2 p) {
 `;
 
 // ============================================================================
-// 1. ATMOSPHERIC SKY & HORIZON DOME
+// 1. EXPANSIVE ATMOSPHERIC SKY & HORIZON DOME
+// Seamless inverted hemisphere extending edge-to-edge
 // ============================================================================
 export function createAtmosphericSkyDome(): {
   mesh: THREE.Mesh;
   material: THREE.ShaderMaterial;
 } {
-  const geom = new THREE.CylinderGeometry(52, 52, 70, 32, 1, true);
+  // Vast hemisphere dome with high radius to encompass the full landscape
+  const geom = new THREE.SphereGeometry(140, 48, 32, 0, Math.PI * 2, 0, Math.PI * 0.62);
   geom.scale(-1, 1, 1);
 
   const material = new THREE.ShaderMaterial({
@@ -60,9 +62,12 @@ export function createAtmosphericSkyDome(): {
     depthTest: false,
     uniforms: {
       uTime: { value: 0 },
-      uZenithColor: { value: new THREE.Color(0x061118) },
-      uHorizonColor: { value: new THREE.Color(0x286580) }, // Distinct petroleum-teal horizon haze
-      uHazeIntensity: { value: 2.2 },
+      uZenithColor: { value: new THREE.Color(0x03070c) },     // Deep night ink at the zenith
+      uMidSkyColor: { value: new THREE.Color(0x0c202a) },     // Desaturated petroleum teal
+      uHorizonGlow: { value: new THREE.Color(0x76b8c8) },     // Luminous pale cyan-grey mist band
+      uHorizonY: { value: -0.2 },
+      uBandThickness: { value: 4.8 },
+      uHazeIntensity: { value: 1.95 },
     },
     vertexShader: `
       varying vec3 vWorldPosition;
@@ -75,50 +80,234 @@ export function createAtmosphericSkyDome(): {
     fragmentShader: `
       uniform float uTime;
       uniform vec3 uZenithColor;
-      uniform vec3 uHorizonColor;
+      uniform vec3 uMidSkyColor;
+      uniform vec3 uHorizonGlow;
+      uniform float uHorizonY;
+      uniform float uBandThickness;
       uniform float uHazeIntensity;
       varying vec3 vWorldPosition;
 
       ${GLSL_SIMPLEX_NOISE}
 
       void main() {
-        // Elevation angle relative to horizon (around y = -1.5)
-        float h = (vWorldPosition.y + 1.5) / 24.0;
+        // Vertical elevation normalized from horizon
+        float h = vWorldPosition.y;
         
-        // Atmospheric horizon glow band
-        float horizonFactor = exp(-max(0.0, h) * 1.5);
-        
-        // Procedural organic haze variation
-        float noise = snoise(vec2(vWorldPosition.x * 0.035 + uTime * 0.02, vWorldPosition.z * 0.035));
-        horizonFactor = clamp(horizonFactor + noise * 0.08 * horizonFactor, 0.0, 1.0);
+        // Base sky gradient: zenith (dark ink) down to mid sky (petroleum teal)
+        float skyT = clamp((h - 5.0) / 45.0, 0.0, 1.0);
+        vec3 baseSky = mix(uMidSkyColor, uZenithColor, pow(skyT, 0.8));
 
-        vec3 sky = mix(uZenithColor, uHorizonColor, clamp(horizonFactor * uHazeIntensity, 0.0, 1.0));
-        
-        // Ground nadir fade
-        if (vWorldPosition.y < -1.8) {
-          float groundFade = clamp((-1.8 - vWorldPosition.y) / 6.0, 0.0, 1.0);
-          sky = mix(sky, vec3(0.03, 0.045, 0.06), groundFade);
+        // Distinct, luminous pale cyan-grey horizon mist band
+        float distFromHorizon = abs(h - uHorizonY);
+        float band = exp(-(distFromHorizon * distFromHorizon) / (2.0 * uBandThickness * uBandThickness));
+
+        // Organic slow drifting edge variation along the horizon
+        float drift = fbm(vec2(vWorldPosition.x * 0.015 + uTime * 0.012, vWorldPosition.z * 0.015));
+        band = clamp(band * (0.8 + 0.35 * drift) * uHazeIntensity, 0.0, 1.0);
+
+        // Blend the glowing mist band into the sky
+        vec3 finalCol = mix(baseSky, uHorizonGlow, band);
+
+        // Ground nadir fade (below horizon)
+        if (h < uHorizonY - 1.0) {
+          float groundFade = clamp((uHorizonY - 1.0 - h) / 12.0, 0.0, 1.0);
+          finalCol = mix(finalCol, vec3(0.02, 0.04, 0.06), groundFade);
         }
 
-        gl_FragColor = vec4(sky, 1.0);
+        gl_FragColor = vec4(finalCol, 1.0);
       }
     `,
   });
 
   const mesh = new THREE.Mesh(geom, material);
-  mesh.position.y = 12.0;
-  mesh.renderOrder = -100; // Render first as background
+  mesh.position.y = 8.0;
+  mesh.renderOrder = -200; // Always render first in the background
   return { mesh, material };
 }
 
 // ============================================================================
-// 2. DARK REFLECTIVE GROUND PLANE WITH DYNAMIC CONTACT SHADOW
+// 2. HORIZON MIST BAND (Horizontal Ethereal Ribbon)
+// Directly mimics the thin, luminous horizontal mist strip from the reference
+// ============================================================================
+export function createHorizonMistBand(): {
+  mesh: THREE.Mesh;
+  material: THREE.ShaderMaterial;
+  update: (time: number) => void;
+  dispose: () => void;
+} {
+  // Curved ribbon stretching 180 degrees across the horizon
+  const geom = new THREE.CylinderGeometry(60, 60, 9.0, 64, 4, true, -Math.PI * 0.65, Math.PI * 1.3);
+
+  const material = new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.NormalBlending,
+    uniforms: {
+      uTime: { value: 0 },
+      uMistColor: { value: new THREE.Color(0x76b2c2) },
+      uOpacity: { value: 0.82 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      varying vec3 vWorldPos;
+      void main() {
+        vUv = uv;
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform vec3 uMistColor;
+      uniform float uOpacity;
+      varying vec2 vUv;
+      varying vec3 vWorldPos;
+
+      ${GLSL_SIMPLEX_NOISE}
+
+      void main() {
+        // Vertical feathering (soft top and bottom edges)
+        float vertMask = smoothstep(0.0, 0.45, vUv.y) * (1.0 - smoothstep(0.55, 1.0, vUv.y));
+
+        // Horizontal noise drift for authentic atmospheric texture
+        vec2 p = vec2(vWorldPos.x * 0.045 + uTime * 0.018, vWorldPos.y * 0.15);
+        float n = fbm(p);
+        float density = clamp(n * 0.55 + 0.45, 0.0, 1.0);
+
+        // Edge lateral fade
+        float lateralMask = smoothstep(0.0, 0.15, vUv.x) * (1.0 - smoothstep(0.85, 1.0, vUv.x));
+
+        float alpha = vertMask * lateralMask * density * uOpacity;
+        gl_FragColor = vec4(uMistColor, alpha);
+      }
+    `,
+  });
+
+  const mesh = new THREE.Mesh(geom, material);
+  mesh.position.set(0, 0.8, 0);
+  mesh.renderOrder = -150;
+
+  const update = (time: number) => {
+    material.uniforms.uTime.value = time;
+  };
+
+  const dispose = () => {
+    geom.dispose();
+    material.dispose();
+  };
+
+  return { mesh, material, update, dispose };
+}
+
+// ============================================================================
+// 3. LOW NATURAL TERRAIN RIDGES & SILHOUETTES
+// Organic distant mountain ridges emerging from the horizon mist
+// (NO RECTANGULAR BLOCKS / MONOLITHS)
+// ============================================================================
+export function createDistantTerrainRidges(): {
+  mesh: THREE.Mesh;
+  material: THREE.ShaderMaterial;
+  dispose: () => void;
+} {
+  // Build an organic terrain ribbon along the back horizon
+  const width = 110;
+  const segmentsX = 96;
+  const geom = new THREE.PlaneGeometry(width, 7.5, segmentsX, 8);
+  
+  // Displace top vertices with natural mountain ridge noise
+  const posAttr = geom.attributes.position;
+  for (let i = 0; i < posAttr.count; i++) {
+    const x = posAttr.getX(i);
+    const y = posAttr.getY(i);
+    
+    // Normalize y between 0 (bottom) and 1 (top of ridge)
+    const normalizedY = (y + 3.75) / 7.5;
+    
+    if (normalizedY > 0.1) {
+      // Create organic ridge profile: left hills, center dip, right ridges
+      const freq1 = Math.sin(x * 0.075) * 1.5;
+      const freq2 = Math.cos(x * 0.18 + 0.4) * 0.8;
+      const freq3 = Math.sin(x * 0.35 + 1.2) * 0.4;
+      const noiseHeight = (freq1 + freq2 + freq3) * normalizedY;
+      
+      // Keep center somewhat lower so the central rotor is hero against horizon
+      const centerDamp = 1.0 - 0.55 * Math.exp(-(x * x) / 90.0);
+      posAttr.setY(i, y + noiseHeight * centerDamp);
+    }
+  }
+  geom.computeVertexNormals();
+
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: true,
+    uniforms: {
+      uBaseColor: { value: new THREE.Color(0x04090e) },     // Deep charcoal rock silhouette
+      uHorizonGlow: { value: new THREE.Color(0x6ca4b4) },   // Luminous horizon mist
+      uRidgeHighlight: { value: new THREE.Color(0x3a6878) },// Subtle rim on crests
+    },
+    vertexShader: `
+      varying vec3 vWorldPos;
+      varying vec3 vNormal;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uBaseColor;
+      uniform vec3 uHorizonGlow;
+      uniform vec3 uRidgeHighlight;
+      varying vec3 vWorldPos;
+      varying vec3 vNormal;
+      varying vec2 vUv;
+
+      void main() {
+        // Crest rim light (top edge of ridge catches horizon light)
+        float crestHighlight = smoothstep(0.65, 1.0, vUv.y) * 0.45;
+        vec3 col = mix(uBaseColor, uRidgeHighlight, crestHighlight);
+
+        // Atmospheric depth haze: base of hills enveloped in horizon mist
+        float mistFade = (1.0 - smoothstep(0.0, 0.75, vUv.y)) * 0.82;
+        col = mix(col, uHorizonGlow, mistFade);
+
+        // Distance fogging
+        float dist = length(vWorldPos.xz);
+        float alpha = 1.0 - smoothstep(42.0, 68.0, dist);
+
+        gl_FragColor = vec4(col, alpha);
+      }
+    `,
+  });
+
+  const mesh = new THREE.Mesh(geom, material);
+  mesh.position.set(0, -0.2, -36.0); // Placed in the far distance along the horizon
+  mesh.renderOrder = -120;
+
+  const dispose = () => {
+    geom.dispose();
+    material.dispose();
+  };
+
+  return { mesh, material, dispose };
+}
+
+// ============================================================================
+// 4. DARK REFLECTIVE WATER & ROCK GROUND PLANE
+// Calm water surface reflecting the pale cyan-grey horizon mist & rotor
 // ============================================================================
 export function createAtmosphericGround(): {
   mesh: THREE.Mesh;
   material: THREE.ShaderMaterial;
+  update: (time: number) => void;
+  dispose: () => void;
 } {
-  const geom = new THREE.PlaneGeometry(64, 64, 48, 48);
+  const geom = new THREE.PlaneGeometry(150, 150, 80, 80);
   geom.rotateX(-Math.PI / 2);
 
   const material = new THREE.ShaderMaterial({
@@ -127,10 +316,10 @@ export function createAtmosphericGround(): {
     uniforms: {
       uTime: { value: 0 },
       uRotorPos: { value: new THREE.Vector2(0, 0) },
-      uGroundColor: { value: new THREE.Color(0x0a151e) },
-      uHorizonGlow: { value: new THREE.Color(0x286580) },
-      uLimeAccent: { value: new THREE.Color(0xd4ff00) },
-      uShadowStrength: { value: 0.94 },
+      uDeepWaterColor: { value: new THREE.Color(0x04080c) },  // Deep dark foreground
+      uHorizonGlow: { value: new THREE.Color(0x6ca4b4) },     // Pale cyan-grey mist reflection
+      uLimeAccent: { value: new THREE.Color(0xd4ff00) },      // Subdued acid-lime underglow
+      uShadowStrength: { value: 0.88 },
     },
     vertexShader: `
       varying vec3 vWorldPos;
@@ -145,7 +334,7 @@ export function createAtmosphericGround(): {
     fragmentShader: `
       uniform float uTime;
       uniform vec2 uRotorPos;
-      uniform vec3 uGroundColor;
+      uniform vec3 uDeepWaterColor;
       uniform vec3 uHorizonGlow;
       uniform vec3 uLimeAccent;
       uniform float uShadowStrength;
@@ -158,33 +347,44 @@ export function createAtmosphericGround(): {
       void main() {
         float distFromCenter = length(vWorldPos.xz);
         
-        // Radial edge fade into distance
-        float edgeAlpha = 1.0 - smoothstep(18.0, 30.0, distFromCenter);
+        // Lateral edge fade so plane blends seamlessly into the horizon
+        float edgeAlpha = 1.0 - smoothstep(32.0, 68.0, distFromCenter);
 
         // Dynamic contact shadow beneath the rotor base
         vec2 shadowOffset = vWorldPos.xz - uRotorPos;
         float shadowDist = length(shadowOffset);
-        float contactShadow = smoothstep(0.25, 1.85, shadowDist);
+        float contactShadow = smoothstep(0.3, 1.9, shadowDist);
         contactShadow = mix(1.0 - uShadowStrength, 1.0, contactShadow);
 
-        // Ground micro-texture (subtle damp sheen)
-        float groundNoise = snoise(vWorldPos.xz * 0.5);
-        float microSheen = snoise(vWorldPos.xz * 2.8) * 0.08;
+        // Water surface gentle micro-ripples
+        float wave1 = snoise(vWorldPos.xz * 0.28 + vec2(uTime * 0.04, uTime * 0.02));
+        float wave2 = snoise(vWorldPos.xz * 0.65 - vec2(uTime * 0.03, uTime * 0.05)) * 0.5;
+        float totalWaves = (wave1 + wave2) * 0.06;
 
-        // Fresnel reflection towards grazing angle
-        float grazing = pow(clamp(-vWorldPos.z / 20.0, 0.0, 1.0), 1.2);
-        vec3 surfaceCol = mix(uGroundColor, uHorizonGlow * 1.5, grazing * 0.8 + microSheen);
+        // Fresnel reflection towards grazing angle (distant horizon reflections)
+        // Camera looks towards -Z; as -Z increases, grazing angle approaches 0
+        float grazing = clamp((-vWorldPos.z + 2.0) / 28.0, 0.0, 1.0);
+        grazing = pow(grazing, 1.35) + totalWaves;
 
-        // Acid-lime subtle underglow bounce directly under rotor base
-        float limeBounce = exp(-shadowDist * 1.3) * 0.4;
+        // Surface color: deep dark water in near foreground, reflecting mist towards horizon
+        vec3 surfaceCol = mix(uDeepWaterColor, uHorizonGlow * 1.3, clamp(grazing, 0.0, 1.0));
+
+        // Subtle specular reflection of rotor in the water
+        float rotorReflectX = exp(-pow(vWorldPos.x - uRotorPos.x, 2.0) / 1.8);
+        float rotorReflectZ = smoothstep(-0.5, 3.5, vWorldPos.z) * (1.0 - smoothstep(3.5, 8.0, vWorldPos.z));
+        float rotorReflection = rotorReflectX * rotorReflectZ * 0.35;
+        surfaceCol += vec3(0.18, 0.24, 0.28) * rotorReflection;
+
+        // Acid-lime underglow bounce directly beneath the rotor base
+        float limeBounce = exp(-shadowDist * 1.5) * 0.32;
         surfaceCol += uLimeAccent * limeBounce;
 
         // Apply contact shadow
         surfaceCol *= contactShadow;
 
-        // Depth fogging on ground
-        float fogFactor = smoothstep(4.0, 24.0, distFromCenter);
-        vec3 finalCol = mix(surfaceCol, uHorizonGlow, fogFactor * 0.85);
+        // Horizon mist depth blending
+        float horizonFogFactor = smoothstep(12.0, 48.0, distFromCenter);
+        vec3 finalCol = mix(surfaceCol, uHorizonGlow * 0.85, horizonFogFactor * 0.75);
 
         gl_FragColor = vec4(finalCol, edgeAlpha);
       }
@@ -192,88 +392,24 @@ export function createAtmosphericGround(): {
   });
 
   const mesh = new THREE.Mesh(geom, material);
-  mesh.position.y = -1.74; // Aligned directly beneath rotor base (-1.68)
-  mesh.renderOrder = -50;
-  return { mesh, material };
+  mesh.position.y = -1.02; // Exactly beneath rotor base
+  mesh.renderOrder = -80;
+
+  const update = (time: number) => {
+    material.uniforms.uTime.value = time;
+  };
+
+  const dispose = () => {
+    geom.dispose();
+    material.dispose();
+  };
+
+  return { mesh, material, update, dispose };
 }
 
 // ============================================================================
-// 3. DISTANT ARCHITECTURAL MONOLITHS (Atmospheric Silhouettes in Haze)
-// ============================================================================
-export function createDistantMonoliths(): {
-  group: THREE.Group;
-  materials: THREE.ShaderMaterial[];
-} {
-  const group = new THREE.Group();
-  const materials: THREE.ShaderMaterial[] = [];
-
-  const monolithData = [
-    { x: -8.8, z: -11.5, w: 2.2, h: 7.5, d: 2.0 },
-    { x: -6.2, z: -10.2, w: 1.6, h: 5.5, d: 1.5 },
-    { x: -4.0, z: -12.5, w: 2.4, h: 8.8, d: 2.0 },
-    { x: -2.0, z: -9.5,  w: 1.2, h: 4.2, d: 1.2 },
-    { x:  2.2, z: -10.0, w: 1.4, h: 4.8, d: 1.2 },
-    { x:  4.5, z: -12.0, w: 2.2, h: 8.0, d: 1.8 },
-    { x:  6.8, z: -10.5, w: 1.8, h: 5.8, d: 1.5 },
-    { x:  9.2, z: -13.0, w: 2.6, h: 9.5, d: 2.2 },
-  ];
-
-  monolithData.forEach((m) => {
-    const geom = new THREE.BoxGeometry(m.w, m.h, m.d);
-    geom.translate(0, m.h / 2, 0);
-
-    const mat = new THREE.ShaderMaterial({
-      transparent: true,
-      uniforms: {
-        uHorizonColor: { value: new THREE.Color(0x286580) },
-        uBaseColor: { value: new THREE.Color(0x0e1e28) },
-        uFogDensity: { value: 0.035 },
-      },
-      vertexShader: `
-        varying vec3 vWorldPos;
-        varying vec3 vNormal;
-        void main() {
-          vNormal = normalize(normalMatrix * normal);
-          vec4 wp = modelMatrix * vec4(position, 1.0);
-          vWorldPos = wp.xyz;
-          gl_Position = projectionMatrix * viewMatrix * wp;
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 uHorizonColor;
-        uniform vec3 uBaseColor;
-        uniform float uFogDensity;
-        varying vec3 vWorldPos;
-        varying vec3 vNormal;
-
-        void main() {
-          float dist = length(vWorldPos - vec3(0.0, 0.0, 6.2));
-          float fog = 1.0 - exp(-dist * uFogDensity);
-          fog = clamp(fog, 0.0, 0.95);
-
-          float topHighlight = max(0.0, vNormal.y) * 0.45 + max(0.0, -vNormal.z) * 0.2;
-          vec3 col = mix(uBaseColor, uHorizonColor * 1.35, topHighlight);
-
-          float groundHaze = smoothstep(-1.74, 1.5, vWorldPos.y);
-          col = mix(uHorizonColor, col, groundHaze);
-
-          vec3 finalColor = mix(col, uHorizonColor, fog);
-          gl_FragColor = vec4(finalColor, 0.95);
-        }
-      `,
-    });
-
-    materials.push(mat);
-    const box = new THREE.Mesh(geom, mat);
-    box.position.set(m.x, -1.74, m.z);
-    group.add(box);
-  });
-
-  return { group, materials };
-}
-
-// ============================================================================
-// 4. MULTI-LAYER VOLUMETRIC DRIFTING FOG SYSTEM
+// 5. MULTI-LAYER VOLUMETRIC DRIFTING FOG SYSTEM
+// Ground mist and atmospheric layers drifting with organic speeds
 // ============================================================================
 export interface FogSystem {
   group: THREE.Group;
@@ -284,8 +420,8 @@ export interface FogSystem {
 export function createMultiLayerFogSystem(): FogSystem {
   const group = new THREE.Group();
 
-  // A. Low-Lying Ground Mist Plane (Enveloping lower collar of rotor)
-  const groundFogGeom = new THREE.PlaneGeometry(38, 38, 32, 32);
+  // A. Low-Lying Ground Mist Plane (skimming water and rotor base)
+  const groundFogGeom = new THREE.PlaneGeometry(50, 50, 36, 36);
   groundFogGeom.rotateX(-Math.PI / 2);
 
   const groundFogMat = new THREE.ShaderMaterial({
@@ -294,8 +430,8 @@ export function createMultiLayerFogSystem(): FogSystem {
     blending: THREE.NormalBlending,
     uniforms: {
       uTime: { value: 0 },
-      uFogColor: { value: new THREE.Color(0x286078) },
-      uOpacity: { value: 0.82 },
+      uFogColor: { value: new THREE.Color(0x609caa) }, // Pale cyan-grey ground vapor
+      uOpacity: { value: 0.72 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -317,13 +453,13 @@ export function createMultiLayerFogSystem(): FogSystem {
       ${GLSL_SIMPLEX_NOISE}
 
       void main() {
-        vec2 p = vWorldPos.xz * 0.11;
-        float n1 = snoise(p + vec2(uTime * 0.035, uTime * 0.015));
-        float n2 = snoise(p * 2.2 - vec2(uTime * 0.02, uTime * 0.04));
-        float fogDensity = clamp((n1 * 0.6 + n2 * 0.4) * 0.5 + 0.5, 0.0, 1.0);
+        vec2 p = vWorldPos.xz * 0.08;
+        float n1 = snoise(p + vec2(uTime * 0.025, uTime * 0.012));
+        float n2 = snoise(p * 2.4 - vec2(uTime * 0.018, uTime * 0.035));
+        float fogDensity = clamp((n1 * 0.65 + n2 * 0.35) * 0.5 + 0.5, 0.0, 1.0);
 
         float dist = length(vWorldPos.xz);
-        float radialMask = 1.0 - smoothstep(5.0, 17.0, dist);
+        float radialMask = 1.0 - smoothstep(4.0, 22.0, dist);
 
         float alpha = fogDensity * radialMask * uOpacity;
         gl_FragColor = vec4(uFogColor, alpha);
@@ -332,16 +468,16 @@ export function createMultiLayerFogSystem(): FogSystem {
   });
 
   const groundFogMesh = new THREE.Mesh(groundFogGeom, groundFogMat);
-  groundFogMesh.position.y = -1.62;
+  groundFogMesh.position.y = -0.92; // Just above ground plane (-1.02)
   group.add(groundFogMesh);
 
-  // B. Midground Vertical Fog Banks (Layered billboard sheets with FBM noise)
-  const midFogGeom = new THREE.PlaneGeometry(30, 9, 24, 8);
+  // B. Midground Horizon Fog Banks (Layered billboard sheets drifting across)
+  const midFogGeom = new THREE.PlaneGeometry(42, 9, 24, 8);
   const midFogLayers: { mesh: THREE.Mesh; mat: THREE.ShaderMaterial; speed: number; baseZ: number }[] = [];
 
-  const midZPositions = [-1.0, -2.8, -5.2];
-  const midSpeeds = [0.03, -0.022, 0.018];
-  const midOpacities = [0.55, 0.68, 0.78];
+  const midZPositions = [-6.0, -14.0, -22.0];
+  const midSpeeds = [0.018, -0.012, 0.009];
+  const midOpacities = [0.45, 0.58, 0.68];
 
   midZPositions.forEach((zPos, idx) => {
     const mat = new THREE.ShaderMaterial({
@@ -350,7 +486,7 @@ export function createMultiLayerFogSystem(): FogSystem {
       blending: THREE.NormalBlending,
       uniforms: {
         uTime: { value: 0 },
-        uFogColor: { value: new THREE.Color(0x245870) },
+        uFogColor: { value: new THREE.Color(0x6ea6b6) },
         uOpacity: { value: midOpacities[idx] },
       },
       vertexShader: `
@@ -373,12 +509,12 @@ export function createMultiLayerFogSystem(): FogSystem {
         ${GLSL_SIMPLEX_NOISE}
 
         void main() {
-          vec2 p = vec2(vWorldPos.x * 0.09 + uTime * 0.028, vWorldPos.y * 0.16);
+          vec2 p = vec2(vWorldPos.x * 0.07 + uTime * 0.018, vWorldPos.y * 0.16);
           float n = fbm(p);
           float density = clamp(n * 0.5 + 0.5, 0.0, 1.0);
 
-          float vertMask = smoothstep(0.0, 0.35, vUv.y) * (1.0 - smoothstep(0.65, 1.0, vUv.y));
-          float horizMask = smoothstep(0.0, 0.25, vUv.x) * (1.0 - smoothstep(0.75, 1.0, vUv.x));
+          float vertMask = smoothstep(0.0, 0.4, vUv.y) * (1.0 - smoothstep(0.6, 1.0, vUv.y));
+          float horizMask = smoothstep(0.0, 0.2, vUv.x) * (1.0 - smoothstep(0.8, 1.0, vUv.x));
 
           float alpha = density * vertMask * horizMask * uOpacity;
           gl_FragColor = vec4(uFogColor, alpha);
@@ -387,21 +523,21 @@ export function createMultiLayerFogSystem(): FogSystem {
     });
 
     const mesh = new THREE.Mesh(midFogGeom, mat);
-    mesh.position.set(0, -0.4 + idx * 0.25, zPos);
+    mesh.position.set(0, -0.2 + idx * 0.3, zPos);
     group.add(mesh);
     midFogLayers.push({ mesh, mat, speed: midSpeeds[idx], baseZ: zPos });
   });
 
-  // C. Foreground Wisps (Very subtle, passing in front of rotor's base)
-  const foreGeom = new THREE.PlaneGeometry(16, 5, 16, 6);
+  // C. Foreground Wisps (Soft, ephemeral atmospheric pass in front of rotor)
+  const foreGeom = new THREE.PlaneGeometry(18, 5, 16, 6);
   const foreMat = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
     blending: THREE.NormalBlending,
     uniforms: {
       uTime: { value: 0 },
-      uFogColor: { value: new THREE.Color(0x2a5f78) },
-      uOpacity: { value: 0.32 },
+      uFogColor: { value: new THREE.Color(0x5a8f9e) },
+      uOpacity: { value: 0.24 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -423,12 +559,12 @@ export function createMultiLayerFogSystem(): FogSystem {
       ${GLSL_SIMPLEX_NOISE}
 
       void main() {
-        vec2 p = vec2(vWorldPos.x * 0.14 - uTime * 0.022, vWorldPos.y * 0.22);
+        vec2 p = vec2(vWorldPos.x * 0.12 - uTime * 0.016, vWorldPos.y * 0.22);
         float n = snoise(p);
         float density = clamp(n * 0.5 + 0.5, 0.0, 1.0);
 
         float mask = smoothstep(0.0, 0.5, vUv.y) * (1.0 - smoothstep(0.5, 1.0, vUv.y))
-                   * smoothstep(0.0, 0.3, vUv.x) * (1.0 - smoothstep(0.7, 1.0, vUv.x));
+                   * smoothstep(0.0, 0.25, vUv.x) * (1.0 - smoothstep(0.75, 1.0, vUv.x));
 
         float alpha = density * mask * uOpacity;
         gl_FragColor = vec4(uFogColor, alpha);
@@ -437,7 +573,7 @@ export function createMultiLayerFogSystem(): FogSystem {
   });
 
   const foreMesh = new THREE.Mesh(foreGeom, foreMat);
-  foreMesh.position.set(0, -1.2, 2.0);
+  foreMesh.position.set(0, -1.0, 2.2);
   group.add(foreMesh);
 
   // Update routine
@@ -446,11 +582,11 @@ export function createMultiLayerFogSystem(): FogSystem {
     foreMat.uniforms.uTime.value = time;
 
     midFogLayers.forEach((layer) => {
-      layer.mat.uniforms.uTime.value = time * (1.0 + layer.speed * 8.0);
-      layer.mesh.position.y = -0.4 + Math.sin(time * 0.35 + layer.baseZ) * 0.06 - scrollProgress * 0.15;
+      layer.mat.uniforms.uTime.value = time * (1.0 + layer.speed * 6.0);
+      layer.mesh.position.y = -0.2 + Math.sin(time * 0.25 + layer.baseZ) * 0.05 - scrollProgress * 0.12;
     });
 
-    foreMesh.position.x = Math.sin(time * 0.18) * 0.35;
+    foreMesh.position.x = Math.sin(time * 0.14) * 0.25;
   };
 
   const dispose = () => {
@@ -466,9 +602,10 @@ export function createMultiLayerFogSystem(): FogSystem {
 }
 
 // ============================================================================
-// 5. FLOATING ATMOSPHERIC PARTICULATE DUST MOTES
+// 6. FLOATING ATMOSPHERIC PARTICULATE DUST MOTES
+// Soft Gaussian illuminated motes drifting in the dusky atmosphere
 // ============================================================================
-export function createAtmosphericParticles(count = 380): {
+export function createAtmosphericParticles(count = 280): {
   points: THREE.Points;
   material: THREE.ShaderMaterial;
   update: (time: number) => void;
@@ -478,8 +615,8 @@ export function createAtmosphericParticles(count = 380): {
   const randomSeeds = new Float32Array(count * 3);
 
   for (let i = 0; i < count; i++) {
-    positions[i * 3 + 0] = (Math.random() - 0.5) * 14.0;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 6.5;
+    positions[i * 3 + 0] = (Math.random() - 0.5) * 16.0;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 6.0;
     positions[i * 3 + 2] = (Math.random() - 0.5) * 8.0;
 
     randomSeeds[i * 3 + 0] = Math.random();
@@ -497,7 +634,7 @@ export function createAtmosphericParticles(count = 380): {
     blending: THREE.AdditiveBlending,
     uniforms: {
       uTime: { value: 0 },
-      uColor: { value: new THREE.Color(0xb8def5) },
+      uColor: { value: new THREE.Color(0xa8d2e2) },
       uLimeColor: { value: new THREE.Color(0xd4ff00) },
     },
     vertexShader: `
@@ -508,17 +645,17 @@ export function createAtmosphericParticles(count = 380): {
 
       void main() {
         vec3 p = position;
-        p.y += sin(uTime * 0.4 + aSeed.x * 6.28) * 0.2;
-        p.x += cos(uTime * 0.25 + aSeed.y * 6.28) * 0.18;
-        p.z += sin(uTime * 0.2 + aSeed.z * 6.28) * 0.12;
+        p.y += sin(uTime * 0.35 + aSeed.x * 6.28) * 0.16;
+        p.x += cos(uTime * 0.2 + aSeed.y * 6.28) * 0.14;
+        p.z += sin(uTime * 0.18 + aSeed.z * 6.28) * 0.10;
 
-        float lightProximity = exp(-length(p.xz) * 0.32);
-        vAlpha = (0.3 + 0.7 * sin(uTime * 1.5 + aSeed.z * 10.0)) * lightProximity * 0.85;
+        float lightProximity = exp(-length(p.xz) * 0.28);
+        vAlpha = (0.25 + 0.65 * sin(uTime * 1.2 + aSeed.z * 8.0)) * lightProximity * 0.75;
 
-        vColor = (p.y < -0.8) ? vec3(0.83, 1.0, 0.0) : vec3(0.72, 0.87, 0.96);
+        vColor = (p.y < -0.8) ? vec3(0.83, 1.0, 0.0) : vec3(0.66, 0.82, 0.89);
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-        gl_PointSize = (20.0 / -mvPosition.z) * (0.8 + 0.4 * aSeed.x);
+        gl_PointSize = (18.0 / -mvPosition.z) * (0.8 + 0.4 * aSeed.x);
         gl_Position = projectionMatrix * mvPosition;
       }
     `,
@@ -531,7 +668,7 @@ export function createAtmosphericParticles(count = 380): {
         float dist = length(coord);
         if (dist > 0.5) discard;
 
-        float intensity = exp(-dist * dist * 10.0) * vAlpha;
+        float intensity = exp(-dist * dist * 9.0) * vAlpha;
         gl_FragColor = vec4(vColor, intensity);
       }
     `,

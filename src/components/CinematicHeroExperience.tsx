@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, ChevronDown, Compass, Sparkles, Shield, Cpu, Building2, Cog } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, ChevronDown, Sparkles, Building2, Cog, Cpu } from 'lucide-react';
 import * as THREE from 'three';
 import {
   createRotorCoreGeometry,
@@ -14,8 +14,9 @@ import {
 } from './rotor-geometry';
 import {
   createAtmosphericSkyDome,
+  createHorizonMistBand,
+  createDistantTerrainRidges,
   createAtmosphericGround,
-  createDistantMonoliths,
   createMultiLayerFogSystem,
   createAtmosphericParticles,
 } from './atmospheric-shaders';
@@ -31,11 +32,13 @@ interface DimensionChapter {
   ctaText: string;
   ctaHref: string;
   rotationDeg: number;
+  prevName: string;
+  nextName: string;
 }
 
 const CHAPTERS: DimensionChapter[] = [
   {
-    id: 'hero',
+    id: 'overview',
     num: '00',
     name: 'OVERVIEW',
     heroKicker: 'IDLEX — THE INTELLIGENT RESOURCE EXCHANGE',
@@ -45,57 +48,65 @@ const CHAPTERS: DimensionChapter[] = [
     ctaText: 'EXPLORE RESOURCES',
     ctaHref: '/explore',
     rotationDeg: 0,
+    prevName: '[03] DIGITAL & TECH',
+    nextName: '[01] PROPERTY & SPACES',
   },
   {
     id: 'spaces',
     num: '01',
     name: 'LAND, PROPERTY & SPACES',
-    heroKicker: 'DIMENSION 01 — ARCHITECTURAL CAPACITY',
+    heroKicker: '01 / ARCHITECTURAL CAPACITY',
     headlineLine1: 'SPACE',
     headlineLine2: 'TO BUILD.',
     copy: 'Discover land, properties, laboratories, workshops and collaborative spaces.',
     ctaText: 'BROWSE SPACES & FACILITIES',
     ctaHref: '/explore?category=space',
     rotationDeg: 0,
+    prevName: '[00] OVERVIEW',
+    nextName: '[02] PHYSICAL ASSETS',
   },
   {
-    id: 'assets',
+    id: 'equipment',
     num: '02',
     name: 'PHYSICAL ASSETS',
-    heroKicker: 'DIMENSION 02 — PRECISION ENGINEERING',
+    heroKicker: '02 / PRECISION HARDWARE',
     headlineLine1: 'TOOLS',
     headlineLine2: 'IN MOTION.',
     copy: 'Find the equipment, instruments and tools that turn ideas into reality.',
     ctaText: 'BROWSE PHYSICAL ASSETS',
     ctaHref: '/explore?category=equipment',
     rotationDeg: 120,
+    prevName: '[01] PROPERTY & SPACES',
+    nextName: '[03] DIGITAL & TECH',
   },
   {
     id: 'digital',
     num: '03',
     name: 'DIGITAL & TECH',
-    heroKicker: 'DIMENSION 03 — DISTRIBUTED COMPUTE',
+    heroKicker: '03 / COMPUTATIONAL ALLOCATION',
     headlineLine1: 'ACCESS',
     headlineLine2: "WHAT'S NEXT.",
     copy: 'Discover licensed software, authorised APIs and shared technical capabilities.',
     ctaText: 'EXPLORE DIGITAL & COMPUTE',
     ctaHref: '/explore?category=digital',
     rotationDeg: 240,
+    prevName: '[02] PHYSICAL ASSETS',
+    nextName: '[00] OVERVIEW',
   },
 ];
 
 export default function CinematicHeroExperience() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasHolderRef = useRef<HTMLDivElement>(null);
+
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentDeg, setCurrentDeg] = useState(0);
 
-  // References for Three.js animation synchronization
   const progressRef = useRef(0);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
-  // Scroll listener tracking overall pinned hero progress
+  // Pinned hero scroll listener tracking progress across 4 stages
   useEffect(() => {
     const handleScroll = () => {
       if (!containerRef.current) return;
@@ -161,21 +172,22 @@ export default function CinematicHeroExperience() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Three.js Full-Viewport Scene Setup
+  // Three.js Atmospheric 3D Scene Initialization
   useEffect(() => {
     const holder = canvasHolderRef.current;
     if (!holder) return;
 
-    // 1. Scene & Depth Fog
+    // 1. Scene Setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x071118);
-    scene.fog = new THREE.FogExp2(0x132a36, 0.025);
+    scene.background = new THREE.Color(0x04080d);
+    scene.fog = new THREE.FogExp2(0x102430, 0.022);
 
-    // 2. Camera Setup
+    // 2. Camera Setup (Tuned to frame rotor in upper-middle viewport with expansive landscape)
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 120);
-    camera.position.set(0, 0.35, 6.2);
+    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 180);
+    camera.position.set(0, 0.65, 8.0);
+    camera.lookAt(0, 0.42, 0);
 
     // 3. High-Performance WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -190,78 +202,85 @@ export default function CinematicHeroExperience() {
     holder.appendChild(renderer.domElement);
 
     // 4. ATMOSPHERIC WORLD ENVIRONMENT
-    // A. Sky & Horizon Gradient Dome (Petroleum-teal horizon fade)
+    // A. Vast Sky & Horizon Gradient Dome (Petroleum-teal horizon)
     const { mesh: skyDome, material: skyMat } = createAtmosphericSkyDome();
     scene.add(skyDome);
 
-    // B. Reflective Ground Plane with Dynamic Contact Shadow
-    const { mesh: groundMesh, material: groundMat } = createAtmosphericGround();
+    // B. Horizon Mist Band (Horizontal Luminous Ribbon across horizon)
+    const { mesh: mistBandMesh, material: mistBandMat, update: updateMistBand, dispose: disposeMistBand } =
+      createHorizonMistBand();
+    scene.add(mistBandMesh);
+
+    // C. Low Natural Mountain Ridge Silhouettes along Horizon
+    const { mesh: ridgesMesh, material: ridgesMat, dispose: disposeRidges } =
+      createDistantTerrainRidges();
+    scene.add(ridgesMesh);
+
+    // D. Dark Reflective Ground / Calm Water Plane
+    const { mesh: groundMesh, material: groundMat, update: updateGround, dispose: disposeGround } =
+      createAtmosphericGround();
     scene.add(groundMesh);
 
-    // C. Distant Architectural Monolith Silhouettes in Haze
-    const { group: monolithGroup, materials: monolithMats } = createDistantMonoliths();
-    scene.add(monolithGroup);
-
-    // D. Multi-Layer Volumetric Drifting Fog System
+    // E. Multi-Layer Volumetric Drifting Fog System (Ground mist + midground wisps)
     const fogSystem = createMultiLayerFogSystem();
     scene.add(fogSystem.group);
 
-    // E. Floating Atmospheric Particulate Dust Motes
+    // F. Floating Atmospheric Particulate Dust Motes
     const { points: dustPoints, material: dustMat, update: updateDust, dispose: disposeDust } =
-      createAtmosphericParticles(380);
+      createAtmosphericParticles(280);
     scene.add(dustPoints);
 
     // 5. STUDIO & ENVIRONMENTAL LIGHTING RIG
-    const ambientLight = new THREE.AmbientLight(0x192730, 2.0);
+    const ambientLight = new THREE.AmbientLight(0x183040, 2.2);
     scene.add(ambientLight);
 
-    // Key Directional Light (Warm-neutral specular from upper right)
-    const keyLight = new THREE.DirectionalLight(0xffffff, 3.6);
-    keyLight.position.set(4.5, 6.0, 4.5);
+    // Key Directional Light (Cold white/cyan specular highlight)
+    const keyLight = new THREE.DirectionalLight(0xf2faff, 4.2);
+    keyLight.position.set(5.5, 7.0, 5.0);
     scene.add(keyLight);
 
-    // Fill Light (Desaturated teal atmospheric bounce from left)
-    const fillLight = new THREE.DirectionalLight(0x7694a8, 2.2);
-    fillLight.position.set(-5.0, 3.0, 3.5);
+    // Fill Light (Desaturated petroleum-teal atmospheric bounce)
+    const fillLight = new THREE.DirectionalLight(0x5a90a6, 2.4);
+    fillLight.position.set(-6.0, 3.5, 4.0);
     scene.add(fillLight);
 
-    // Horizon Backlight / Contouring Rim Light (Defines metallic edges against fog)
-    const horizonRimLight = new THREE.DirectionalLight(0x9bc2d9, 3.0);
-    horizonRimLight.position.set(0.0, 4.0, -5.5);
+    // Horizon Backlight / Contouring Rim Light (Metallic edge separation against fog)
+    const horizonRimLight = new THREE.DirectionalLight(0x8ae0f4, 3.8);
+    horizonRimLight.position.set(0.0, 4.5, -6.5);
     scene.add(horizonRimLight);
 
-    // Acid-Lime Underglow Point Light (Bounces onto base collar and ground)
-    const limeAccentLight = new THREE.PointLight(0xd4ff00, 3.2, 9.0);
-    limeAccentLight.position.set(0, -2.8, 1.8);
+    // Acid-Lime Underglow Point Light (Bounces onto base collar and water)
+    const limeAccentLight = new THREE.PointLight(0xd4ff00, 2.8, 9.0);
+    limeAccentLight.position.set(0, -1.8, 1.2);
     scene.add(limeAccentLight);
 
     // 6. ROTOR MATERIALS (Industrial Graphite, Brushed Titanium, Anodized Slate, Lime)
     const matGraphite = new THREE.MeshStandardMaterial({
-      color: 0x111317,
+      color: 0x1e232b,
       metalness: 0.88,
-      roughness: 0.36,
-      envMapIntensity: 0.8,
+      roughness: 0.32,
+      envMapIntensity: 1.2,
     });
 
     const matTitanium = new THREE.MeshStandardMaterial({
-      color: 0xb4b9c2,
-      metalness: 0.95,
-      roughness: 0.22,
-      envMapIntensity: 1.4,
+      color: 0xd0d6e0,
+      metalness: 0.94,
+      roughness: 0.18,
+      envMapIntensity: 1.8,
     });
 
     const matSlate = new THREE.MeshStandardMaterial({
-      color: 0x1b1f26,
+      color: 0x161a22,
       metalness: 0.82,
-      roughness: 0.42,
+      roughness: 0.38,
     });
 
     const matLimeAccent = new THREE.MeshStandardMaterial({
       color: 0xd4ff00,
       emissive: 0xd4ff00,
-      emissiveIntensity: 0.65,
+      emissiveIntensity: 0.75,
       metalness: 0.1,
-      roughness: 0.3,
+      roughness: 0.25,
     });
 
     // 7. ASSEMBLE 3D PROCEDURAL ROTOR MESHES
@@ -299,9 +318,9 @@ export default function CinematicHeroExperience() {
     rotorGroup.add(motif3Mesh);
     rotorGroup.add(crownRingMesh);
 
-    // Scale up the rotor for a monumental, sculptural presence
-    rotorGroup.scale.set(1.28, 1.28, 1.28);
-    rotorGroup.position.set(0, 0.38, 0);
+    // Balanced scale: occupies ~52% of viewport height, grounded in water and mist
+    rotorGroup.scale.set(0.96, 0.96, 0.96);
+    rotorGroup.position.set(0, 0.62, 0);
     scene.add(rotorGroup);
 
     // 8. Resize Handler
@@ -310,11 +329,11 @@ export default function CinematicHeroExperience() {
       const h = window.innerHeight;
       camera.aspect = w / h;
       if (w < 768) {
-        camera.fov = 42;
-        camera.position.z = 6.8;
+        camera.fov = 38;
+        camera.position.set(0, 0.65, 8.4);
       } else {
         camera.fov = 34;
-        camera.position.z = 6.2;
+        camera.position.set(0, 0.65, 8.0);
       }
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -329,8 +348,7 @@ export default function CinematicHeroExperience() {
 
     let currentRotY = 0;
     let currentPosX = 0;
-    let currentPosY = -0.05;
-    let currentPosZ = 0;
+    let currentPosY = 0.62;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -344,45 +362,47 @@ export default function CinematicHeroExperience() {
 
       // Update Environmental Shaders
       skyMat.uniforms.uTime.value = elapsedTime;
-      groundMat.uniforms.uTime.value = elapsedTime;
+      updateMistBand(elapsedTime);
+      updateGround(elapsedTime);
       fogSystem.update(elapsedTime, p);
       updateDust(elapsedTime);
 
       // Choreographed Target Transform based on scroll progress:
+      // The rotor remains centered as the main visual anchor, rotating 120° per stage
       let targetRotY = 0;
       let targetPosX = 0;
-      let targetPosY = 0.38;
-      let targetScale = 1.28;
+      let targetPosY = 0.62;
+      let targetScale = 0.96;
 
       const isMobile = window.innerWidth < 1024;
 
       if (p <= 0.22) {
-        // Stage 0: Hero Overview
+        // Stage 0: Hero Overview (0°)
         targetRotY = 0;
         targetPosX = 0;
-        targetPosY = isMobile ? 0.2 : 0.38;
-        targetScale = isMobile ? 1.08 : 1.28;
+        targetPosY = isMobile ? 0.65 : 0.62;
+        targetScale = isMobile ? 0.86 : 0.96;
       } else if (p <= 0.48) {
         // Stage 1: Property & Spaces (Face 1 at 0°)
         const stageFactor = (p - 0.22) / (0.48 - 0.22);
         targetRotY = 0;
-        targetPosX = isMobile ? 0 : 1.25; // Shift right to let typography sit across lower-left
-        targetPosY = isMobile ? 0.45 : 0.38;
-        targetScale = isMobile ? 1.05 : 1.28;
+        targetPosX = 0;
+        targetPosY = isMobile ? 0.68 : 0.64;
+        targetScale = isMobile ? 0.88 : 0.98;
       } else if (p <= 0.74) {
         // Stage 2: Physical Assets (Face 2 at 120°)
         const stageFactor = (p - 0.48) / (0.74 - 0.48);
-        targetRotY = -FACE_STEP_RAD * Math.min(1, stageFactor * 1.06);
-        targetPosX = isMobile ? 0 : -1.25; // Shift left to let typography sit across lower-right
-        targetPosY = isMobile ? 0.45 : 0.38;
-        targetScale = isMobile ? 1.05 : 1.28;
+        targetRotY = -FACE_STEP_RAD * Math.min(1, stageFactor * 1.05);
+        targetPosX = 0;
+        targetPosY = isMobile ? 0.68 : 0.64;
+        targetScale = isMobile ? 0.88 : 0.98;
       } else {
         // Stage 3: Digital & Tech (Face 3 at 240°)
         const stageFactor = Math.min(1, (p - 0.74) / (1.00 - 0.74));
         targetRotY = -FACE_STEP_RAD * (1 + stageFactor);
-        targetPosX = 0; // Re-center with dramatic scale
-        targetPosY = isMobile ? 0.3 : 0.32;
-        targetScale = isMobile ? 1.15 : 1.32;
+        targetPosX = 0;
+        targetPosY = isMobile ? 0.68 : 0.64;
+        targetScale = isMobile ? 0.90 : 1.00;
       }
 
       // Smooth damped lerp towards target transforms
@@ -392,36 +412,37 @@ export default function CinematicHeroExperience() {
 
       rotorGroup.rotation.y = currentRotY;
       rotorGroup.position.x = currentPosX;
-      rotorGroup.position.y = currentPosY + Math.sin(elapsedTime * 0.8) * 0.025; // breathing float
+      rotorGroup.position.y = currentPosY + Math.sin(elapsedTime * 0.7) * 0.015; // Gentle organic float
       rotorGroup.scale.set(targetScale, targetScale, targetScale);
 
       // Subtle dynamic tilt and mouse parallax
-      rotorGroup.rotation.x = Math.sin(elapsedTime * 0.5) * 0.02 + 0.04 + mouse.y * 0.035;
-      rotorGroup.rotation.z = Math.cos(elapsedTime * 0.45) * 0.012 - mouse.x * 0.025;
+      rotorGroup.rotation.x = Math.sin(elapsedTime * 0.4) * 0.012 + 0.02 + mouse.y * 0.02;
+      rotorGroup.rotation.z = Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.015;
 
-      // Update ground contact shadow position to track rotor's X position
+      // Update ground contact shadow position to track rotor
       groundMat.uniforms.uRotorPos.value.set(currentPosX, 0.0);
 
       // Camera parallax
-      camera.position.x = mouse.x * 0.25;
-      camera.position.y = 0.1 + mouse.y * 0.18;
-      camera.lookAt(currentPosX * 0.3, currentPosY * 0.5, 0);
+      camera.position.x = mouse.x * 0.18;
+      camera.position.y = 0.65 + mouse.y * 0.10;
+      camera.lookAt(currentPosX * 0.15, currentPosY * 0.75, 0);
 
       // Stage-specific environmental lighting transitions
       if (p >= 0.74) {
-        // Digital stage: intensify cyan/lime luminous details
-        limeAccentLight.intensity = 4.0;
-        skyMat.uniforms.uHorizonColor.value.setHex(0x0e2430);
+        // Stage 3: Computational accent
+        keyLight.color.setHex(0xe8f8ff);
+        horizonRimLight.color.setHex(0xa2f0ff);
+        limeAccentLight.intensity = 3.4;
       } else if (p >= 0.48) {
-        // Physical stage: high-contrast metallic highlights
+        // Stage 2: Precision metallic steel
+        keyLight.color.setHex(0xffffff);
+        horizonRimLight.color.setHex(0x7ecce0);
         limeAccentLight.intensity = 2.4;
-        keyLight.intensity = 4.2;
-        skyMat.uniforms.uHorizonColor.value.setHex(0x0a1c26);
       } else {
-        // Spaces / Overview stage: architectural twilight atmosphere
+        // Stage 0 & 1: Architectural cyan-grey dusk
+        keyLight.color.setHex(0xf0faff);
+        horizonRimLight.color.setHex(0x8ae0f4);
         limeAccentLight.intensity = 2.8;
-        keyLight.intensity = 3.6;
-        skyMat.uniforms.uHorizonColor.value.setHex(0x0c1b24);
       }
 
       renderer.render(scene, camera);
@@ -429,10 +450,19 @@ export default function CinematicHeroExperience() {
 
     animate();
 
-    // 10. Cleanup on unmount
+    // 10. Clean-up WebGL resources on unmount
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', onResize);
+
+      skyDome.geometry.dispose();
+      skyMat.dispose();
+
+      disposeMistBand();
+      disposeRidges();
+      disposeGround();
+      fogSystem.dispose();
+      disposeDust();
 
       coreGeom.dispose();
       titaniumGeom.dispose();
@@ -447,37 +477,20 @@ export default function CinematicHeroExperience() {
       matSlate.dispose();
       matLimeAccent.dispose();
 
-      skyDome.geometry.dispose();
-      skyMat.dispose();
-
-      groundMesh.geometry.dispose();
-      groundMat.dispose();
-
-      monolithGroup.children.forEach((c) => {
-        if (c instanceof THREE.Mesh) c.geometry.dispose();
-      });
-      monolithMats.forEach((m) => m.dispose());
-
-      fogSystem.dispose();
-      disposeDust();
-
       renderer.dispose();
-      if (renderer.domElement && holder.contains(renderer.domElement)) {
+      if (holder.contains(renderer.domElement)) {
         holder.removeChild(renderer.domElement);
       }
     };
   }, []);
 
-  // Programmatic scroll helper to jump to a specific chapter
   const scrollToChapter = (index: number) => {
     if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const currentY = window.scrollY;
-    const containerTop = currentY + rect.top;
-    const totalDist = rect.height - window.innerHeight;
+    const containerTop = containerRef.current.offsetTop;
+    const totalDist = containerRef.current.offsetHeight - window.innerHeight;
 
-    let targetFraction = 0.05;
-    if (index === 1) targetFraction = 0.32;
+    let targetFraction = 0;
+    if (index === 1) targetFraction = 0.35;
     if (index === 2) targetFraction = 0.60;
     if (index === 3) targetFraction = 0.88;
 
@@ -490,7 +503,7 @@ export default function CinematicHeroExperience() {
   const currentChapter = CHAPTERS[activeChapterIndex];
 
   return (
-    <div ref={containerRef} className="relative w-full h-[440vh] bg-[#05070A]">
+    <div ref={containerRef} className="relative w-full h-[440vh] bg-[#04080d]">
       
       {/* =========================================================================
           STICKY FULL-VIEWPORT 3D CANVAS & EDITORIAL CHOREOGRAPHY
@@ -542,38 +555,71 @@ export default function CinematicHeroExperience() {
         {/* Fullscreen 3D Three.js WebGL Scene Canvas */}
         <div ref={canvasHolderRef} className="absolute inset-0 w-full h-full pointer-events-auto" />
 
-        {/* Soft Vignette Overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#05070A_98%)] pointer-events-none opacity-30" />
+        {/* Soft Radial Vignette Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#04080d_98%)] pointer-events-none opacity-25" />
+
+        {/* =========================================================================
+            FLANKED ADJACENT CHAPTER LABELS (Reference Style: Angled Outlined Edge Text)
+            ========================================================================= */}
+        {/* Left Edge: Previous Chapter Indicator */}
+        <div className="absolute left-6 sm:left-12 bottom-28 sm:bottom-32 pointer-events-auto hidden md:block select-none z-20">
+          <button
+            onClick={() => scrollToChapter(activeChapterIndex === 0 ? 3 : activeChapterIndex - 1)}
+            className="group flex items-center gap-2 text-left cursor-pointer transition-all duration-300"
+          >
+            <span className="text-[10px] font-mono tracking-widest text-neutral-600 group-hover:text-[#D4FF00] transition-colors">
+              ← PREV
+            </span>
+            <span className="text-xs font-mono font-medium tracking-wider text-neutral-500 group-hover:text-white transition-colors">
+              {currentChapter.prevName}
+            </span>
+          </button>
+        </div>
+
+        {/* Right Edge: Next Chapter Indicator */}
+        <div className="absolute right-6 sm:right-12 bottom-28 sm:bottom-32 pointer-events-auto hidden md:block select-none z-20">
+          <button
+            onClick={() => scrollToChapter(activeChapterIndex === 3 ? 0 : activeChapterIndex + 1)}
+            className="group flex items-center gap-2 text-right cursor-pointer transition-all duration-300 ml-auto"
+          >
+            <span className="text-xs font-mono font-medium tracking-wider text-neutral-500 group-hover:text-white transition-colors">
+              {currentChapter.nextName}
+            </span>
+            <span className="text-[10px] font-mono tracking-widest text-neutral-600 group-hover:text-[#D4FF00] transition-colors">
+              NEXT →
+            </span>
+          </button>
+        </div>
 
         {/* =====================================================================
-            EDITORIAL TYPOGRAPHY STAGES (Positioned Prominently in Lower-Middle)
+            EDITORIAL TYPOGRAPHY STAGES (Centered in Lower-Middle, Reference Style)
             ===================================================================== */}
         
         {/* STAGE 0: HERO OVERVIEW */}
         <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-center px-6 sm:px-12 lg:px-16 pt-24 pb-16 transition-all duration-700 ease-out ${
+          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
             activeChapterIndex === 0
               ? 'opacity-100 translate-y-0'
-              : 'opacity-0 -translate-y-8 pointer-events-none'
+              : 'opacity-0 translate-y-8 pointer-events-none'
           }`}
         >
-          <div className="max-w-3xl">
-            <span className="text-[11px] font-mono tracking-[0.25em] text-[#D4FF00] uppercase block mb-3">
+          <div className="max-w-2xl mx-auto flex flex-col items-center">
+            <span className="text-[11px] font-mono tracking-[0.25em] text-[#D4FF00] uppercase block mb-2 drop-shadow">
               {CHAPTERS[0].heroKicker}
             </span>
 
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-[0.88] drop-shadow-2xl">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
               <div>EVERY RESOURCE.</div>
-              <div className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-300 to-[#D4FF00]">
+              <div className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-200 to-[#D4FF00]">
                 A NEW POSSIBILITY.
               </div>
             </h1>
 
-            <p className="mt-4 max-w-md text-sm sm:text-base text-neutral-300 font-normal leading-relaxed drop-shadow-md">
+            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 font-normal leading-relaxed drop-shadow-md mx-auto">
               {CHAPTERS[0].copy}
             </p>
 
-            <div className="pointer-events-auto flex flex-wrap items-center gap-4 mt-6">
+            <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-4 mt-5">
               <Link
                 href="/explore"
                 className="inline-flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-xl shadow-[#D4FF00]/20"
@@ -583,7 +629,7 @@ export default function CinematicHeroExperience() {
               </Link>
               <button
                 onClick={() => scrollToChapter(1)}
-                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-mono text-xs uppercase tracking-wider px-5 py-3 rounded-full border border-white/10 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-mono text-xs uppercase tracking-wider px-5 py-3 rounded-full border border-white/10 transition-all cursor-pointer backdrop-blur-sm"
               >
                 <span>Discover Three Dimensions</span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#D4FF00]" />
@@ -592,30 +638,29 @@ export default function CinematicHeroExperience() {
           </div>
         </div>
 
-        {/* STAGE 1: LAND, PROPERTY & SPACES (Left-aligned, Rotor on Right) */}
+        {/* STAGE 1: LAND, PROPERTY & SPACES (Architectural Relief at 0°) */}
         <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-end pb-24 sm:pb-28 px-6 sm:px-12 lg:px-16 transition-all duration-700 ease-out ${
+          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
             activeChapterIndex === 1
-              ? 'opacity-100 translate-x-0'
-              : 'opacity-0 -translate-x-12 pointer-events-none'
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 translate-y-8 pointer-events-none'
           }`}
         >
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#101920]/90 border border-white/10 text-xs font-mono text-[#D4FF00] mb-3">
+          <div className="max-w-2xl mx-auto flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0a151d]/90 border border-white/10 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
               <Building2 className="w-3.5 h-3.5" />
               <span>01 / ARCHITECTURAL CAPACITY</span>
             </div>
             
-            <h2 className="text-5xl sm:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-[0.9] mb-4 drop-shadow-xl">
-              SPACE <br />
-              <span className="text-neutral-400">TO BUILD.</span>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
+              SPACE TO BUILD.
             </h2>
 
-            <p className="text-sm sm:text-base text-neutral-300 leading-relaxed mb-6 max-w-lg drop-shadow-md">
+            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 leading-relaxed drop-shadow-md mx-auto">
               {CHAPTERS[1].copy}
             </p>
 
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto mt-5">
               <Link
                 href="/explore?category=space"
                 className="inline-flex items-center gap-2.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-lg shadow-[#D4FF00]/15"
@@ -627,30 +672,29 @@ export default function CinematicHeroExperience() {
           </div>
         </div>
 
-        {/* STAGE 2: PHYSICAL ASSETS (Right-aligned, Rotor on Left) */}
+        {/* STAGE 2: PHYSICAL ASSETS (Mechanical Relief at 120°) */}
         <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-end pb-24 sm:pb-28 px-6 sm:px-12 lg:px-16 transition-all duration-700 ease-out ${
+          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
             activeChapterIndex === 2
-              ? 'opacity-100 translate-x-0'
-              : 'opacity-0 translate-x-12 pointer-events-none'
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 translate-y-8 pointer-events-none'
           }`}
         >
-          <div className="max-w-xl text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#101920]/90 border border-white/10 text-xs font-mono text-white mb-3">
+          <div className="max-w-2xl mx-auto flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0a151d]/90 border border-white/10 text-xs font-mono text-white mb-2 backdrop-blur-sm">
               <Cog className="w-3.5 h-3.5 text-[#D4FF00]" />
               <span>02 / PRECISION HARDWARE</span>
             </div>
             
-            <h2 className="text-5xl sm:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-[0.9] mb-4 drop-shadow-xl">
-              TOOLS <br />
-              <span className="text-neutral-400">IN MOTION.</span>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
+              TOOLS IN MOTION.
             </h2>
 
-            <p className="text-sm sm:text-base text-neutral-300 leading-relaxed mb-6 max-w-lg ml-auto drop-shadow-md">
+            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 leading-relaxed drop-shadow-md mx-auto">
               {CHAPTERS[2].copy}
             </p>
 
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto mt-5">
               <Link
                 href="/explore?category=equipment"
                 className="inline-flex items-center gap-2.5 bg-white hover:bg-neutral-200 text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-lg"
@@ -662,32 +706,29 @@ export default function CinematicHeroExperience() {
           </div>
         </div>
 
-        {/* STAGE 3: DIGITAL & TECH (Centered Panoramic Composition) */}
+        {/* STAGE 3: DIGITAL & TECH (Computational Relief at 240°) */}
         <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-end pb-24 sm:pb-28 px-6 sm:px-12 lg:px-16 transition-all duration-700 ease-out ${
+          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
             activeChapterIndex === 3
               ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-12 pointer-events-none'
+              : 'opacity-0 translate-y-8 pointer-events-none'
           }`}
         >
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#101920]/90 border border-white/10 text-xs font-mono text-[#D4FF00] mb-3">
+          <div className="max-w-2xl mx-auto flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0a151d]/90 border border-white/10 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
               <Cpu className="w-3.5 h-3.5" />
               <span>03 / COMPUTATIONAL ALLOCATION</span>
             </div>
             
-            <h2 className="text-5xl sm:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-white leading-[0.9] mb-4 drop-shadow-xl">
-              ACCESS <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4FF00] to-white">
-                WHAT'S NEXT.
-              </span>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
+              ACCESS WHAT'S NEXT.
             </h2>
 
-            <p className="text-sm sm:text-base text-neutral-300 leading-relaxed mb-6 max-w-xl drop-shadow-md">
+            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 leading-relaxed drop-shadow-md mx-auto">
               {CHAPTERS[3].copy}
             </p>
 
-            <div className="pointer-events-auto flex flex-wrap items-center gap-4">
+            <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-4 mt-5">
               <Link
                 href="/explore?category=digital"
                 className="inline-flex items-center gap-2.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-xl shadow-[#D4FF00]/20"
@@ -697,7 +738,7 @@ export default function CinematicHeroExperience() {
               </Link>
               <Link
                 href="/match"
-                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-mono text-xs uppercase tracking-wider px-5 py-3 rounded-full border border-white/10 transition-all"
+                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-mono text-xs uppercase tracking-wider px-5 py-3 rounded-full border border-white/10 transition-all backdrop-blur-sm"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#D4FF00]" />
                 <span>Test Natural Intent Engine</span>
@@ -709,7 +750,7 @@ export default function CinematicHeroExperience() {
         {/* =========================================================================
             MINIMAL PERIMETER LABELS & SCROLL PROGRESS (Art-directed portfolio style)
             ========================================================================= */}
-        <div className="absolute bottom-6 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none">
+        <div className="absolute bottom-6 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none z-30">
           
           {/* Bottom-Left: Dimension Tracker */}
           <div className="flex items-center gap-2">
