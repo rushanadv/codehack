@@ -4,14 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, ArrowRight, ChevronDown, Sparkles, Building2, Cog, Cpu } from 'lucide-react';
 import * as THREE from 'three';
-import {
-  createRotorCoreGeometry,
-  createTitaniumAccentsGeometry,
-  createSlatePanelsGeometry,
-  createPropertySpacesMotifGeometry,
-  createPhysicalAssetsMotifGeometry,
-  createDigitalTechMotifGeometry,
-} from './rotor-geometry';
+import { createOrganicMonolithGeometry } from './organic-monolith-geometry';
+import { createOrganicMonolithMaterial } from './organic-monolith-material';
 import {
   createAtmosphericSkyDome,
   createHorizonMistBand,
@@ -179,15 +173,15 @@ export default function CinematicHeroExperience() {
 
     // 1. Scene Setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x04080d);
-    scene.fog = new THREE.FogExp2(0x102430, 0.022);
+    scene.background = new THREE.Color(0x0a0504);
+    scene.fog = new THREE.FogExp2(0x1a0d0a, 0.022);
 
-    // 2. Camera Setup (Tuned to frame rotor in upper-middle viewport with expansive landscape)
+    // 2. Camera Setup (Tuned to frame organic monolith in upper-middle viewport with expansive desert landscape)
     const width = window.innerWidth;
     const height = window.innerHeight;
     const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 180);
-    camera.position.set(0, 0.65, 8.0);
-    camera.lookAt(0, 0.42, 0);
+    camera.position.set(0, 0.58, 8.4);
+    camera.lookAt(0, 0.38, 0);
 
     // 3. High-Performance WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -202,21 +196,21 @@ export default function CinematicHeroExperience() {
     holder.appendChild(renderer.domElement);
 
     // 4. ATMOSPHERIC WORLD ENVIRONMENT
-    // A. Vast Sky & Horizon Gradient Dome (Petroleum-teal horizon)
+    // A. Vast Warm Desert Dusk Sky & Horizon Dome
     const { mesh: skyDome, material: skyMat } = createAtmosphericSkyDome();
     scene.add(skyDome);
 
-    // B. Horizon Mist Band (Horizontal Luminous Ribbon across horizon)
+    // B. Horizon Mist Band (Warm Peach-Amber Ribbon across horizon)
     const { mesh: mistBandMesh, material: mistBandMat, update: updateMistBand, dispose: disposeMistBand } =
       createHorizonMistBand();
     scene.add(mistBandMesh);
 
-    // C. Low Natural Mountain Ridge Silhouettes along Horizon
+    // C. Low Desert Mountain Ridge Silhouettes along Horizon
     const { mesh: ridgesMesh, material: ridgesMat, dispose: disposeRidges } =
       createDistantTerrainRidges();
     scene.add(ridgesMesh);
 
-    // D. Dark Reflective Ground / Calm Water Plane
+    // D. Dark Desert Ground Plane with Dynamic Contact Shadow
     const { mesh: groundMesh, material: groundMat, update: updateGround, dispose: disposeGround } =
       createAtmosphericGround();
     scene.add(groundMesh);
@@ -231,109 +225,51 @@ export default function CinematicHeroExperience() {
     scene.add(dustPoints);
 
     // 5. STUDIO & ENVIRONMENTAL LIGHTING RIG
-    const ambientLight = new THREE.AmbientLight(0x183040, 2.2);
+    const ambientLight = new THREE.AmbientLight(0x2a140e, 2.4);
     scene.add(ambientLight);
 
-    // Key Directional Light (Cold white/cyan specular highlight)
-    const keyLight = new THREE.DirectionalLight(0xf2faff, 4.2);
+    // Key Directional Light (Warm desert sunlight)
+    const keyLight = new THREE.DirectionalLight(0xffeedb, 4.2);
     keyLight.position.set(5.5, 7.0, 5.0);
     scene.add(keyLight);
 
-    // Fill Light (Desaturated petroleum-teal atmospheric bounce)
-    const fillLight = new THREE.DirectionalLight(0x5a90a6, 2.4);
+    // Fill Light (Terracotta atmospheric bounce)
+    const fillLight = new THREE.DirectionalLight(0x7a3a22, 2.4);
     fillLight.position.set(-6.0, 3.5, 4.0);
     scene.add(fillLight);
 
-    // Horizon Backlight / Contouring Rim Light (Metallic edge separation against fog)
-    const horizonRimLight = new THREE.DirectionalLight(0x8ae0f4, 3.8);
+    // Horizon Backlight / Contouring Rim Light (Soft peach rim highlighting sculptural silhouette)
+    const horizonRimLight = new THREE.DirectionalLight(0xf2cfb8, 3.8);
     horizonRimLight.position.set(0.0, 4.5, -6.5);
     scene.add(horizonRimLight);
 
-    // Acid-Lime Underglow Point Light (Bounces onto base collar and water)
-    const limeAccentLight = new THREE.PointLight(0xd4ff00, 2.8, 9.0);
+    // Acid-Lime Underglow Point Light (Subtle brand underglow bounce at the base)
+    const limeAccentLight = new THREE.PointLight(0xd4ff00, 2.4, 9.0);
     limeAccentLight.position.set(0, -1.8, 1.2);
     scene.add(limeAccentLight);
 
-    // 6. ROTOR MATERIALS (Industrial Graphite, Brushed Titanium, Anodized Slate, Lime)
-    const matGraphite = new THREE.MeshStandardMaterial({
-      color: 0x1e232b,
-      metalness: 0.88,
-      roughness: 0.32,
-      envMapIntensity: 1.2,
-    });
+    // 6. ASSEMBLE 3D PROCEDURAL ORGANIC MONOLITH
+    // Weathered, cloud-banded terracotta sculptural stone inspired by "CLARTÉ WORLD"
+    const monolithGeom = createOrganicMonolithGeometry();
+    const monolithMat = createOrganicMonolithMaterial();
+    const monolithMesh = new THREE.Mesh(monolithGeom, monolithMat);
 
-    const matTitanium = new THREE.MeshStandardMaterial({
-      color: 0xd0d6e0,
-      metalness: 0.94,
-      roughness: 0.18,
-      envMapIntensity: 1.8,
-    });
+    // Balanced scale: occupies ~52% of viewport height, grounded in desert mist
+    monolithMesh.scale.set(0.96, 0.96, 0.96);
+    monolithMesh.position.set(0, 0.62, 0);
+    scene.add(monolithMesh);
 
-    const matSlate = new THREE.MeshStandardMaterial({
-      color: 0x161a22,
-      metalness: 0.82,
-      roughness: 0.38,
-    });
-
-    const matLimeAccent = new THREE.MeshStandardMaterial({
-      color: 0xd4ff00,
-      emissive: 0xd4ff00,
-      emissiveIntensity: 0.75,
-      metalness: 0.1,
-      roughness: 0.25,
-    });
-
-    // 7. ASSEMBLE 3D PROCEDURAL ROTOR MESHES
-    const coreGeom = createRotorCoreGeometry();
-    const coreMesh = new THREE.Mesh(coreGeom, matGraphite);
-
-    const titaniumGeom = createTitaniumAccentsGeometry();
-    const titaniumMesh = new THREE.Mesh(titaniumGeom, matTitanium);
-
-    const slateGeom = createSlatePanelsGeometry();
-    const slateMesh = new THREE.Mesh(slateGeom, matSlate);
-
-    const motif1Geom = createPropertySpacesMotifGeometry();
-    const motif1Mesh = new THREE.Mesh(motif1Geom, matTitanium);
-
-    const motif2Geom = createPhysicalAssetsMotifGeometry();
-    const motif2Mesh = new THREE.Mesh(motif2Geom, matTitanium);
-
-    const motif3Geom = createDigitalTechMotifGeometry();
-    const motif3Mesh = new THREE.Mesh(motif3Geom, matTitanium);
-
-    // Crown Lime Torus
-    const crownRingGeom = new THREE.TorusGeometry(0.85, 0.022, 16, 64);
-    crownRingGeom.rotateX(Math.PI / 2);
-    crownRingGeom.translate(0, 1.66, 0);
-    const crownRingMesh = new THREE.Mesh(crownRingGeom, matLimeAccent);
-
-    // Group holding the complete rotor
-    const rotorGroup = new THREE.Group();
-    rotorGroup.add(coreMesh);
-    rotorGroup.add(titaniumMesh);
-    rotorGroup.add(slateMesh);
-    rotorGroup.add(motif1Mesh);
-    rotorGroup.add(motif2Mesh);
-    rotorGroup.add(motif3Mesh);
-    rotorGroup.add(crownRingMesh);
-
-    // Balanced scale: occupies ~52% of viewport height, grounded in water and mist
-    rotorGroup.scale.set(0.96, 0.96, 0.96);
-    rotorGroup.position.set(0, 0.62, 0);
-    scene.add(rotorGroup);
-
-    // 8. Resize Handler
+    // 7. Resize Handler
     const onResize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
       camera.aspect = w / h;
       if (w < 768) {
         camera.fov = 38;
-        camera.position.set(0, 0.65, 8.4);
+        camera.position.set(0, 0.58, 8.8);
       } else {
         camera.fov = 34;
-        camera.position.set(0, 0.65, 8.0);
+        camera.position.set(0, 0.58, 8.4);
       }
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -341,10 +277,9 @@ export default function CinematicHeroExperience() {
     onResize();
     window.addEventListener('resize', onResize);
 
-    // 9. Continuous Animation Loop (Synchronized to Scroll & Mouse Parallax)
+    // 8. Continuous Animation Loop (Synchronized to Scroll & Mouse Parallax)
     let animId: number;
     const startTime = performance.now();
-    const FACE_STEP_RAD = (2 * Math.PI) / 3; // 120° in radians
 
     let currentRotY = 0;
     let currentPosX = 0;
@@ -362,13 +297,14 @@ export default function CinematicHeroExperience() {
 
       // Update Environmental Shaders
       skyMat.uniforms.uTime.value = elapsedTime;
+      monolithMat.uniforms.uTime.value = elapsedTime;
       updateMistBand(elapsedTime);
       updateGround(elapsedTime);
       fogSystem.update(elapsedTime, p);
       updateDust(elapsedTime);
 
       // Choreographed Target Transform based on scroll progress:
-      // The rotor remains centered as the main visual anchor, rotating 120° per stage
+      // The organic monolith rotates smoothly around vertical axis to reveal its sculptural profile
       let targetRotY = 0;
       let targetPosX = 0;
       let targetPosY = 0.62;
@@ -377,29 +313,29 @@ export default function CinematicHeroExperience() {
       const isMobile = window.innerWidth < 1024;
 
       if (p <= 0.22) {
-        // Stage 0: Hero Overview (0°)
+        // Stage 0: Hero Overview (Front Organic Silhouette)
         targetRotY = 0;
         targetPosX = 0;
         targetPosY = isMobile ? 0.65 : 0.62;
         targetScale = isMobile ? 0.86 : 0.96;
       } else if (p <= 0.48) {
-        // Stage 1: Property & Spaces (Face 1 at 0°)
+        // Stage 1: Property & Spaces (Rotates ~55° to reveal undulating side contour)
         const stageFactor = (p - 0.22) / (0.48 - 0.22);
-        targetRotY = 0;
+        targetRotY = -0.95 * Math.min(1, stageFactor * 1.05);
         targetPosX = 0;
         targetPosY = isMobile ? 0.68 : 0.64;
         targetScale = isMobile ? 0.88 : 0.98;
       } else if (p <= 0.74) {
-        // Stage 2: Physical Assets (Face 2 at 120°)
+        // Stage 2: Physical Assets (Rotates ~120° to reveal rear terracotta strata)
         const stageFactor = (p - 0.48) / (0.74 - 0.48);
-        targetRotY = -FACE_STEP_RAD * Math.min(1, stageFactor * 1.05);
+        targetRotY = -0.95 - 1.15 * Math.min(1, stageFactor * 1.05);
         targetPosX = 0;
         targetPosY = isMobile ? 0.68 : 0.64;
         targetScale = isMobile ? 0.88 : 0.98;
       } else {
-        // Stage 3: Digital & Tech (Face 3 at 240°)
+        // Stage 3: Digital & Tech (Rotates ~200° to reveal right sculptural swell & cream band)
         const stageFactor = Math.min(1, (p - 0.74) / (1.00 - 0.74));
-        targetRotY = -FACE_STEP_RAD * (1 + stageFactor);
+        targetRotY = -2.10 - 1.35 * stageFactor;
         targetPosX = 0;
         targetPosY = isMobile ? 0.68 : 0.64;
         targetScale = isMobile ? 0.90 : 1.00;
@@ -410,38 +346,38 @@ export default function CinematicHeroExperience() {
       currentPosX += (targetPosX - currentPosX) * 0.08;
       currentPosY += (targetPosY - currentPosY) * 0.08;
 
-      rotorGroup.rotation.y = currentRotY;
-      rotorGroup.position.x = currentPosX;
-      rotorGroup.position.y = currentPosY + Math.sin(elapsedTime * 0.7) * 0.015; // Gentle organic float
-      rotorGroup.scale.set(targetScale, targetScale, targetScale);
+      monolithMesh.rotation.y = currentRotY;
+      monolithMesh.position.x = currentPosX;
+      monolithMesh.position.y = currentPosY + Math.sin(elapsedTime * 0.7) * 0.015; // Gentle organic float
+      monolithMesh.scale.set(targetScale, targetScale, targetScale);
 
       // Subtle dynamic tilt and mouse parallax
-      rotorGroup.rotation.x = Math.sin(elapsedTime * 0.4) * 0.012 + 0.02 + mouse.y * 0.02;
-      rotorGroup.rotation.z = Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.015;
+      monolithMesh.rotation.x = Math.sin(elapsedTime * 0.4) * 0.012 + 0.02 + mouse.y * 0.02;
+      monolithMesh.rotation.z = Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.015;
 
-      // Update ground contact shadow position to track rotor
+      // Update ground contact shadow position to track monolith
       groundMat.uniforms.uRotorPos.value.set(currentPosX, 0.0);
 
       // Camera parallax
       camera.position.x = mouse.x * 0.18;
-      camera.position.y = 0.65 + mouse.y * 0.10;
-      camera.lookAt(currentPosX * 0.15, currentPosY * 0.75, 0);
+      camera.position.y = 0.58 + mouse.y * 0.10;
+      camera.lookAt(currentPosX * 0.15, currentPosY * 0.70, 0);
 
       // Stage-specific environmental lighting transitions
       if (p >= 0.74) {
-        // Stage 3: Computational accent
-        keyLight.color.setHex(0xe8f8ff);
-        horizonRimLight.color.setHex(0xa2f0ff);
-        limeAccentLight.intensity = 3.4;
+        // Stage 3: Luminous amber-peach dusk
+        keyLight.color.setHex(0xffedd8);
+        horizonRimLight.color.setHex(0xf4d2be);
+        limeAccentLight.intensity = 3.0;
       } else if (p >= 0.48) {
-        // Stage 2: Precision metallic steel
-        keyLight.color.setHex(0xffffff);
-        horizonRimLight.color.setHex(0x7ecce0);
+        // Stage 2: Rich terracotta warmth
+        keyLight.color.setHex(0xfff0e2);
+        horizonRimLight.color.setHex(0xebae94);
         limeAccentLight.intensity = 2.4;
       } else {
-        // Stage 0 & 1: Architectural cyan-grey dusk
-        keyLight.color.setHex(0xf0faff);
-        horizonRimLight.color.setHex(0x8ae0f4);
+        // Stage 0 & 1: Deep dusk terracotta
+        keyLight.color.setHex(0xffeedb);
+        horizonRimLight.color.setHex(0xf2cfb8);
         limeAccentLight.intensity = 2.8;
       }
 
@@ -450,7 +386,7 @@ export default function CinematicHeroExperience() {
 
     animate();
 
-    // 10. Clean-up WebGL resources on unmount
+    // 9. Clean-up WebGL resources on unmount
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', onResize);
@@ -464,18 +400,8 @@ export default function CinematicHeroExperience() {
       fogSystem.dispose();
       disposeDust();
 
-      coreGeom.dispose();
-      titaniumGeom.dispose();
-      slateGeom.dispose();
-      motif1Geom.dispose();
-      motif2Geom.dispose();
-      motif3Geom.dispose();
-      crownRingGeom.dispose();
-
-      matGraphite.dispose();
-      matTitanium.dispose();
-      matSlate.dispose();
-      matLimeAccent.dispose();
+      monolithGeom.dispose();
+      monolithMat.dispose();
 
       renderer.dispose();
       if (holder.contains(renderer.domElement)) {
@@ -503,7 +429,7 @@ export default function CinematicHeroExperience() {
   const currentChapter = CHAPTERS[activeChapterIndex];
 
   return (
-    <div ref={containerRef} className="relative w-full h-[440vh] bg-[#04080d]">
+    <div ref={containerRef} className="relative w-full h-[440vh] bg-[#0a0504]">
       
       {/* =========================================================================
           STICKY FULL-VIEWPORT 3D CANVAS & EDITORIAL CHOREOGRAPHY
@@ -556,7 +482,7 @@ export default function CinematicHeroExperience() {
         <div ref={canvasHolderRef} className="absolute inset-0 w-full h-full pointer-events-auto" />
 
         {/* Soft Radial Vignette Overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#04080d_98%)] pointer-events-none opacity-25" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#0a0504_98%)] pointer-events-none opacity-25" />
 
         {/* =========================================================================
             FLANKED ADJACENT CHAPTER LABELS (Reference Style: Angled Outlined Edge Text)
