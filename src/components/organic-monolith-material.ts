@@ -2,159 +2,159 @@ import * as THREE from 'three';
 import { GLSL_SIMPLEX_NOISE } from './atmospheric-shaders';
 
 // ============================================================================
-// PROCEDURAL GEOLOGICAL CLOUD-BAND MATERIAL
-// Recreates the burnt-orange, terracotta, rust-red, peach, and cream layers
-// directly inspired by the sculptural monolith above "CLARTÉ WORLD"
+// FUTURISTIC TRANSLUCENT AMBER GLASS & POLISHED RESIN ARTEFACT SHADER
+// Refined material language:
+// - Deep burnt amber & rich copper-orange body with rust-red undertones
+// - Subsurface light transmission (backlight scatter through translucent resin)
+// - Warm luminous internal core illumination (breathing digital energy core)
+// - Flowing optical caustic ribbons inside the volume (blown-glass depth)
+// - Dual-layer specular highlights (sharp polished glass clearcoat + soft subsurface sheen)
+// - Warm golden-peach Fresnel rim contouring against dark dusk atmosphere
 // ============================================================================
 export function createOrganicMonolithMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uLightDirection: { value: new THREE.Vector3(4.5, 6.0, 4.0).normalize() },
-      uLightColor: { value: new THREE.Color(0xffeedb) },        // Warm desert sun highlight
-      uFillColor: { value: new THREE.Color(0x4a2418) },         // Terracotta atmospheric fill
-      uRimColor: { value: new THREE.Color(0xf6d4be) },          // Soft dusty peach rim light
-      uAmbientColor: { value: new THREE.Color(0x28130e) },      // Deep earth ambient
-      uLimeAccent: { value: new THREE.Color(0xd4ff00) },        // Subtle IdleX brand underglow
+      uLightDirection: { value: new THREE.Vector3(2.2, 4.2, 4.8).normalize() },
+      uBackLightDirection: { value: new THREE.Vector3(0.0, 3.2, -4.5).normalize() },
+      uLightColor: { value: new THREE.Color(0xfff5ea) },         // Warm studio key highlight
+      uFillColor: { value: new THREE.Color(0xd9653b) },          // Terracotta / copper fill
+      uRimColor: { value: new THREE.Color(0xf6ba8e) },           // Soft warm golden-peach rim
+      uAmbientColor: { value: new THREE.Color(0x280e07) },       // Deep mahogany earth ambient
+      uBacklightColor: { value: new THREE.Color(0xf58a36) },     // Luminous amber backlight transmission
+      uCoreGlowColor: { value: new THREE.Color(0xffad42) },      // Golden internal energy core
     },
     vertexShader: `
       varying vec3 vObjectPosition;
       varying vec3 vWorldPosition;
-      varying vec3 vNormal;
-      varying vec3 vViewPosition;
+      varying vec3 vWorldNormal;
+      varying vec3 vWorldViewDir;
 
       void main() {
         vObjectPosition = position;
         vec4 worldPosition = modelMatrix * vec4(position, 1.0);
         vWorldPosition = worldPosition.xyz;
-        vNormal = normalize(normalMatrix * normal);
+        vWorldNormal = normalize(mat3(modelMatrix) * normal);
+        vWorldViewDir = normalize(cameraPosition - worldPosition.xyz);
         
-        vec4 mvPosition = viewMatrix * worldPosition;
-        vViewPosition = -mvPosition.xyz;
-        
-        gl_Position = projectionMatrix * mvPosition;
+        gl_Position = projectionMatrix * viewMatrix * worldPosition;
       }
     `,
     fragmentShader: `
       uniform float uTime;
       uniform vec3 uLightDirection;
+      uniform vec3 uBackLightDirection;
       uniform vec3 uLightColor;
       uniform vec3 uFillColor;
       uniform vec3 uRimColor;
       uniform vec3 uAmbientColor;
-      uniform vec3 uLimeAccent;
+      uniform vec3 uBacklightColor;
+      uniform vec3 uCoreGlowColor;
 
       varying vec3 vObjectPosition;
       varying vec3 vWorldPosition;
-      varying vec3 vNormal;
-      varying vec3 vViewPosition;
+      varying vec3 vWorldNormal;
+      varying vec3 vWorldViewDir;
 
       ${GLSL_SIMPLEX_NOISE}
 
-      // Smooth multi-strata geological cloud interpolation
-      vec3 getGeologicalCloudColor(float t) {
-        // Natural color stops matching reference "CLARTÉ WORLD":
-        // 1. Deep shadow rust: #3b110a
-        // 2. Burnt terracotta: #d46222
-        // 3. Deep rust-red:    #7a1e12
-        // 4. Luminous cream:   #f6dfd4
-        // 5. Dusty peach:      #e69a74
-        // 6. Warm amber-ochre: #be7a3c
+      // Smooth multi-depth amber glass color gradient
+      vec3 getAmberGlassDepthColor(float v, float caustic) {
+        // Controlled, refined amber color identity:
+        // 1. Deep shadow amber:  #240a04 (rich, dark, luxurious depth)
+        // 2. Terracotta rust:    #54170a (warm translucent transition)
+        // 3. Rich copper-orange: #b04618 (vibrant polished body)
+        // 4. Molten amber:       #df7624 (luminous internal warmth)
+        // 5. Golden honey:       #f5ab42 (grazing highlights & core glow)
 
-        vec3 cDarkRust   = vec3(0.24, 0.08, 0.05); // Deep shadow
-        vec3 cTerracotta = vec3(0.83, 0.38, 0.13); // Burnt terracotta
-        vec3 cRustRed    = vec3(0.50, 0.12, 0.07); // Rich rust-red
-        vec3 cCream      = vec3(0.96, 0.88, 0.83); // Cream cloud layer
-        vec3 cPeach      = vec3(0.91, 0.61, 0.46); // Dusty peach
-        vec3 cAmberOchre = vec3(0.76, 0.48, 0.25); // Warm amber
+        vec3 cDarkAmber  = vec3(0.14, 0.04, 0.015);
+        vec3 cRustRed    = vec3(0.35, 0.09, 0.04);
+        vec3 cCopper     = vec3(0.69, 0.28, 0.095);
+        vec3 cMoltenAmber= vec3(0.87, 0.46, 0.14);
+        vec3 cHoneyGold  = vec3(0.96, 0.67, 0.26);
 
-        float normT = clamp(t, 0.0, 1.0);
+        float t = clamp(v * 0.5 + 0.5, 0.0, 1.0);
 
-        vec3 col = cDarkRust;
-        if (normT < 0.18) {
-          // Base shadow to terracotta
-          float k = smoothstep(0.0, 0.18, normT);
-          col = mix(cDarkRust, cTerracotta, k);
-        } else if (normT < 0.36) {
-          // Terracotta to deep rust-red band
-          float k = smoothstep(0.18, 0.36, normT);
-          col = mix(cTerracotta, cRustRed, k);
-        } else if (normT < 0.54) {
-          // Rust-red to soft peach
-          float k = smoothstep(0.36, 0.54, normT);
-          col = mix(cRustRed, cPeach, k);
-        } else if (normT < 0.72) {
-          // Peach to luminous cream cloud band
-          float k = smoothstep(0.54, 0.72, normT);
-          col = mix(cPeach, cCream, k);
-        } else if (normT < 0.88) {
-          // Cream cloud to deep rust-red band
-          float k = smoothstep(0.72, 0.88, normT);
-          col = mix(cCream, cRustRed, k);
+        vec3 col = cDarkAmber;
+        if (t < 0.28) {
+          float k = smoothstep(0.0, 0.28, t);
+          col = mix(cDarkAmber, cRustRed, k);
+        } else if (t < 0.65) {
+          float k = smoothstep(0.28, 0.65, t);
+          col = mix(cRustRed, cCopper, k);
+        } else if (t < 0.88) {
+          float k = smoothstep(0.65, 0.88, t);
+          col = mix(cCopper, cMoltenAmber, k);
         } else {
-          // Upper rust-red to warm terracotta crest
-          float k = smoothstep(0.88, 1.0, normT);
-          col = mix(cRustRed, cTerracotta, k);
+          float k = smoothstep(0.88, 1.0, t);
+          col = mix(cMoltenAmber, cHoneyGold, k);
         }
 
+        // Modulate with internal optical caustic layer (smooth fluid ribbons)
+        col = mix(col, cHoneyGold, caustic * 0.28);
         return col;
       }
 
       void main() {
-        vec3 N = normalize(vNormal);
-        vec3 V = normalize(vViewPosition);
+        vec3 N = normalize(vWorldNormal);
+        vec3 V = normalize(vWorldViewDir);
         vec3 L = normalize(uLightDirection);
-
-        // 1. Organic Domain Warping for Horizontal Sedimentary Striations
+        vec3 BL = normalize(uBackLightDirection);
         vec3 p = vObjectPosition;
 
-        // Horizontally stretched noise (low freq in X/Z, higher freq in Y)
-        float w1 = snoise(vec2(p.x * 0.38 + 0.2, p.z * 0.38 + 0.5));
-        float w2 = snoise(vec2(p.x * 0.8 - 0.4, p.y * 1.4));
-        
-        // Primary horizontal band coordinate with organic undulating drift
-        float bandY = p.y * 0.42 + 0.5 + w1 * 0.14 + w2 * 0.08;
+        // 1. SILKY OPTICAL CAUSTIC FLOW (Smooth internal ribbons, zero rock noise)
+        // Wave equations that follow the sculptural ovoid curves with slow optical drift
+        float wave1 = sin(p.y * 1.8 + p.x * 1.2 + cos(p.z * 1.6 + uTime * 0.08) * 0.7);
+        float wave2 = cos(p.y * 1.4 - p.z * 1.5 + sin(p.x * 1.3) * 0.5);
+        float caustic = (wave1 * 0.5 + wave2 * 0.5) * 0.5 + 0.5;
+        caustic = smoothstep(0.25, 0.75, caustic);
 
-        // Secondary subtle cloud turbulence along the bands
-        float turbulence = fbm(vec2(p.x * 0.9 + p.z * 0.6, p.y * 2.2)) * 0.06;
-        bandY += turbulence;
+        // Normalized height along artefact
+        float vNorm = p.y / 1.95; // normalized -1 to +1
 
-        // Base geological color
-        vec3 baseAlbedo = getGeologicalCloudColor(bandY);
+        // Base volumetric amber glass albedo
+        vec3 baseAlbedo = getAmberGlassDepthColor(vNorm, caustic);
 
-        // Fine mineral grain texture
-        float grain = snoise(p.xy * 24.0) * 0.022;
-        baseAlbedo += grain;
-
-        // 2. Soft Wrapped Diffuse Lighting (Matte stone / velvety cloud feel)
+        // 2. SOFT WRAPPED DIFFUSE LIGHTING (Translucent resin response)
         float wrap = 0.40;
         float NdotL = max(0.0, (dot(N, L) + wrap) / (1.0 + wrap));
         vec3 diffuse = baseAlbedo * uLightColor * NdotL * 1.2;
 
         // Atmospheric fill bounce
         float NdotUp = max(0.0, dot(N, vec3(0.0, 1.0, 0.0)) * 0.5 + 0.5);
-        vec3 fill = baseAlbedo * uFillColor * NdotUp * 1.1;
+        vec3 fill = baseAlbedo * uFillColor * NdotUp * 0.85;
 
         // Deep earth ambient
-        vec3 ambient = baseAlbedo * uAmbientColor;
+        vec3 ambient = baseAlbedo * uAmbientColor * 1.2;
 
-        // 3. Subtle Non-Metallic Diffuse Sheen (No harsh plastic glare)
+        // 3. SUBSURFACE SCATTERING & BACKLIGHT TRANSMISSION (Amber glass depth)
+        // Light passing through the translucent volume toward the viewer from the rear
+        float subSurfaceFactor = pow(clamp(dot(V, -BL) * 0.7 + dot(N, -BL) * 0.3 + 0.25, 0.0, 1.0), 3.0);
+        vec3 subsurfaceGlow = uBacklightColor * subSurfaceFactor * 0.85;
+
+        // 4. WARM INTERNAL CORE ILLUMINATION (Breathing energy core)
+        // Radial volumetric falloff from the heart of the ovoid
+        float coreRadius = length(vec3(p.x * 1.15, (p.y - 0.05) * 0.75, p.z * 1.15));
+        float coreIntensity = exp(-coreRadius * coreRadius * 0.90);
+        vec3 internalCore = uCoreGlowColor * coreIntensity * 0.48;
+
+        // 5. DUAL-LAYER POLISHED GLASS SPECULAR HIGHLIGHTS
         vec3 H = normalize(L + V);
         float NdotH = max(0.0, dot(N, H));
-        float sheen = pow(NdotH, 6.0) * 0.07;
-        vec3 specCol = uLightColor * sheen;
+        
+        // Layer A: Crisp exterior clearcoat reflection (polished glass luster)
+        float clearcoat = pow(NdotH, 48.0) * 0.80;
+        // Layer B: Broad, soft subsurface sheen (rich optical body)
+        float softSheen = pow(NdotH, 8.0) * 0.16;
+        vec3 specular = uLightColor * (clearcoat + softSheen);
 
-        // 4. Soft Rim Lighting (Accentuates the sculptural silhouette against dusk)
-        float NdotV = max(0.0, dot(N, V));
-        float rimFactor = pow(1.0 - NdotV, 3.0);
-        vec3 rim = uRimColor * rimFactor * 0.55;
+        // 6. ELEGANT FRESNEL RIM CONTOURING
+        float NdotV = clamp(dot(N, V), 0.0, 1.0);
+        float fresnel = pow(1.0 - NdotV, 3.0);
+        vec3 rim = uRimColor * fresnel * 0.80;
 
-        // 5. Restrained Acid-Lime Underglow Bounce at the base
-        float baseDistance = clamp((-p.y - 0.9) / 1.1, 0.0, 1.0);
-        vec3 limeBounce = uLimeAccent * pow(baseDistance, 2.0) * 0.24;
-
-        // Final Composite Color
-        vec3 finalColor = ambient + diffuse + fill + specCol + rim + limeBounce;
+        // Final Composite: Depth + Translucency + Internal Glow + Clearcoat Specular + Rim Halo
+        vec3 finalColor = ambient + diffuse + fill + subsurfaceGlow + internalCore + specular + rim;
 
         gl_FragColor = vec4(finalColor, 1.0);
       }
