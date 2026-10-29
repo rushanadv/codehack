@@ -217,7 +217,7 @@ export default function CinematicHeroExperience() {
     scene.add(ambientLight);
 
     // Frontal Key Light (Warm golden-amber, illuminates front & right without bleaching)
-    const keyLight = new THREE.DirectionalLight(0xffcaa0, 1.5);
+    const keyLight = new THREE.DirectionalLight(0xffeedb, 1.5);
     keyLight.position.set(1.8, 3.8, 5.0);
     scene.add(keyLight);
 
@@ -256,29 +256,70 @@ export default function CinematicHeroExperience() {
     // 7. LOAD PROCEDURAL 3D ASSETS VIA GLTFLoader
     const gltfLoader = new GLTFLoader();
 
-    // Load idlex-monolith.glb
+    // Load idlex-amber-crystal.glb
     gltfLoader.load(
-      '/models/idlex-monolith.glb',
+      '/models/idlex-amber-crystal.glb',
       (gltf) => {
         const model = gltf.scene;
+
         model.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            mesh.material = new THREE.MeshStandardMaterial({
-              vertexColors: true,
-              roughness: 0.92, // Soft matte stone texture
-              metalness: 0.02,
-              envMapIntensity: 0.5,
-            });
+
+            // Compute vertex normals if missing
+            if (mesh.geometry && !mesh.geometry.attributes.normal) {
+              mesh.geometry.computeVertexNormals();
+            }
+
+            const meshName = mesh.name || '';
+            const isFront = meshName.includes('Front') || !!(mesh.material as THREE.MeshStandardMaterial)?.map;
+
+            if (isFront && mesh.material) {
+              // Preserve the reference texture from the supplied GLB
+              const frontMat = mesh.material as THREE.MeshStandardMaterial;
+              frontMat.roughness = 0.40;
+              frontMat.metalness = 0.02;
+              frontMat.side = THREE.DoubleSide;
+              frontMat.needsUpdate = true;
+            } else if (meshName.includes('Back') || mesh.geometry.attributes.color) {
+              // Faceted back geometry with embedded vertex colors
+              mesh.material = new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                roughness: 0.65,
+                metalness: 0.06,
+                side: THREE.DoubleSide,
+              });
+            } else {
+              // Darker side / rim geometry
+              mesh.material = new THREE.MeshStandardMaterial({
+                vertexColors: !!mesh.geometry.attributes.color,
+                roughness: 0.75,
+                metalness: 0.04,
+                side: THREE.DoubleSide,
+              });
+            }
           }
         });
+
+        // Center the crystal geometry so it rotates cleanly around its central Y axis
+        const bbox = new THREE.Box3().setFromObject(model);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        model.position.set(-center.x, -center.y, -center.z);
+
         monolithGroup.clear();
         monolithGroup.add(model);
+
+        if (typeof window !== 'undefined') {
+          (window as any).__IDLEX_SCENE__ = scene;
+          (window as any).__MONOLITH_GROUP__ = monolithGroup;
+          (window as any).__CRYSTAL_MODEL__ = model;
+        }
       },
       undefined,
-      (err) => console.error('Error loading idlex-monolith.glb:', err)
+      (err) => console.error('Error loading idlex-amber-crystal.glb:', err)
     );
 
     // Load idlex-terrain.glb
@@ -353,10 +394,13 @@ export default function CinematicHeroExperience() {
       const isMobile = window.innerWidth < 1024;
       let targetPosX = 0;
       let targetPosY = isMobile ? 0.36 : 0.35;
-      let targetScale = isMobile ? 0.54 : 0.64;
+      let targetScale = isMobile ? 0.58 : 0.70;
 
-      // Continuous autonomous rotation around vertical axis
-      const continuousAngle = elapsedTime * continuousSpinSpeed;
+      // Continuous autonomous rotation around vertical axis (supports precision testing at 0°, 45°, 90°, 180°)
+      const continuousAngle =
+        typeof window !== 'undefined' && (window as any).__PAUSE_SPIN__
+          ? ((window as any).__MANUAL_ROT_Y__ ?? 0)
+          : elapsedTime * continuousSpinSpeed;
 
       // Scroll-driven target rotation (radians): 0 -> 120° -> 240° -> 360°
       let scrollTargetRotY = 0;
