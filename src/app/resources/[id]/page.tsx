@@ -8,22 +8,15 @@ import {
   ShieldCheck, 
   ShieldAlert, 
   Clock, 
-  Layers, 
   QrCode, 
-  Calendar, 
   CheckCircle2, 
   AlertTriangle, 
   ArrowRight, 
-  Check, 
   RefreshCw,
-  Building2,
-  Cpu,
   User,
   Wrench,
-  FileText,
   Sparkles
 } from 'lucide-react';
-import { Resource, ConditionReport, MaintenanceRecord } from '@/lib/types';
 
 function ResourceDetailContent() {
   const { id } = useParams<{ id: string }>();
@@ -67,9 +60,9 @@ function ResourceDetailContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen py-32 text-center">
-        <div className="w-8 h-8 border-2 border-[#D4FF00] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <div className="text-xs font-mono text-neutral-400 uppercase tracking-widest">
-          Loading Resource Passport & Availability...
+        <div className="w-6 h-6 border-2 border-[#B65E42] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="text-xs font-mono text-[#B8ADA0] uppercase tracking-wider">
+          Loading Resource Details & Availability...
         </div>
       </div>
     );
@@ -77,18 +70,21 @@ function ResourceDetailContent() {
 
   if (!data?.resource) {
     return (
-      <div className="min-h-screen py-32 text-center max-w-md mx-auto px-4">
-        <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Resource Not Found</h2>
-        <p className="text-xs text-neutral-400 mb-6">The specified identifier does not match any registered asset.</p>
-        <Link href="/explore" className="bg-[#D4FF00] text-black px-4 py-2 rounded font-mono text-xs font-bold uppercase">
-          Return to Marketplace
+      <div className="min-h-screen py-32 text-center max-w-md mx-auto px-4 space-y-3">
+        <AlertTriangle className="w-8 h-8 text-[#C68A3C] mx-auto" />
+        <h2 className="text-base font-semibold text-[#F3EADF]">Resource Not Found</h2>
+        <p className="text-xs text-[#B8ADA0]">The specified identifier does not match any registered asset.</p>
+        <Link 
+          href="/explore" 
+          className="inline-flex items-center gap-1.5 bg-[#211E1B] hover:bg-[#B65E42] text-[#F3EADF] px-4 py-2 rounded-md text-xs font-medium border border-[#38312C] transition-colors"
+        >
+          Return to Directory
         </Link>
       </div>
     );
   }
 
-  const { resource, userEligibility, passport, bookings, alternatives } = data;
+  const { resource, userEligibility, passport, alternatives } = data;
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +92,6 @@ function ResourceDetailContent() {
     setBookingError(null);
     setBookingSuccess(null);
 
-    // Calculate dates
     const start = new Date(Date.now() + parseFloat(startOffsetHours) * 3600000);
     const end = new Date(start.getTime() + parseFloat(bookingHours) * 3600000);
 
@@ -108,13 +103,13 @@ function ResourceDetailContent() {
           resourceId: resource.id,
           startTime: start.toISOString(),
           endTime: end.toISOString(),
-          purpose: purpose || 'Academic Research Verification'
+          purpose: purpose || 'Standard research and prototyping reservation'
         })
       });
 
       const result = await res.json();
       if (!res.ok || !result.success) {
-        setBookingError(result.error || 'Booking reservation could not be completed.');
+        setBookingError(result.error || 'Failed to complete reservation');
       } else {
         setBookingSuccess(result.booking);
         fetchDetail();
@@ -145,7 +140,7 @@ function ResourceDetailContent() {
 
       const result = await res.json();
       if (res.ok && result.success) {
-        setWaitlistSuccess(`Successfully joined waitlist. Your queue position: ${result.entry.queue_position} (Priority Score: ${result.entry.priority_score})`);
+        setWaitlistSuccess(`Enrolled in queue. Position: ${result.entry.queue_position} (Priority Score: ${result.entry.priority_score})`);
       } else {
         setBookingError(result.error || 'Failed to join waitlist');
       }
@@ -156,114 +151,117 @@ function ResourceDetailContent() {
     }
   };
 
+  const isAvailable = resource.status === 'available';
+  const isInUse = resource.status === 'in_use';
+
   return (
-    <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* Top Breadcrumb & Status */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#AD7257]/20 text-xs font-mono">
-        <div className="flex items-center gap-2 text-[#A99A90]">
-          <Link href="/explore" className="hover:text-[#F1E7DE] transition-colors">Directory</Link>
-          <span className="text-[#AD7257]">/</span>
-          <span className="text-[#D9C5B4] uppercase">{resource.category}</span>
-          <span className="text-[#AD7257]">/</span>
-          <span className="text-[#D4FF00]">{resource.passport_id}</span>
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#38312C] text-xs">
+        <div className="flex items-center gap-2 text-[#B8ADA0]">
+          <Link href="/explore" className="hover:text-[#F3EADF] transition-colors">Directory</Link>
+          <span>/</span>
+          <span className="capitalize">{resource.category}</span>
+          <span>/</span>
+          <span className="text-[#F3EADF] font-mono">{resource.passport_id}</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="badge-tech bg-[#170D0A] text-[#D9C5B4] border border-[#AD7257]/30 font-mono">
+        <div className="flex items-center gap-2.5">
+          <span className="px-2.5 py-1 rounded bg-[#191715] text-[#B8ADA0] border border-[#38312C] font-mono text-[11px]">
             Turnaround Buffer: +{resource.turnaround_buffer_mins}m
           </span>
-          <span className={`badge-tech font-mono ${
-            resource.status === 'available'
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-              : 'bg-[#D96335]/25 text-[#D96335] border border-[#D96335]/40'
+          <span className={`px-2.5 py-1 rounded font-medium text-[11px] border flex items-center gap-1.5 ${
+            isAvailable
+              ? 'bg-[#4E7A5D]/15 text-[#6BA87E] border-[#4E7A5D]/30'
+              : 'bg-[#C68A3C]/15 text-[#E0A85C] border-[#C68A3C]/30'
           }`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-            {resource.status.toUpperCase()}
+            <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-[#6BA87E]' : 'bg-[#E0A85C]'}`} />
+            {isAvailable ? 'Available Now' : 'In Session'}
           </span>
         </div>
       </div>
 
-      {/* Main Grid: Left 2 Cols (Details, Specs, Passport), Right 1 Col (Booking / Handover Card) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Column (8 cols) */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-6">
           
-          {/* Hero Image & Overlay */}
-          <div className="relative h-80 sm:h-96 w-full rounded-2xl overflow-hidden border border-[#AD7257]/30 bg-[#090706]">
+          {/* Hero Image */}
+          <div className="relative h-72 sm:h-84 w-full rounded-xl overflow-hidden border border-[#38312C] bg-[#11100F]">
             <img
               src={resource.image_url}
               alt={resource.title}
               className="w-full h-full object-cover opacity-90"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#170D0A] via-transparent to-black/40"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#191715] via-transparent to-black/30" />
             
-            <div className="absolute bottom-6 left-6 right-6">
-              <span className="text-[11px] font-mono text-[#D4FF00] uppercase tracking-wider bg-[#090706]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#AD7257]/30 inline-block mb-2">
+            <div className="absolute bottom-5 left-5 right-5">
+              <span className="text-[11px] font-mono text-[#D69A49] uppercase tracking-wider bg-[#11100F]/90 backdrop-blur-md px-2.5 py-1 rounded border border-[#38312C] inline-block mb-1.5">
                 {resource.subcategory}
               </span>
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-[#F1E7DE] tracking-tight">
+              <h1 className="text-xl sm:text-3xl font-bold text-[#F3EADF] tracking-tight">
                 {resource.title}
               </h1>
             </div>
           </div>
 
-          {/* Navigation Tabs for Details */}
-          <div className="flex items-center gap-2 border-b border-[#AD7257]/20 pb-2">
+          {/* Navigation Tabs */}
+          <div className="flex items-center gap-1.5 border-b border-[#38312C] pb-2 text-xs">
             <button
               onClick={() => setActiveTab('booking')}
-              className={`px-4 py-2 rounded-xl font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
                 activeTab === 'booking'
-                  ? 'bg-[#24110C] text-[#D4FF00] font-bold border border-[#AD7257]/30'
-                  : 'text-[#A99A90] hover:text-[#F1E7DE]'
+                  ? 'bg-[#211E1B] text-[#F3EADF] border border-[#38312C]'
+                  : 'text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#191715]'
               }`}
             >
               Specifications & Access
             </button>
             <button
               onClick={() => setActiveTab('passport')}
-              className={`px-4 py-2 rounded-xl font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'passport'
-                  ? 'bg-[#24110C] text-[#D4FF00] font-bold border border-[#AD7257]/30'
-                  : 'text-[#A99A90] hover:text-[#F1E7DE]'
+                  ? 'bg-[#211E1B] text-[#F3EADF] border border-[#38312C]'
+                  : 'text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#191715]'
               }`}
             >
-              <QrCode className="w-3.5 h-3.5 text-[#D4FF00]" />
-              Resource Passport ({passport.conditionReports.length} Logs)
+              <QrCode className="w-3.5 h-3.5 text-[#D69A49]" />
+              Digital Passport ({passport?.conditionReports?.length || 0} Reports)
             </button>
             <button
               onClick={() => setActiveTab('maintenance')}
-              className={`px-4 py-2 rounded-xl font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'maintenance'
-                  ? 'bg-[#24110C] text-[#D4FF00] font-bold border border-[#AD7257]/30'
-                  : 'text-[#A99A90] hover:text-[#F1E7DE]'
+                  ? 'bg-[#211E1B] text-[#F3EADF] border border-[#38312C]'
+                  : 'text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#191715]'
               }`}
             >
               <Wrench className="w-3.5 h-3.5" />
-              Maintenance History ({passport.maintenanceRecords.length})
+              Maintenance ({passport?.maintenanceRecords?.length || 0})
             </button>
           </div>
 
           {/* TAB 1: SPECIFICATIONS & ACCESS */}
           {activeTab === 'booking' && (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* Description */}
-              <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 space-y-3 shadow-xl">
-                <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-[#F1E7DE]">Asset Profile</h3>
-                <p className="text-sm text-[#D9C5B4] leading-relaxed">
+              <div className="p-5 sm:p-6 rounded-xl bg-[#191715] border border-[#38312C] space-y-2">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-[#B8ADA0]">Resource Description</h3>
+                <p className="text-xs sm:text-sm text-[#F3EADF] leading-relaxed">
                   {resource.description}
                 </p>
               </div>
 
               {/* Technical Specifications */}
-              <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 space-y-4 shadow-xl">
-                <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-[#F1E7DE]">Technical Specifications</h3>
+              <div className="p-5 sm:p-6 rounded-xl bg-[#191715] border border-[#38312C] space-y-3">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-[#B8ADA0]">Verified Specifications</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
                   {Object.entries(resource.specifications || {}).map(([key, val]) => (
-                    <div key={key} className="p-3.5 rounded-xl bg-[#24110C] border border-[#AD7257]/20 flex flex-col justify-between">
-                      <span className="text-[#A99A90] capitalize">{key.replace(/_/g, ' ')}:</span>
-                      <span className="text-[#F1E7DE] font-medium mt-1">
+                    <div key={key} className="p-3 rounded-lg bg-[#211E1B] border border-[#38312C]/60 flex flex-col justify-between">
+                      <span className="text-[#B8ADA0] capitalize">{key.replace(/_/g, ' ')}:</span>
+                      <span className="text-[#F3EADF] font-medium mt-1">
                         {Array.isArray(val) ? val.join(', ') : String(val)}
                       </span>
                     </div>
@@ -273,46 +271,46 @@ function ResourceDetailContent() {
 
               {/* Custody & Location */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 shadow-xl">
-                  <div className="text-[10px] font-mono text-[#A99A90] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    Custodial Faculty & Owner
+                <div className="p-5 rounded-xl bg-[#191715] border border-[#38312C]">
+                  <div className="text-[10px] font-mono text-[#B8ADA0] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-[#D69A49]" />
+                    Custodial Provider
                   </div>
-                  <div className="font-bold text-[#F1E7DE] text-sm">{resource.owner_name}</div>
-                  <div className="text-xs text-[#D9C5B4] mt-0.5">{resource.owner_department}</div>
-                  <div className="text-xs text-[#A99A90]">{resource.owner_institution}</div>
+                  <div className="font-semibold text-[#F3EADF] text-xs sm:text-sm">{resource.owner_name}</div>
+                  <div className="text-xs text-[#B8ADA0] mt-0.5">{resource.building}</div>
+                  <div className="text-[11px] text-[#B8ADA0]/80 mt-0.5">{resource.owner_institution || 'IdleX Verified Facility (Fictional)'}</div>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 shadow-xl">
-                  <div className="text-[10px] font-mono text-[#A99A90] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#D4FF00]" />
+                <div className="p-5 rounded-xl bg-[#191715] border border-[#38312C]">
+                  <div className="text-[10px] font-mono text-[#B8ADA0] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#B65E42]" />
                     Physical Location
                   </div>
-                  <div className="font-bold text-[#F1E7DE] text-sm">{resource.building}</div>
-                  <div className="text-xs text-[#D9C5B4] mt-0.5">{resource.room}</div>
-                  <div className="text-xs text-[#A99A90]">{resource.location}</div>
+                  <div className="font-semibold text-[#F3EADF] text-xs sm:text-sm">{resource.room}</div>
+                  <div className="text-xs text-[#B8ADA0] mt-0.5">{resource.building}</div>
+                  <div className="text-[11px] text-[#B8ADA0]/80 mt-0.5">{resource.location}</div>
                 </div>
               </div>
 
               {/* SkillGate Gatekeeper Status */}
-              <div className={`p-6 rounded-2xl border flex items-start gap-4 shadow-xl ${
-                userEligibility.isEligible
-                  ? 'bg-emerald-500/10 border-emerald-500/30'
-                  : 'bg-[#D96335]/15 border-[#D96335]/40'
+              <div className={`p-4 sm:p-5 rounded-xl border flex items-start gap-3.5 ${
+                userEligibility?.isEligible
+                  ? 'bg-[#4E7A5D]/10 border-[#4E7A5D]/30'
+                  : 'bg-[#B84A39]/10 border-[#B84A39]/30'
               }`}>
-                {userEligibility.isEligible ? (
-                  <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
+                {userEligibility?.isEligible ? (
+                  <ShieldCheck className="w-5 h-5 text-[#6BA87E] shrink-0 mt-0.5" />
                 ) : (
-                  <ShieldAlert className="w-6 h-6 text-[#D96335] shrink-0 mt-0.5" />
+                  <ShieldAlert className="w-5 h-5 text-[#B84A39] shrink-0 mt-0.5" />
                 )}
                 <div>
-                  <div className="font-mono text-xs uppercase tracking-wider font-bold text-[#F1E7DE]">
-                    {userEligibility.isEligible ? 'SkillGate Verification: Cleared' : 'SkillGate Verification: Restricted'}
+                  <div className="text-xs font-semibold text-[#F3EADF]">
+                    {userEligibility?.isEligible ? 'SkillGate Verification: Cleared' : 'SkillGate Verification: Restricted'}
                   </div>
-                  <p className="text-xs text-[#D9C5B4] mt-1 leading-relaxed">
-                    {userEligibility.isEligible
-                      ? 'Your profile contains verified certification meeting all mandatory safety clearances for this resource.'
-                      : `You have not verified the required qualification: "${userEligibility.missingSkills.join(', ')}". Booking requests will be rejected by the server.`}
+                  <p className="text-xs text-[#B8ADA0] mt-1 leading-relaxed">
+                    {userEligibility?.isEligible
+                      ? 'Your profile holds verified credential authorization meeting all required operating protocols.'
+                      : `You have not verified the prerequisite credential: "${userEligibility?.missingSkills?.join(', ')}". Reservation will require administrator sign-off.`}
                   </p>
                 </div>
               </div>
@@ -321,61 +319,57 @@ function ResourceDetailContent() {
 
           {/* TAB 2: RESOURCE PASSPORT */}
           {activeTab === 'passport' && (
-            <div className="space-y-6">
-              <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 flex flex-col sm:flex-row items-center gap-6 shadow-xl">
-                {/* QR Code */}
-                <div className="p-4 bg-[#24110C] border border-[#AD7257]/30 rounded-2xl shrink-0 shadow-inner">
+            <div className="space-y-5">
+              <div className="p-5 sm:p-6 rounded-xl bg-[#191715] border border-[#38312C] flex flex-col sm:flex-row items-center gap-6">
+                <div className="p-3 bg-white rounded-lg shrink-0">
                   <img
-                    src={passport.qrCodeDataUrl}
+                    src={passport?.qrCodeDataUrl}
                     alt={`QR Code for ${resource.passport_id}`}
-                    className="w-40 h-40"
+                    className="w-32 h-32"
                   />
-                  <div className="text-center font-mono text-[9px] text-[#D4FF00] mt-2 font-bold tracking-wider">
-                    SCAN FOR HANDOVER
-                  </div>
                 </div>
 
-                <div className="space-y-2 text-xs font-mono">
-                  <div className="text-[10px] text-[#A99A90] uppercase tracking-widest">
-                    Digital Asset Passport
+                <div className="space-y-1.5 text-xs font-mono">
+                  <div className="text-[10px] text-[#B8ADA0] uppercase tracking-wider">
+                    Digital Passport ID
                   </div>
-                  <div className="text-xl font-bold text-[#F1E7DE]">{passport.passportId}</div>
-                  <div className="text-[#D9C5B4]">Serial Number: {passport.serialNumber}</div>
-                  <div className="text-[#D9C5B4]">Condition Rating: <span className="text-[#D4FF00] uppercase font-bold">{passport.conditionRating}</span></div>
-                  <div className="text-[11px] text-[#A99A90] leading-relaxed font-sans mt-2">
-                    Scannable physical QR attached to asset enclosure. Resolves to this verified audit passport for authorized checkout and return condition logging.
+                  <div className="text-base font-bold text-[#F3EADF]">{passport?.passportId}</div>
+                  <div className="text-[#B8ADA0]">Serial Number: {passport?.serialNumber}</div>
+                  <div className="text-[#B8ADA0]">
+                    Condition Rating: <span className="text-[#6BA87E] uppercase font-bold">{passport?.conditionRating}</span>
+                  </div>
+                  <div className="text-[11px] text-[#B8ADA0] leading-relaxed font-sans pt-1">
+                    Scannable physical QR code affixed to equipment enclosure. Used for automated condition checkout and checkin handovers.
                   </div>
                 </div>
               </div>
 
-              {/* Condition Log History */}
-              <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 space-y-4 shadow-xl">
-                <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-[#F1E7DE]">
-                  Handover & Condition Reports History
+              {/* Handover Log History */}
+              <div className="p-5 sm:p-6 rounded-xl bg-[#191715] border border-[#38312C] space-y-3">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-[#B8ADA0]">
+                  Handover Condition History
                 </h3>
 
-                {passport.conditionReports.length === 0 ? (
-                  <p className="text-xs text-[#A99A90]">No condition reports logged yet.</p>
+                {passport?.conditionReports?.length === 0 ? (
+                  <p className="text-xs text-[#B8ADA0]">No condition reports logged yet.</p>
                 ) : (
-                  <div className="space-y-3">
-                    {passport.conditionReports.map((report: any) => (
-                      <div key={report.id} className="p-4 rounded-xl bg-[#24110C] border border-[#AD7257]/20 text-xs space-y-2">
+                  <div className="space-y-2.5">
+                    {passport?.conditionReports?.map((report: any) => (
+                      <div key={report.id} className="p-3.5 rounded-lg bg-[#211E1B] border border-[#38312C]/60 text-xs space-y-1.5">
                         <div className="flex items-center justify-between font-mono">
-                          <span className={`px-2 py-0.5 rounded uppercase text-[10px] font-bold ${
-                            report.report_type === 'checkout' ? 'bg-[#D96335]/20 text-[#D96335]' : 'bg-emerald-500/20 text-emerald-400'
-                          }`}>
-                            {report.report_type} INSPECTION
+                          <span className="text-[#D69A49] font-medium text-[11px] uppercase">
+                            {report.report_type} Report
                           </span>
-                          <span className="text-[#A99A90] text-[10px]">
-                            {new Date(report.timestamp).toLocaleString()}
+                          <span className="text-[#B8ADA0] text-[10px]">
+                            {new Date(report.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                           </span>
                         </div>
-                        <div className="text-[#D9C5B4]">
-                          Inspected by: <span className="text-[#F1E7DE] font-medium">{report.reporter_name}</span> • Rating: <span className="text-[#D4FF00] font-bold uppercase">{report.condition_rating}</span>
+                        <div className="text-[#B8ADA0]">
+                          Inspected by: <span className="text-[#F3EADF] font-medium">{report.reporter_name}</span> • Rating: <span className="text-[#6BA87E] font-medium uppercase">{report.condition_rating}</span>
                         </div>
                         {report.discrepancies && (
-                          <div className="p-2.5 rounded-lg bg-[#170D0A] text-[#D9C5B4] font-mono text-[11px] border border-[#AD7257]/20">
-                            Notes / Diff: {report.discrepancies}
+                          <div className="p-2 rounded bg-[#191715] text-[#B8ADA0] text-[11px] border border-[#38312C]/40">
+                            Notes: {report.discrepancies}
                           </div>
                         )}
                       </div>
@@ -388,30 +382,30 @@ function ResourceDetailContent() {
 
           {/* TAB 3: MAINTENANCE LOGS */}
           {activeTab === 'maintenance' && (
-            <div className="space-y-6">
-              <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 space-y-4 shadow-xl">
-                <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-[#F1E7DE]">
-                  Preventative & Corrective Maintenance History
+            <div className="space-y-5">
+              <div className="p-5 sm:p-6 rounded-xl bg-[#191715] border border-[#38312C] space-y-3">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-[#B8ADA0]">
+                  Maintenance & Inspection History
                 </h3>
 
-                {passport.maintenanceRecords.length === 0 ? (
-                  <p className="text-xs text-[#A99A90]">No maintenance records logged.</p>
+                {passport?.maintenanceRecords?.length === 0 ? (
+                  <p className="text-xs text-[#B8ADA0]">No maintenance records logged.</p>
                 ) : (
-                  <div className="space-y-3">
-                    {passport.maintenanceRecords.map((m: any) => (
-                      <div key={m.id} className="p-4 rounded-xl bg-[#24110C] border border-[#AD7257]/20 text-xs space-y-2">
+                  <div className="space-y-2.5">
+                    {passport?.maintenanceRecords?.map((m: any) => (
+                      <div key={m.id} className="p-3.5 rounded-lg bg-[#211E1B] border border-[#38312C]/60 text-xs space-y-1">
                         <div className="flex items-center justify-between font-mono">
-                          <span className="text-[#D4FF00] font-bold uppercase text-[11px]">
-                            {m.maintenance_type.replace('_', ' ')}
+                          <span className="text-[#F3EADF] font-medium text-[11px] uppercase">
+                            {m.maintenance_type.replace(/_/g, ' ')}
                           </span>
-                          <span className="text-[#A99A90] text-[10px]">
+                          <span className="text-[#B8ADA0] text-[10px]">
                             {new Date(m.timestamp).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-[#D9C5B4] leading-relaxed">{m.description}</p>
+                        <p className="text-[#B8ADA0] leading-relaxed text-xs">{m.description}</p>
                         {m.parts_replaced && (
-                          <div className="text-[11px] font-mono text-[#A99A90]">
-                            Parts Replaced: <span className="text-[#F1E7DE]">{m.parts_replaced}</span>
+                          <div className="text-[11px] font-mono text-[#B8ADA0] pt-1">
+                            Parts Replaced: <span className="text-[#F3EADF]">{m.parts_replaced}</span>
                           </div>
                         )}
                       </div>
@@ -422,22 +416,22 @@ function ResourceDetailContent() {
             </div>
           )}
 
-          {/* Equivalent Alternatives Section */}
+          {/* Alternatives */}
           {alternatives && alternatives.length > 0 && (
-            <div className="pt-6 border-t border-[#AD7257]/20">
-              <div className="flex items-center gap-2 mb-4 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
+            <div className="pt-4 border-t border-[#38312C] space-y-3">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#D69A49]">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Compatible Alternative Assets</span>
+                <span>Compatible Alternative Resources</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {alternatives.map((alt: any) => (
                   <Link
                     key={alt.id}
-                    href={`/resources/${alt.id}`}
-                    className="p-4 rounded-xl bg-[#170D0A] border border-[#AD7257]/25 hover:border-[#D4FF00]/40 transition-colors block text-xs shadow-md"
+                    href={`/resources/${alt.slug || alt.id}`}
+                    className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C] hover:border-[#B65E42] transition-colors block text-xs"
                   >
-                    <div className="font-bold text-[#F1E7DE] truncate">{alt.title}</div>
-                    <div className="text-[11px] text-[#A99A90] mt-1 font-mono">₹{alt.hourly_rate}/hr • {alt.location}</div>
+                    <div className="font-semibold text-[#F3EADF] truncate">{alt.title}</div>
+                    <div className="text-[11px] text-[#B8ADA0] mt-1 font-mono">${alt.hourly_rate}/hr • {alt.location}</div>
                   </Link>
                 ))}
               </div>
@@ -445,47 +439,47 @@ function ResourceDetailContent() {
           )}
         </div>
 
-        {/* Right Column: Booking & Reservation Console (4 cols) */}
+        {/* Right Column: Booking Console (4 cols) */}
         <div className="lg:col-span-4">
-          <div className="sticky top-28 bg-[#170D0A] border border-[#AD7257]/30 rounded-2xl p-6 sm:p-7 shadow-2xl space-y-6">
+          <div className="sticky top-20 bg-[#191715] border border-[#38312C] rounded-xl p-5 sm:p-6 space-y-5">
             
             {/* Pricing Summary */}
-            <div className="flex items-baseline justify-between pb-5 border-b border-[#AD7257]/20">
+            <div className="flex items-baseline justify-between pb-4 border-b border-[#38312C]">
               <div>
-                <span className="text-3xl font-extrabold text-[#F1E7DE] font-mono">
-                  ₹{resource.hourly_rate}
+                <span className="text-2xl font-bold text-[#F3EADF] font-mono">
+                  ${resource.hourly_rate}
                 </span>
-                <span className="text-xs text-[#A99A90] ml-1">/ hour</span>
+                <span className="text-xs text-[#B8ADA0] ml-1">/ hour</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-mono text-[#A99A90] uppercase">Deposit</span>
-                <div className="text-xs font-mono text-[#F1E7DE]">₹{resource.deposit || 0}</div>
+                <span className="text-[10px] font-mono text-[#B8ADA0] uppercase">Deposit</span>
+                <div className="text-xs font-mono text-[#F3EADF]">${resource.deposit || 0}</div>
               </div>
             </div>
 
-            {/* Live Active Reservation Warning if In Use */}
+            {/* In-Use Notice */}
             {resource.status === 'in_use' && (
-              <div className="p-3.5 rounded-xl bg-[#24110C] border border-[#D96335]/40 text-xs text-[#D96335] font-mono space-y-1">
-                <div className="font-bold flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  Currently Operating
+              <div className="p-3 rounded-lg bg-[#211E1B] border border-[#C68A3C]/40 text-xs text-[#E0A85C] font-mono space-y-0.5">
+                <div className="font-medium flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  Currently in Session
                 </div>
-                <div className="text-[11px] opacity-90 text-[#D9C5B4]">
-                  Active session running. Reservations can be scheduled after turnaround window.
+                <div className="text-[11px] text-[#B8ADA0]">
+                  Reservations can be scheduled after active slot + {resource.turnaround_buffer_mins}m buffer.
                 </div>
               </div>
             )}
 
             {/* Booking Form */}
-            <form onSubmit={handleBookingSubmit} className="space-y-4">
+            <form onSubmit={handleBookingSubmit} className="space-y-3.5">
               <div>
-                <label className="block text-[11px] font-mono uppercase text-[#A99A90] mb-1.5">
-                  Schedule Start Offset
+                <label className="block text-[11px] font-mono uppercase text-[#B8ADA0] mb-1">
+                  Start Window
                 </label>
                 <select
                   value={startOffsetHours}
                   onChange={(e) => setStartOffsetHours(e.target.value)}
-                  className="w-full bg-[#24110C] text-[#F1E7DE] px-3.5 py-2.5 rounded-xl border border-[#AD7257]/30 text-xs font-mono focus:outline-none focus:border-[#D4FF00]"
+                  className="w-full bg-[#11100F] text-[#F3EADF] px-3 py-2 rounded-md border border-[#38312C] text-xs font-mono focus:outline-none focus:border-[#B65E42]"
                 >
                   <option value="1">Starts in 1 Hour</option>
                   <option value="2">Starts in 2 Hours</option>
@@ -496,13 +490,13 @@ function ResourceDetailContent() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono uppercase text-[#A99A90] mb-1.5">
-                  Duration (Hours)
+                <label className="block text-[11px] font-mono uppercase text-[#B8ADA0] mb-1">
+                  Duration
                 </label>
                 <select
                   value={bookingHours}
                   onChange={(e) => setBookingHours(e.target.value)}
-                  className="w-full bg-[#24110C] text-[#F1E7DE] px-3.5 py-2.5 rounded-xl border border-[#AD7257]/30 text-xs font-mono focus:outline-none focus:border-[#D4FF00]"
+                  className="w-full bg-[#11100F] text-[#F3EADF] px-3 py-2 rounded-md border border-[#38312C] text-xs font-mono focus:outline-none focus:border-[#B65E42]"
                 >
                   <option value="1">1 Hour Session</option>
                   <option value="2">2 Hours Session</option>
@@ -512,31 +506,31 @@ function ResourceDetailContent() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono uppercase text-[#A99A90] mb-1.5">
-                  Research Purpose / Thesis Ref
+                <label className="block text-[11px] font-mono uppercase text-[#B8ADA0] mb-1">
+                  Research Purpose / Use Case
                 </label>
                 <input
                   type="text"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
                   placeholder="e.g. Master thesis prototype run"
-                  className="w-full bg-[#24110C] text-[#F1E7DE] px-3.5 py-2.5 rounded-xl border border-[#AD7257]/30 text-xs focus:outline-none focus:border-[#D4FF00]"
+                  className="w-full bg-[#11100F] text-[#F3EADF] px-3 py-2 rounded-md border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] placeholder:text-[#B8ADA0]/60"
                 />
               </div>
 
               {/* Cost Calculation */}
-              <div className="p-4 rounded-xl bg-[#24110C] border border-[#AD7257]/20 font-mono text-xs space-y-2">
-                <div className="flex justify-between text-[#A99A90]">
-                  <span>Usage Fee ({bookingHours} hrs):</span>
-                  <span>₹{parseFloat(bookingHours) * resource.hourly_rate}</span>
+              <div className="p-3.5 rounded-lg bg-[#211E1B] border border-[#38312C]/60 font-mono text-xs space-y-1.5">
+                <div className="flex justify-between text-[#B8ADA0]">
+                  <span>Rate x {bookingHours} hrs:</span>
+                  <span>${parseFloat(bookingHours) * resource.hourly_rate}</span>
                 </div>
-                <div className="flex justify-between text-[#A99A90]">
+                <div className="flex justify-between text-[#B8ADA0]">
                   <span>Turnaround Buffer (+{resource.turnaround_buffer_mins}m):</span>
-                  <span className="text-[#D4FF00]">Included</span>
+                  <span className="text-[#6BA87E]">Included</span>
                 </div>
-                <div className="flex justify-between text-[#F1E7DE] font-bold pt-2 border-t border-[#AD7257]/20">
-                  <span>Estimated Total:</span>
-                  <span>₹{parseFloat(bookingHours) * resource.hourly_rate}</span>
+                <div className="flex justify-between text-[#F3EADF] font-bold pt-1.5 border-t border-[#38312C]">
+                  <span>Total Cost:</span>
+                  <span>${parseFloat(bookingHours) * resource.hourly_rate}</span>
                 </div>
               </div>
 
@@ -544,12 +538,12 @@ function ResourceDetailContent() {
               <button
                 type="submit"
                 disabled={isBooking || resource.status === 'maintenance'}
-                className="w-full flex items-center justify-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black py-3.5 rounded-xl font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-[#D4FF00]/15 disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 bg-[#B65E42] hover:bg-[#C86C4E] text-white py-2.5 rounded-md font-medium text-xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 {isBooking ? (
                   <>
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    Checking ACID Locks...
+                    Validating ACID Lock...
                   </>
                 ) : (
                   <>
@@ -560,11 +554,11 @@ function ResourceDetailContent() {
               </button>
             </form>
 
-            {/* Error / Conflict Alert with FairShare Waitlist Option */}
+            {/* Error / Conflict Alert */}
             {bookingError && (
-              <div className="p-4 rounded-xl bg-red-500/15 border border-red-500/40 text-xs text-[#F1E7DE] space-y-3">
+              <div className="p-3.5 rounded-lg bg-[#B84A39]/15 border border-[#B84A39]/40 text-xs text-[#F3EADF] space-y-2">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <AlertTriangle className="w-4 h-4 text-[#B84A39] shrink-0 mt-0.5" />
                   <div className="leading-relaxed">{bookingError}</div>
                 </div>
 
@@ -572,7 +566,7 @@ function ResourceDetailContent() {
                   <button
                     onClick={handleJoinWaitlist}
                     disabled={isJoiningWaitlist}
-                    className="w-full py-2.5 bg-[#24110C] hover:bg-[#2F1711] text-[#F1E7DE] rounded-xl font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer border border-[#AD7257]/30"
+                    className="w-full py-2 bg-[#211E1B] hover:bg-[#292420] text-[#F3EADF] rounded-md font-mono text-xs transition-colors cursor-pointer border border-[#38312C]"
                   >
                     {isJoiningWaitlist ? 'Enrolling...' : 'Join FairShare Waitlist'}
                   </button>
@@ -582,25 +576,25 @@ function ResourceDetailContent() {
 
             {/* Waitlist Success Message */}
             {waitlistSuccess && (
-              <div className="p-3.5 rounded-xl bg-[#D4FF00]/10 border border-[#D4FF00]/30 text-xs text-[#D4FF00] font-mono">
-                <CheckCircle2 className="w-4 h-4 mb-1 inline mr-1.5" />
+              <div className="p-3 rounded-lg bg-[#4E7A5D]/15 border border-[#4E7A5D]/30 text-xs text-[#6BA87E] font-mono">
+                <CheckCircle2 className="w-4 h-4 mb-0.5 inline mr-1.5" />
                 {waitlistSuccess}
               </div>
             )}
 
             {/* Booking Success Confirmation */}
             {bookingSuccess && (
-              <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-xs text-[#F1E7DE] space-y-2">
-                <div className="font-bold flex items-center gap-1.5 text-emerald-400">
+              <div className="p-3.5 rounded-lg bg-[#4E7A5D]/15 border border-[#4E7A5D]/40 text-xs text-[#F3EADF] space-y-2">
+                <div className="font-semibold flex items-center gap-1.5 text-[#6BA87E]">
                   <CheckCircle2 className="w-4 h-4" />
                   Reservation Confirmed!
                 </div>
-                <div className="text-[11px] leading-relaxed text-[#D9C5B4]">
-                  Booking ID: <span className="font-mono text-[#F1E7DE]">{bookingSuccess.id}</span>
+                <div className="text-[11px] text-[#B8ADA0]">
+                  Booking ID: <span className="font-mono text-[#F3EADF]">{bookingSuccess.id}</span>
                 </div>
                 <Link
                   href={`/bookings/${bookingSuccess.id}`}
-                  className="block text-center bg-emerald-500 hover:bg-emerald-400 text-black py-2 rounded-lg font-mono font-bold text-xs uppercase mt-2 transition-colors"
+                  className="block text-center bg-[#4E7A5D] hover:bg-[#5E9470] text-white py-1.5 rounded-md font-medium text-xs transition-colors"
                 >
                   View Booking Lifecycle →
                 </Link>
@@ -615,7 +609,11 @@ function ResourceDetailContent() {
 
 export default function ResourceDetailPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen py-32 text-center text-xs font-mono text-neutral-400 uppercase tracking-widest">Loading Resource Passport & Availability...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen py-32 text-center text-xs font-mono text-[#B8ADA0]">
+        Loading Resource Passport & Availability...
+      </div>
+    }>
       <ResourceDetailContent />
     </Suspense>
   );

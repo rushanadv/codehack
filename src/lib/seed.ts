@@ -3,7 +3,7 @@ import { getDb } from './db';
 export function seedDatabase() {
   const db = getDb();
 
-  // Clear existing data cleanly
+  // Clear existing data cleanly in foreign key sequence
   db.exec(`
     DELETE FROM audit_events;
     DELETE FROM notifications;
@@ -19,10 +19,9 @@ export function seedDatabase() {
     DELETE FROM users;
   `);
 
-  const now = new Date();
-  const formatISO = (d: Date) => d.toISOString();
-
-  // 1. Users
+  // =========================================================================
+  // 1. USERS (Fictional Sandbox Personas with Distinct Roles)
+  // =========================================================================
   const insertUser = db.prepare(`
     INSERT INTO users (id, email, name, role, department, institution, avatar, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -30,71 +29,73 @@ export function seedDatabase() {
 
   insertUser.run(
     'user-dev',
-    'dev.patel@iit.ac.in',
+    'dev.patel@aerogrid-demo.internal',
     'Dev Patel',
     'user',
-    'Department of Robotics & Automation',
-    'IIT Bombay',
+    'Autonomous Robotics Division',
+    'AeroGrid Systems (Fictional)',
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     new Date(Date.now() - 60 * 86400000).toISOString()
   );
 
   insertUser.run(
     'user-owner-aris',
-    'dr.aris.vance@iit.ac.in',
+    'dr.aris.vance@apex-demo.internal',
     'Dr. Aris Vance',
     'owner',
-    'Advanced Additive & Digital Fabrication Center',
-    'IIT Bombay',
+    'Additive Manufacturing Core',
+    'Apex Research Labs (Fictional)',
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     new Date(Date.now() - 120 * 86400000).toISOString()
   );
 
   insertUser.run(
     'user-owner-elena',
-    'prof.elena.rostova@iit.ac.in',
+    'prof.elena.rostova@vanguard-demo.internal',
     'Prof. Elena Rostova',
     'owner',
-    'Center for Nano Science & Quantum Devices',
-    'IIT Bombay',
+    'Microfabrication & Metrology',
+    'Vanguard Advanced Dynamics (Fictional)',
     'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     new Date(Date.now() - 150 * 86400000).toISOString()
   );
 
   insertUser.run(
     'user-admin-raman',
-    'dean.raman@iit.ac.in',
+    'dean.raman@idlex-demo.internal',
     'Dean S. Raman',
     'admin',
-    'Office of Research Infrastructure & Oversight',
-    'IIT Bombay',
+    'Platform Operations & Governance',
+    'IdleX Exchange Authority (Fictional)',
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
     new Date(Date.now() - 200 * 86400000).toISOString()
   );
 
   insertUser.run(
     'user-anya',
-    'anya.sharma@iit.ac.in',
+    'anya.sharma@kinetics-demo.internal',
     'Anya Sharma',
     'user',
-    'Department of Biomedical Engineering',
-    'IIT Bombay',
+    'Biomedical Device Prototyping',
+    'Kinetics Innovation Hub (Fictional)',
     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
     new Date(Date.now() - 45 * 86400000).toISOString()
   );
 
   insertUser.run(
     'user-kabir',
-    'kabir.mehta@iit.ac.in',
+    'kabir.mehta@aerogrid-demo.internal',
     'Kabir Mehta',
     'user',
-    'Department of Aerospace Engineering',
-    'IIT Bombay',
+    'Aerospace Dynamics Group',
+    'AeroGrid Systems (Fictional)',
     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     new Date(Date.now() - 20 * 86400000).toISOString()
   );
 
-  // 2. Skills
+  // =========================================================================
+  // 2. SKILLS (SkillGate Safety Certifications)
+  // =========================================================================
   const insertSkill = db.prepare(`
     INSERT INTO skills (id, name, category, description)
     VALUES (?, ?, ?, ?)
@@ -102,23 +103,29 @@ export function seedDatabase() {
 
   insertSkill.run('skill-fdm', 'Stratasys FDM Industrial Operator', 'Fabrication', 'Certified to operate high-temp industrial thermoplastic extrusion printers.');
   insertSkill.run('skill-laser', 'Laser Safety Level 2', 'Lab Safety', 'Verification of high-energy collimated beam safety and protective shielding protocols.');
-  insertSkill.run('skill-cleanroom', 'Cleanroom Class 1000 Protocol', 'Nanofab', 'Gowning, particle containment, and contamination control certification.');
+  insertSkill.run('skill-cleanroom', 'Cleanroom Protocol Class 1000', 'Nanofab', 'Gowning, particle containment, and contamination control certification.');
   insertSkill.run('skill-sem', 'Electron Microscopy (FE-SEM) Certified', 'Metrology', 'Vacuum chamber pumpdown, electron beam filament alignment, and EDX calibration.');
   insertSkill.run('skill-hpc', 'Slurm HPC Clearance Tier 1', 'Compute', 'Multi-node GPU allocation scripting and memory pinning authorization.');
+  insertSkill.run('skill-machining', '5-Axis CNC Precision Machining Clearance', 'Machining', 'Tool path validation, spindle feed control, and emergency stop interlock verification.');
 
-  // 3. User Skills (SkillGate certifications)
+  // =========================================================================
+  // 3. USER SKILLS (SkillGate Records)
+  // =========================================================================
   const insertUserSkill = db.prepare(`
     INSERT INTO user_skills (id, user_id, skill_id, status, certificate_ref, verified_at, verified_by)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
-  insertUserSkill.run('usk-1', 'user-dev', 'skill-fdm', 'verified', 'CERT-IITB-AM-2026-081', new Date(Date.now() - 30 * 86400000).toISOString(), 'user-owner-aris');
-  insertUserSkill.run('usk-2', 'user-dev', 'skill-laser', 'verified', 'CERT-IITB-LS-2025-412', new Date(Date.now() - 60 * 86400000).toISOString(), 'user-admin-raman');
-  insertUserSkill.run('usk-3', 'user-anya', 'skill-cleanroom', 'verified', 'CERT-IITB-CR-2026-104', new Date(Date.now() - 15 * 86400000).toISOString(), 'user-owner-elena');
-  insertUserSkill.run('usk-4', 'user-anya', 'skill-fdm', 'verified', 'CERT-IITB-AM-2026-095', new Date(Date.now() - 10 * 86400000).toISOString(), 'user-owner-aris');
-  insertUserSkill.run('usk-5', 'user-kabir', 'skill-sem', 'pending', 'SUBM-IITB-SEM-PENDING', null, null);
+  insertUserSkill.run('usk-1', 'user-dev', 'skill-fdm', 'verified', 'CERT-FDM-2026-081', new Date(Date.now() - 30 * 86400000).toISOString(), 'user-owner-aris');
+  insertUserSkill.run('usk-2', 'user-dev', 'skill-laser', 'verified', 'CERT-LS2-2025-412', new Date(Date.now() - 60 * 86400000).toISOString(), 'user-admin-raman');
+  insertUserSkill.run('usk-3', 'user-anya', 'skill-cleanroom', 'verified', 'CERT-CR1-2026-104', new Date(Date.now() - 15 * 86400000).toISOString(), 'user-owner-elena');
+  insertUserSkill.run('usk-4', 'user-anya', 'skill-fdm', 'verified', 'CERT-FDM-2026-095', new Date(Date.now() - 10 * 86400000).toISOString(), 'user-owner-aris');
+  insertUserSkill.run('usk-5', 'user-kabir', 'skill-sem', 'pending', 'SUBM-SEM-PENDING', null, null);
+  insertUserSkill.run('usk-6', 'user-dev', 'skill-machining', 'verified', 'CERT-CNC-2025-882', new Date(Date.now() - 40 * 86400000).toISOString(), 'user-owner-aris');
 
-  // 4. Resources
+  // =========================================================================
+  // 4. CENTRAL DEMO DATASET (12 Realistic Fictional Resources)
+  // =========================================================================
   const insertResource = db.prepare(`
     INSERT INTO resources (
       id, title, slug, category, subcategory, description, specifications,
@@ -127,258 +134,264 @@ export function seedDatabase() {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  // Res 1: Stratasys 450mc
+  // --- PROPERTY & SPACES (3 Resources) ---
+
+  // 1. Microfabrication Cleanroom Bay
+  insertResource.run(
+    'res-cleanroom-alpha',
+    'Controlled Microfabrication Cleanroom Bay',
+    'controlled-microfabrication-cleanroom-bay',
+    'space',
+    'Controlled Environment',
+    'ISO Class 5 laminar airflow facility featuring positive pressure filtration, Laurell spin coaters, and high-purity chemical wet benches for substrate preparation.',
+    JSON.stringify({
+      iso_class: 'ISO 14644-1 Class 5',
+      air_changes: '300+ changes / hour',
+      temperature: '20.0°C ± 0.2°C',
+      relative_humidity: '45% RH ± 2% RH',
+      equipment_included: ['Laurell WS-650 Spin Coater', 'Optical Mask Aligner', 'Piranha Acid Wet Bench']
+    }),
+    'Tech District',
+    'Vanguard Nanofabrication Center (Fictional)',
+    'Bay 102',
+    140,
+    600,
+    60,
+    'user-owner-elena',
+    'available',
+    'pristine',
+    'FAC-CR5-01',
+    'IXP-CR5A-001',
+    'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 110 * 86400000).toISOString()
+  );
+
+  // 2. Thermal & Environmental Test Chamber
+  insertResource.run(
+    'res-climate-chamber',
+    'Thermal & Environmental Stress Test Chamber',
+    'thermal-environmental-stress-chamber',
+    'space',
+    'Environmental Testing',
+    'Walk-in programmable climate test chamber providing broad temperature cycling (-70°C to +180°C) and relative humidity control with multi-port telemetry pass-throughs.',
+    JSON.stringify({
+      temperature_range: '-70°C to +180°C (ramp rate 5°C/min)',
+      humidity_range: '10% to 98% RH',
+      interior_volume: '3.2m x 2.4m x 2.2m',
+      instrumentation_ports: '4x 100mm vacuum-rated feedthroughs'
+    }),
+    'North Research Sector',
+    'Vanguard Environmental Dynamics (Fictional)',
+    'Testing Cell 4',
+    95,
+    300,
+    30,
+    'user-owner-elena',
+    'available',
+    'pristine',
+    'FAC-ENV-04',
+    'IXP-ENVC-002',
+    'https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 95 * 86400000).toISOString()
+  );
+
+  // 3. Shared Prototyping & Assembly Suite
+  insertResource.run(
+    'res-prototyping-suite',
+    'Shared Rapid Prototyping & Assembly Suite',
+    'shared-rapid-prototyping-assembly-suite',
+    'space',
+    'Prototyping Facility',
+    'Electrostatic discharge (ESD) safe bench facility equipped with Hakko micro-soldering stations, stereoscopic inspection optics, and continuous nitrogen purge lines.',
+    JSON.stringify({
+      workbenches: '4 fully equipped ESD-dissipative workstations',
+      inspection_optics: 'Leica S9D stereo microscopes with 4K HDMI out',
+      soldering_tools: 'Hakko FX-951 stations with pre-heating plates',
+      power_supplies: 'Keysight triple-output programmable DC supplies'
+    }),
+    'Central Campus',
+    'Kinetics Prototyping Hub (Fictional)',
+    'Suite 210',
+    65,
+    200,
+    30,
+    'user-owner-aris',
+    'available',
+    'pristine',
+    'FAC-PROTO-21',
+    'IXP-PRTO-003',
+    'https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 75 * 86400000).toISOString()
+  );
+
+  // --- PHYSICAL ASSETS (5 Resources) ---
+
+  // 4. Stratasys Fortus 450mc Production 3D Printer
   insertResource.run(
     'res-stratasys-450mc',
     'Stratasys Fortus 450mc Production 3D Printer',
     'stratasys-fortus-450mc',
     'equipment',
     'Additive Manufacturing',
-    'Industrial-grade FDM system capable of printing manufacturing tooling, production parts, and functional aerospace prototypes in ULTEM 9085, Antero 800NA, and Nylon 12CF.',
+    'Industrial FDM production system engineered for functional aerospace fixtures and high-strength engineering components in ULTEM 9085 and Nylon 12 Carbon Fiber.',
     JSON.stringify({
       build_volume: '406 x 355 x 406 mm',
-      layer_thickness: '0.127 mm (127 microns)',
-      supported_materials: ['ULTEM 9085', 'Nylon 12 Carbon Fiber', 'PC-ISO', 'ABS-M30'],
-      chamber_temp: 'Up to 225°C',
-      software_support: 'GrabCAD Print / Insight'
+      layer_resolution: '0.127 mm (127 microns)',
+      supported_materials: ['ULTEM 9085', 'Nylon 12CF', 'PC-ISO', 'Antero 800NA'],
+      chamber_temperature: 'Regulated up to 225°C',
+      software_pipeline: 'GrabCAD Print with Insight G-code compiler'
     }),
     'Central Campus',
-    'FabLab Complex & Prototyping Wing',
+    'Apex Additive Systems (Fictional)',
     'Bay 104',
-    350,
-    1500,
-    30, // 30m buffer
+    110,
+    450,
+    30, // 30m turnaround buffer
     'user-owner-aris',
     'in_use',
     'pristine',
     'SN-F450-9921',
-    'IXP-450MC-001',
+    'IXP-450MC-004',
     'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80',
     new Date(Date.now() - 90 * 86400000).toISOString()
   );
 
-  // Res 2: Markforged X7 (Alternative for Stratasys)
+  // 5. Markforged X7 Industrial Carbon Fiber 3D Printer (Alternative for Stratasys)
   insertResource.run(
     'res-markforged-x7',
     'Markforged X7 Industrial Carbon Fiber 3D Printer',
     'markforged-x7-carbon',
     'equipment',
     'Additive Manufacturing',
-    'Continuous fiber reinforcement system for mission-critical parts matching machined aluminum strength. Features in-process laser micrometer inspection with sub-50-micron verification.',
+    'Continuous composite fiber deposition platform producing parts matching machined 6061-T6 aluminum tensile performance with integrated in-situ laser micrometer scanning.',
     JSON.stringify({
       build_volume: '330 x 270 x 200 mm',
       reinforcement_fibers: ['Continuous Carbon Fiber', 'Kevlar', 'High-Strength Fiberglass'],
-      laser_inspection: 'Real-time in-situ bed scan (±25 µm)',
-      base_material: 'Onyx (Micro-carbon filled nylon)'
+      laser_inspection: 'Real-time bed topography scan (±25 µm precision)',
+      matrix_material: 'Onyx micro-carbon filled nylon'
     }),
     'Central Campus',
-    'FabLab Complex & Prototyping Wing',
+    'Apex Additive Systems (Fictional)',
     'Bay 106',
-    400,
-    2000,
+    125,
+    500,
     45,
     'user-owner-aris',
     'available',
     'pristine',
     'SN-MFX7-4819',
-    'IXP-MFX7-002',
+    'IXP-MFX7-005',
     'https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=800&auto=format&fit=crop&q=80',
     new Date(Date.now() - 80 * 86400000).toISOString()
   );
 
-  // Res 3: JEOL FE-SEM
+  // 6. Hermle 5-Axis Precision Machining Center
   insertResource.run(
-    'res-jeol-sem',
-    'JEOL JSM-IT800 Field Emission SEM',
-    'jeol-jsm-it800-sem',
+    'res-cnc-5axis',
+    'Hermle 5-Axis Precision Machining Center',
+    'hermle-5-axis-cnc-machining-center',
     'equipment',
-    'Electron Microscopy',
-    'Ultra-high resolution field emission scanning electron microscope with Schottky field emission gun, sub-nanometer resolution at 15 kV, and integrated Energy Dispersive X-ray Spectroscopy (EDS).',
+    'Precision Machining',
+    'High-rigidity simultaneous 5-axis CNC machining system featuring Heidenhain TNC controls, Renishaw optical part touch-probing, and 20,000 RPM high-torque spindle.',
     JSON.stringify({
-      resolution: '0.7 nm at 15 kV, 1.0 nm at 1 kV',
-      magnification: 'x10 to x2,000,000',
-      detectors: ['Upper Electron Detector (UED)', 'Backscatter (BED)', 'Oxford EDS AztecLive'],
-      vacuum_level: '< 1e-4 Pa'
+      travel_xyz: '650 x 600 x 500 mm',
+      spindle_speed: '20,000 RPM (Haimer HSK-A63)',
+      accuracy: 'Linear positioning ±0.003 mm',
+      probing_system: 'Renishaw OMP60 optical probe with laser tool setting'
     }),
-    'North Research Park',
-    'NanoScience & Quantum Center',
-    'Chamber 012',
-    1200,
-    5000,
-    60,
-    'user-owner-elena',
-    'available',
-    'pristine',
-    'SN-JEOL-8832',
-    'IXP-SEM8-003',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80',
-    new Date(Date.now() - 100 * 86400000).toISOString()
-  );
-
-  // Res 4: RED V-Raptor 8K Camera
-  insertResource.run(
-    'res-red-vraptor',
-    'RED V-Raptor 8K VV Multi-Format Cinema Package',
-    'red-v-raptor-8k',
-    'equipment',
-    'Optical Instrumentation',
-    'Multi-format 35.4 Megapixel CMOS sensor capturing 8K 120fps and 4K 240fps for high-speed fluid dynamics, ballistic particle tracking, and ultra-high-definition experimental research capture.',
-    JSON.stringify({
-      sensor: '35.4 Megapixel VV CMOS (40.96 mm x 21.60 mm)',
-      max_frame_rate: '120 fps at 8K 17:9, 240 fps at 4K',
-      dynamic_range: '17+ stops',
-      mount: 'Locking RF Mount with Canon EF & PL adapters'
-    }),
-    'South Media Center',
-    'Sensor & Optics Innovation Lab',
-    'Studio C',
-    850,
-    8000,
+    'Hangar Sector',
+    'AeroGrid Precision Engineering (Fictional)',
+    'Machining Cell B',
+    175,
+    800,
     45,
     'user-owner-aris',
     'available',
     'good',
-    'SN-REDV-2931',
-    'IXP-RED8-004',
-    'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80',
-    new Date(Date.now() - 40 * 86400000).toISOString()
+    'SN-H5X-3012',
+    'IXP-CNC5-006',
+    'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 65 * 86400000).toISOString()
   );
 
-  // Res 5: Keysight Real-Time Oscilloscope
+  // 7. Non-Contact 3D Optical Surface Profilometer
   insertResource.run(
-    'res-keysight-33ghz',
-    'Keysight Infiniium UXR-Series 33 GHz Oscilloscope',
-    'keysight-uxr-33ghz',
+    'res-optical-profilometer',
+    'Non-Contact 3D Optical Surface Profilometer',
+    'non-contact-3d-optical-surface-profilometer',
     'equipment',
-    'RF & Signal Metrology',
-    '4-channel ultra-low noise real-time oscilloscope providing 128 GSa/s sample rate per channel with 10-bit hardware analog-to-digital resolution for 5G/6G, PCIe Gen5/6, and optical transceiver validation.',
+    'Metrology & Inspection',
+    'Coherence-scanning white light interferometer providing sub-nanometer vertical step height resolution for micro-fluidic channels, polished optics, and MEMS structures.',
     JSON.stringify({
-      bandwidth: '33 GHz across 4 real-time channels',
-      sample_rate: '128 GSa/s per channel',
-      adc_bits: '10-bit high-definition ADC',
-      jitter_noise_floor: '< 25 fs rms'
+      vertical_resolution: '< 0.1 nm (Phase Shifting Interferometry)',
+      lateral_resolution: '0.35 µm',
+      field_of_view: '0.14 to 7.0 mm (with automated stitching)',
+      measurement_types: ['Surface Roughness (Sa, Sq)', 'Step Height', 'Thin Film Topography']
     }),
-    'Central Campus',
-    'Electrical & Microwave Engineering',
-    'Lab 310',
-    600,
-    3000,
+    'Tech District',
+    'Vanguard Metrology Core (Fictional)',
+    'Precision Lab 3',
+    130,
+    500,
     30,
-    'user-owner-aris',
-    'available',
-    'pristine',
-    'SN-KS-33GHZ-11',
-    'IXP-OSC3-005',
-    'https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=800&auto=format&fit=crop&q=80',
-    new Date(Date.now() - 50 * 86400000).toISOString()
-  );
-
-  // Res 6: ISO Class 5 Cleanroom Bay
-  insertResource.run(
-    'res-cleanroom-alpha',
-    'ISO Class 5 (Fed-Std 209E Class 100) Cleanroom Bay',
-    'cleanroom-bay-alpha',
-    'space',
-    'Controlled Environment',
-    'Laminar airflow facility with HEPA/ULPA filtration maintaining fewer than 3,520 particles (≥0.5µm) per cubic meter. Equipped with Laurell spin coaters, mask aligner, and chemical wet benches.',
-    JSON.stringify({
-      iso_classification: 'ISO 14644-1 Class 5',
-      air_changes_per_hour: '300+ changes/hour',
-      temperature_stability: '20.0°C ± 0.2°C',
-      humidity_control: '45% RH ± 2% RH',
-      included_stations: ['Laurell WS-650 Spin Coater', 'SUSS MicroTec Mask Aligner', 'Piranha Acid Wet Bench']
-    }),
-    'North Research Park',
-    'NanoScience & Quantum Center',
-    'Bay Alpha',
-    1800,
-    8000,
-    60,
     'user-owner-elena',
     'available',
     'pristine',
-    'FAC-CR5-01',
-    'IXP-CR5A-006',
-    'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=800&auto=format&fit=crop&q=80',
-    new Date(Date.now() - 110 * 86400000).toISOString()
+    'SN-WLI-508',
+    'IXP-OPTI-007',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 70 * 86400000).toISOString()
   );
 
-  // Res 7: Autonomous Drone Flight Arena
+  // 8. Keysight 33 GHz Real-Time Oscilloscope & RF Bench
   insertResource.run(
-    'res-drone-arena',
-    'Autonomous UAV Flight Arena with 16-Camera Vicon MoCap',
-    'drone-mocap-arena',
-    'space',
-    'Experimental Robotics',
-    '12m x 12m x 6m netted high-bay airspace surrounded by 16 synchronized Vicon Vantage V5 optical motion tracking cameras for sub-millimeter ground truth trajectory measurement of aerial swarms.',
+    'res-keysight-33ghz',
+    'Keysight 33 GHz Real-Time Oscilloscope & RF Bench',
+    'keysight-uxr-33ghz-rf-bench',
+    'equipment',
+    'RF & Signal Metrology',
+    'Ultra-low noise real-time instrument delivering 128 GSa/s simultaneous sampling across 4 channels with 10-bit analog-to-digital resolution for high-frequency signal integrity validation.',
     JSON.stringify({
-      dimensions: '12m (L) x 12m (W) x 6m (H)',
-      tracking_system: '16x Vicon Vantage V5 (420 fps @ 5 MP)',
-      safety_features: 'Dual-layer Kevlar safety netting, emergency floor drop switch, fire suppression',
-      payload_charging: '4x 24V/48V 60A DC regulated bench supplies'
+      analog_bandwidth: '33 GHz on 4 channels',
+      sample_rate: '128 GSa/s per channel',
+      adc_resolution: '10-bit high-definition ADC architecture',
+      intrinsic_jitter: '< 25 fs rms'
     }),
-    'Robotics Valley',
-    'Autonomous Systems Pavilion',
-    'Arena 1',
-    750,
-    2500,
-    30,
-    'user-owner-aris',
-    'available',
-    'good',
-    'FAC-UAV-07',
-    'IXP-UAVC-007',
-    'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80',
-    new Date(Date.now() - 60 * 86400000).toISOString()
-  );
-
-  // Res 8: Anechoic Chamber
-  insertResource.run(
-    'res-anechoic-chamber',
-    'Full Anechoic Acoustic & RF Isolation Suite',
-    'anechoic-acoustic-chamber',
-    'space',
-    'Acoustic & Vibration Testing',
-    'Double-walled isolated chamber lined with 1.2-meter fiberglass wedge absorbers, achieving cut-off frequency of 60 Hz with background noise floor below -2 dBA for precision acoustic localization.',
-    JSON.stringify({
-      cutoff_frequency: '60 Hz (99% sound absorption)',
-      background_noise: '< -2 dBA sound pressure level',
-      dimensions: '8m x 6m x 5m free-field working volume',
-      instrumentation: ['Bruel & Kjaer 1/2" Free-field Microphones', 'B&K Sound Level Meter 2270']
-    }),
-    'Central Campus',
-    'Acoustics & Vibration Institute',
-    'Chamber 04',
-    500,
-    2000,
+    'East Engineering Wing',
+    'Kinetics Signal Dynamics (Fictional)',
+    'RF Lab 310',
+    140,
+    600,
     30,
     'user-owner-aris',
     'available',
     'pristine',
-    'FAC-ANE-03',
-    'IXP-ANE3-008',
-    'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&auto=format&fit=crop&q=80',
-    new Date(Date.now() - 75 * 86400000).toISOString()
+    'SN-KS-33G-11',
+    'IXP-OSC3-008',
+    'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 50 * 86400000).toISOString()
   );
 
-  // Res 9: NVIDIA H100 Node
+  // --- DIGITAL & TECH (4 Resources) ---
+
+  // 9. Dedicated 8x NVIDIA H100 SXM5 Compute Instance
   insertResource.run(
     'res-nvidia-h100',
-    'NVIDIA HGX H100 8x80GB SXM5 Dedicated Slurm Node',
-    'nvidia-h100-node',
+    'Dedicated 8x NVIDIA H100 SXM5 Compute Instance',
+    'dedicated-8x-nvidia-h100-sxm5-compute-instance',
     'digital',
     'High Performance Compute',
-    'Dedicated node featuring 8x NVIDIA H100 SXM5 GPUs with NVLink 4 (900 GB/s bisectional bandwidth), 640GB aggregate HBM3, dual AMD EPYC 9654 96-core processors, and 3.2 Tbps InfiniBand.',
+    'Dedicated GPU node featuring 8x NVIDIA H100 80GB SXM5 GPUs interconnected via NVLink 4 (900 GB/s), 2.0 TB DDR5 memory, and 3.2 Tbps InfiniBand cluster fabric.',
     JSON.stringify({
-      gpu_specs: '8x NVIDIA H100 80GB SXM5 (Transformer Engine FP8 32 PFLOPS)',
-      interconnect: 'NVLink 4 (900 GB/s) + 400 Gbps OSFP Quantum-2 InfiniBand',
-      host_ram: '2.0 TB DDR5 4800 MHz ECC',
-      storage: '30 TB NVMe PCIe Gen5 scratch space (/scratch/local)'
+      accelerators: '8x NVIDIA H100 80GB SXM5 (Transformer Engine FP8)',
+      interconnect: 'NVLink 4 + 400 Gbps OSFP Quantum-2 InfiniBand',
+      system_memory: '2.0 TB DDR5 4800 MHz ECC',
+      local_scratch: '30 TB NVMe PCIe Gen5 high-throughput storage'
     }),
-    'North Research Park',
-    'Tier-1 Supercomputing Facility',
-    'Rack B12-U18',
-    250,
+    'North Research Sector',
+    'Vanguard Compute Collective (Fictional)',
+    'Cluster Node Rack B12',
+    85,
     0,
     15,
     'user-owner-elena',
@@ -390,36 +403,67 @@ export function seedDatabase() {
     new Date(Date.now() - 95 * 86400000).toISOString()
   );
 
-  // Res 10: Ansys Rocky & Fluent License Slot
+  // 10. Parallel CFD & Multi-Physics Compute Allocation
   insertResource.run(
-    'res-ansys-license',
-    'Ansys Rocky DEM & Fluent CFD Dedicated Token Allocation',
-    'ansys-rocky-fluent-token',
+    'res-sim-cluster',
+    'Parallel Multi-Physics & CFD Compute Allocation',
+    'parallel-multi-physics-cfd-compute-allocation',
     'digital',
-    'Engineering Simulation',
-    'Authorized floating license token providing full multi-GPU acceleration for discrete element method (DEM) granular flow and coupled turbulent computational fluid dynamics without core count limits.',
+    'Scientific Simulation',
+    'Dedicated 128-core high-throughput parallel compute partition configured with OpenFOAM, Ansys Fluent, and pre-compiled MPI solvers with priority Slurm scheduling.',
     JSON.stringify({
-      software_version: 'Ansys Rocky 2026 R1 & Ansys Fluent',
-      gpu_acceleration: 'Multi-GPU CUDA engine enabled (unlimited SM)',
-      physics_capabilities: 'Non-round particle DEM, liquid bridge cohesion, conjugate heat transfer',
-      license_manager: 'FLEXlm authorized campus token'
+      cpu_cores: '128-core AMD EPYC 9654 processors',
+      host_ram: '512 GB DDR5 ECC',
+      mpi_stack: 'OpenMPI 5.0 with UCX InfiniBand acceleration',
+      parallel_io: 'Lustre parallel scratch storage partition'
+    }),
+    'Hangar Sector',
+    'AeroGrid Simulation Core (Fictional)',
+    'Cluster Node Rack C-11',
+    55,
+    0,
+    15,
+    'user-owner-aris',
+    'available',
+    'pristine',
+    'DIG-CFD-NODE1',
+    'IXP-CFD1-010',
+    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 85 * 86400000).toISOString()
+  );
+
+  // 11. Distributed Machine Learning Development Node
+  insertResource.run(
+    'res-ml-pipeline',
+    'Distributed Machine Learning Development Node',
+    'distributed-machine-learning-development-node',
+    'digital',
+    'Machine Learning',
+    'Containerized multi-GPU training environment with 4x NVIDIA RTX 6000 Ada Generation (48GB VRAM each), JupyterLab integration, and pre-configured PyTorch 2.3.',
+    JSON.stringify({
+      accelerators: '4x NVIDIA RTX 6000 Ada (192GB aggregate VRAM)',
+      system_memory: '256 GB DDR5',
+      environment: 'Docker / PyTorch 2.3 / vLLM / HuggingFace Transformers',
+      remote_access: 'SSH keypair + JupyterLab token authentication'
     }),
     'Central Campus',
-    'Digital Engineering Center',
-    'Cloud Cluster 01',
-    180,
+    'Kinetics Deep Learning Lab (Fictional)',
+    'Edge Node 03',
+    45,
     0,
     10,
     'user-owner-aris',
     'available',
     'pristine',
-    'DIG-ANSYS-FL4',
-    'IXP-ANSY-010',
-    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80',
-    new Date(Date.now() - 85 * 86400000).toISOString()
+    'DIG-ML-NODE3',
+    'IXP-MLN3-011',
+    'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=80',
+    new Date(Date.now() - 60 * 86400000).toISOString()
   );
 
-  // 5. Resource Skills Linking (SkillGate prerequisites)
+  // =========================================================================
+  // 5. RESOURCE SKILLS LINKING (SkillGate Prerequisites)
+  // =========================================================================
   const insertResourceSkill = db.prepare(`
     INSERT INTO resource_skills (id, resource_id, skill_id, is_mandatory)
     VALUES (?, ?, ?, ?)
@@ -427,11 +471,13 @@ export function seedDatabase() {
 
   insertResourceSkill.run('rsk-1', 'res-stratasys-450mc', 'skill-fdm', 1);
   insertResourceSkill.run('rsk-2', 'res-markforged-x7', 'skill-fdm', 1);
-  insertResourceSkill.run('rsk-3', 'res-jeol-sem', 'skill-sem', 1);
-  insertResourceSkill.run('res-cleanroom-alpha-sk', 'res-cleanroom-alpha', 'skill-cleanroom', 1);
-  insertResourceSkill.run('res-h100-sk', 'res-nvidia-h100', 'skill-hpc', 1);
+  insertResourceSkill.run('rsk-3', 'res-cnc-5axis', 'skill-machining', 1);
+  insertResourceSkill.run('rsk-4', 'res-cleanroom-alpha', 'skill-cleanroom', 1);
+  insertResourceSkill.run('rsk-5', 'res-nvidia-h100', 'skill-hpc', 1);
 
-  // 6. Bookings (Crafted for real user journeys)
+  // =========================================================================
+  // 6. BOOKINGS (Deterministic State Machine Scenarios)
+  // =========================================================================
   const insertBooking = db.prepare(`
     INSERT INTO bookings (
       id, resource_id, user_id, start_time, end_time, scheduled_return_time,
@@ -439,8 +485,7 @@ export function seedDatabase() {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  // BKG 1: Dev Patel currently using Stratasys 450mc.
-  // Started 2 hours ago. Due in 30 minutes!
+  // BKG 1: Dev Patel currently using Stratasys 450mc. Started 2 hours ago. Due in 30 minutes.
   const bkg1Start = new Date(Date.now() - 2 * 3600000);
   const bkg1End = new Date(Date.now() + 30 * 60000);
   insertBooking.run(
@@ -453,14 +498,13 @@ export function seedDatabase() {
     null,
     'in_progress',
     'Rapid fabrication of lightweight titanium-reinforced bionic gripper linkages for Master Thesis defense.',
-    875,
+    275,
     0,
     new Date(Date.now() - 24 * 3600000).toISOString(),
     bkg1Start.toISOString()
   );
 
-  // BKG 2: Anya Sharma booked next on Stratasys 450mc!
-  // Starts 1 hour from now (30m after Dev + 30m turnaround buffer)
+  // BKG 2: Anya Sharma booked next on Stratasys 450mc. Starts 1 hr from now (Dev + 30m buffer).
   const bkg2Start = new Date(Date.now() + 60 * 60000);
   const bkg2End = new Date(Date.now() + 3 * 3600000);
   insertBooking.run(
@@ -472,46 +516,46 @@ export function seedDatabase() {
     bkg2End.toISOString(),
     null,
     'confirmed',
-    'Bio-compatible microfluidic manifold scaffold printing in medical-grade PC-ISO for cellular culture trials.',
-    700,
+    'Biocompatible microfluidic manifold scaffold printing in medical-grade PC-ISO for cellular culture trials.',
+    220,
     0,
     new Date(Date.now() - 12 * 3600000).toISOString(),
     new Date(Date.now() - 12 * 3600000).toISOString()
   );
 
-  // BKG 3: Dev Patel completed booking on Drone MoCap Arena yesterday (Returned in pristine condition)
+  // BKG 3: Dev Patel completed session on Prototyping Suite yesterday (Returned in pristine state).
   const bkg3Start = new Date(Date.now() - 28 * 3600000);
   const bkg3End = new Date(Date.now() - 25 * 3600000);
   insertBooking.run(
     'bkg-past-drone',
-    'res-drone-arena',
+    'res-prototyping-suite',
     'user-dev',
     bkg3Start.toISOString(),
     bkg3End.toISOString(),
     bkg3End.toISOString(),
     bkg3End.toISOString(),
     'returned',
-    'Ground-truth optical localization and tracking test for autonomous obstacle avoidance quadrotor.',
-    2250,
+    'Precision SMD reflow soldering and wire bonding of custom brushless motor controller flight boards.',
+    195,
     0,
     new Date(Date.now() - 48 * 3600000).toISOString(),
     bkg3End.toISOString()
   );
 
-  // BKG 4: Kabir Mehta has a pending request on RED Cinema camera
+  // BKG 4: Kabir Mehta has a pending reservation on Keysight RF Bench
   const bkg4Start = new Date(Date.now() + 24 * 3600000);
   const bkg4End = new Date(Date.now() + 28 * 3600000);
   insertBooking.run(
     'bkg-pending-kabir',
-    'res-red-vraptor',
+    'res-keysight-33ghz',
     'user-kabir',
     bkg4Start.toISOString(),
     bkg4End.toISOString(),
     bkg4End.toISOString(),
     null,
     'pending',
-    'High-speed 240fps shadowgraph imaging of supersonic shockwave vortex shedding in low-pressure tube.',
-    3400,
+    'S-parameter measurement and noise figure characterization of Ka-band radar patch antenna array.',
+    560,
     0,
     new Date(Date.now() - 4 * 3600000).toISOString(),
     new Date(Date.now() - 4 * 3600000).toISOString()
@@ -530,13 +574,15 @@ export function seedDatabase() {
     null,
     'confirmed',
     'Photolithography pattern transfer and spin coating of SU-8 photoresist on 4-inch silicon substrate.',
-    7200,
+    560,
     0,
     new Date(Date.now() - 18 * 3600000).toISOString(),
     new Date(Date.now() - 18 * 3600000).toISOString()
   );
 
-  // 7. Waitlist
+  // =========================================================================
+  // 7. FAIRSHARE WAITLIST QUEUE
+  // =========================================================================
   const insertWaitlist = db.prepare(`
     INSERT INTO waitlist (
       id, resource_id, user_id, requested_start, requested_end, priority_score, queue_position, status, notes, created_at
@@ -556,14 +602,15 @@ export function seedDatabase() {
     new Date(Date.now() - 6 * 3600000).toISOString()
   );
 
-  // 8. Condition Reports
+  // =========================================================================
+  // 8. CONDITION REPORTS
+  // =========================================================================
   const insertConditionReport = db.prepare(`
     INSERT INTO condition_reports (
       id, booking_id, resource_id, report_type, condition_rating, checklist, discrepancies, photo_url, reported_by, timestamp
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  // Checkout report for Dev Patel on Stratasys
   insertConditionReport.run(
     'rep-dev-checkout',
     'bkg-live-dev',
@@ -583,45 +630,45 @@ export function seedDatabase() {
     bkg1Start.toISOString()
   );
 
-  // Checkout & return reports for Drone arena
   insertConditionReport.run(
-    'rep-drone-checkout',
+    'rep-proto-checkout',
     'bkg-past-drone',
-    'res-drone-arena',
+    'res-prototyping-suite',
     'checkout',
     'pristine',
     JSON.stringify({
-      netting_secured: true,
-      cameras_calibrated: true,
-      safety_stop_tested: true,
-      floor_cleared: true
+      esd_grounding_verified: true,
+      soldering_station_clean: true,
+      microscopes_calibrated: true,
+      fume_extraction_active: true
     }),
     null,
-    'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=400&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=400&auto=format&fit=crop&q=80',
     'user-dev',
     bkg3Start.toISOString()
   );
 
   insertConditionReport.run(
-    'rep-drone-return',
+    'rep-proto-return',
     'bkg-past-drone',
-    'res-drone-arena',
+    'res-prototyping-suite',
     'return',
     'pristine',
     JSON.stringify({
-      netting_secured: true,
-      cameras_calibrated: true,
-      safety_stop_tested: true,
-      floor_cleared: true,
-      all_marker_spheres_returned: true
+      esd_grounding_verified: true,
+      soldering_station_clean: true,
+      microscopes_calibrated: true,
+      fume_extraction_active: true
     }),
-    'Zero damage observed. Floor vacuumed, motion tracking ground marker re-centered to origin.',
-    'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=400&auto=format&fit=crop&q=80',
+    'Zero damage observed. Workstation tidied, soldering tips tinned, nitrogen valve closed.',
+    'https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=400&auto=format&fit=crop&q=80',
     'user-dev',
     bkg3End.toISOString()
   );
 
-  // 9. Maintenance Records
+  // =========================================================================
+  // 9. MAINTENANCE RECORDS
+  // =========================================================================
   const insertMaintenance = db.prepare(`
     INSERT INTO maintenance_records (
       id, resource_id, technician_id, maintenance_type, description, parts_replaced, cost, timestamp, status
@@ -633,26 +680,28 @@ export function seedDatabase() {
     'res-stratasys-450mc',
     'user-owner-aris',
     'calibration',
-    'Quarterly thermal chamber re-calibration and T16 tip liquefier replacement. Verified extrusion flow rate with 0.1mm test cube.',
+    'Quarterly thermal chamber re-calibration and T16 tip liquefier replacement. Verified extrusion flow rate with 0.1mm test coupon.',
     'T16 Hardened Tip, Vacuum Platen Seal Ring',
-    4500,
+    450,
     new Date(Date.now() - 14 * 86400000).toISOString(),
     'completed'
   );
 
   insertMaintenance.run(
     'maint-2',
-    'res-jeol-sem',
-    'user-owner-elena',
+    'res-cnc-5axis',
+    'user-owner-aris',
     'routine_inspection',
-    'Schottky FEG gun degassing and aperture alignment. Replaced ion getter pump bakeout seal.',
-    'UHV Flange Copper Gasket',
-    18200,
+    'Laser tool setter calibration, spindle runout inspection (< 1.5 µm measured), and way-lube filter replacement.',
+    'Way Lube Filter Cartridge, Spindle Air Purge Seal',
+    620,
     new Date(Date.now() - 25 * 86400000).toISOString(),
     'completed'
   );
 
-  // 10. Notifications
+  // =========================================================================
+  // 10. NOTIFICATIONS
+  // =========================================================================
   const insertNotification = db.prepare(`
     INSERT INTO notifications (id, user_id, title, message, type, link, read_status, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -673,14 +722,16 @@ export function seedDatabase() {
     'notif-2',
     'user-owner-aris',
     'Pending Booking Request',
-    'Kabir Mehta submitted a reservation request for RED V-Raptor 8K Cinema Camera for review.',
+    'Kabir Mehta submitted a reservation request for Keysight 33 GHz RF Bench for review.',
     'warning',
     '/owner/requests',
     0,
     new Date(Date.now() - 4 * 3600000).toISOString()
   );
 
-  // 11. Audit Events
+  // =========================================================================
+  // 11. AUDIT EVENTS
+  // =========================================================================
   const insertAudit = db.prepare(`
     INSERT INTO audit_events (id, entity_type, entity_id, action, actor_id, payload, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -706,11 +757,10 @@ export function seedDatabase() {
     new Date(Date.now() - 12 * 3600000).toISOString()
   );
 
-  console.log('✅ Seed completed: 6 users, 5 skills, 10 resources, 5 bookings, 1 waitlist, 3 condition reports, 2 maintenance records, 2 notifications, 2 audit events.');
+  console.log('✅ Seed completed: 6 users, 6 skills, 11 resources, 5 bookings, 1 waitlist, 3 condition reports, 2 maintenance records, 2 notifications, 2 audit events.');
 }
 
 // If run directly
 if (require.main === module) {
   seedDatabase();
 }
-

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import NextLink from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   Compass, 
   Sparkles, 
@@ -11,19 +11,24 @@ import {
   CalendarCheck, 
   Layers, 
   Inbox, 
-  BarChart3, 
   Bell, 
   CheckCheck,
   ShieldCheck,
   Menu,
-  X
+  X,
+  UserCheck,
+  ChevronDown,
+  RefreshCw,
+  Info
 } from 'lucide-react';
 
 interface CurrentUser {
-  id?: string;
-  name?: string;
-  email?: string;
-  role?: string;
+  id: string;
+  name: string;
+  email: string;
+  role: 'user' | 'owner' | 'admin';
+  department?: string;
+  institution?: string;
   avatar?: string;
 }
 
@@ -40,79 +45,99 @@ interface NotificationItem {
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [allUsers, setAllUsers] = useState<CurrentUser[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const fetchNotifications = async () => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showPersonaMenu, setShowPersonaMenu] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetFeedback, setResetFeedback] = useState('');
+
+  const personaRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Close menus on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (personaRef.current && !personaRef.current.contains(e.target as Node)) {
+        setShowPersonaMenu(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const loadAuthAndNotifications = async () => {
     try {
-      const res = await fetch('/api/notifications');
-      const data = await res.json();
-      const list: NotificationItem[] = data.notifications || [];
-      setNotifications(list);
-      setUnreadCount(list.filter((n) => n.read_status === 0).length);
+      const [authRes, notifRes] = await Promise.all([
+        fetch('/api/auth/current'),
+        fetch('/api/notifications')
+      ]);
+
+      if (authRes.ok) {
+        const authData = await authRes.json();
+        setCurrentUser(authData.user);
+        setAllUsers(authData.allDemoUsers || []);
+      }
+
+      if (notifRes.ok) {
+        const notifData = await notifRes.json();
+        const list: NotificationItem[] = notifData.notifications || [];
+        setNotifications(list);
+        setUnreadCount(list.filter((n) => n.read_status === 0).length);
+      }
+    } catch (e) {
+      console.error('Navbar data fetch error:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (pathname === '/') return;
+    loadAuthAndNotifications();
+  }, [pathname]);
+
+  const switchPersona = async (userId: string) => {
+    try {
+      const res = await fetch('/api/auth/current', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      if (res.ok) {
+        await loadAuthAndNotifications();
+        setShowPersonaMenu(false);
+        router.refresh();
+      }
     } catch (e) {
       console.error(e);
     }
   };
 
-  useEffect(() => {
-    // Skip all fetching and intervals if on home page (where Navbar is hidden)
-    if (pathname === '/') return;
-
-    let isMounted = true;
-    let lastFetchTime = Date.now();
-
-    const loadData = async () => {
-      try {
-        const [authRes, notifRes] = await Promise.all([
-          fetch('/api/auth/current'),
-          fetch('/api/notifications')
-        ]);
-        if (!isMounted) return;
-
-        if (authRes.ok) {
-          const authData = await authRes.json();
-          setCurrentUser(authData.user);
-        }
-        if (notifRes.ok) {
-          const notifData = await notifRes.json();
-          const list: NotificationItem[] = notifData.notifications || [];
-          setNotifications(list);
-          setUnreadCount(list.filter((n) => n.read_status === 0).length);
-        }
-      } catch (e) {
-        console.error(e);
+  const handleReset = async () => {
+    if (!confirm('Reset demonstration database to initial verified state?')) return;
+    setIsResetting(true);
+    try {
+      const res = await fetch('/api/seed', { method: 'POST' });
+      if (res.ok) {
+        setResetFeedback('Reset Complete');
+        setTimeout(() => setResetFeedback(''), 2500);
+        await loadAuthAndNotifications();
+        router.refresh();
       }
-    };
-
-    loadData();
-
-    // Re-fetch when user returns to tab, throttled to at most once every 30s
-    const handleFocus = () => {
-      if (Date.now() - lastFetchTime > 30000) {
-        lastFetchTime = Date.now();
-        fetchNotifications();
-      }
-    };
-    window.addEventListener('focus', handleFocus);
-
-    // Gentle background poll: every 60s, and only when tab is visible
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        lastFetchTime = Date.now();
-        fetchNotifications();
-      }
-    }, 60000);
-
-    return () => {
-      isMounted = false;
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(interval);
-    };
-  }, [pathname]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const markAllRead = async () => {
     try {
@@ -121,217 +146,231 @@ export function Navbar() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ all: true })
       });
-      fetchNotifications();
+      loadAuthAndNotifications();
     } catch (e) {
       console.error(e);
     }
   };
 
+  // Strictly protected: do not render on landing page
+  if (pathname === '/') return null;
+
   const isOwner = currentUser?.role === 'owner' || currentUser?.role === 'admin';
   const isAdmin = currentUser?.role === 'admin';
 
-  if (pathname === '/') return null;
+  const navLinks = [
+    { href: '/overview', label: 'Overview', icon: Info, match: (p: string) => p === '/overview' },
+    { href: '/explore', label: 'Explore', icon: Compass, match: (p: string) => p.startsWith('/explore') || p.startsWith('/resources') },
+    { href: '/match', label: 'Match', icon: Sparkles, match: (p: string) => p.startsWith('/match') },
+    { href: '/incidents', label: 'Promise Protection', icon: ShieldAlert, match: (p: string) => p.startsWith('/incidents') },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: (p: string) => p === '/dashboard' },
+    { href: '/bookings', label: 'Bookings', icon: CalendarCheck, match: (p: string) => p.startsWith('/bookings') },
+  ];
 
   return (
-    <nav className="bg-[#170D0A]/95 backdrop-blur-md border-b border-[#AD7257]/20 sticky top-[33px] z-40 px-4 lg:px-8 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <header className="sticky top-0 z-40 bg-[#11100F]/95 backdrop-blur-md border-b border-[#38312C] text-[#F3EADF]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
         
-        {/* Brand Logo */}
-        <NextLink href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded bg-[#24110C] border border-[#AD7257]/30 flex items-center justify-center group-hover:border-[#D4FF00]/60 transition-all shadow-inner">
-            <div className="w-3.5 h-3.5 bg-[#D4FF00] rounded-sm transform rotate-45 transition-transform group-hover:scale-110"></div>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-mono font-bold text-lg tracking-tight text-[#F1E7DE] flex items-center gap-1">
-              Idle<span className="text-[#D4FF00]">X</span>
-              <span className="text-[9px] font-mono tracking-widest text-[#D4FF00] bg-[#D4FF00]/10 px-1.5 py-0.2 rounded ml-1 border border-[#D4FF00]/25">
-                v2.6
-              </span>
+        {/* Left: Brand Identity */}
+        <div className="flex items-center gap-6">
+          <NextLink href="/" className="flex items-center gap-2.5 group">
+            <span className="w-2.5 h-2.5 bg-[#D69A49] rounded-xs group-hover:bg-[#B65E42] transition-colors" />
+            <span className="font-sans font-bold text-sm tracking-tight text-[#F3EADF] uppercase">
+              IDLEX<span className="text-[#B65E42]">.</span>
             </span>
-            <span className="text-[9px] tracking-wider uppercase text-[#A99A90] font-mono -mt-1 hidden sm:block">
-              Intelligent Resource Exchange
-            </span>
-          </div>
-        </NextLink>
-
-        {/* Desktop Primary Navigation */}
-        <div className="hidden lg:flex items-center gap-1 text-xs">
-          <NextLink
-            href="/explore"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer ${
-              pathname.startsWith('/explore') || pathname.startsWith('/resources')
-                ? 'bg-[#24110C] text-[#D4FF00] font-medium border border-[#AD7257]/30'
-                : 'text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5" />
-            Explore
           </NextLink>
 
-          <NextLink
-            href="/match"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer ${
-              pathname.startsWith('/match')
-                ? 'bg-[#24110C] text-[#D4FF00] font-medium border border-[#AD7257]/30'
-                : 'text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#D4FF00]" />
-            IdleX Match
-          </NextLink>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 text-xs">
+            {navLinks.map((item) => {
+              const active = item.match(pathname);
+              return (
+                <NextLink
+                  key={item.href}
+                  href={item.href}
+                  className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                    active
+                      ? 'bg-[#211E1B] text-[#F3EADF] border border-[#38312C]'
+                      : 'text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#191715]'
+                  }`}
+                >
+                  {item.label}
+                </NextLink>
+              );
+            })}
 
-          <NextLink
-            href="/incidents"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer ${
-              pathname.startsWith('/incidents')
-                ? 'bg-[#24110C] text-[#D4FF00] font-medium border border-[#AD7257]/30'
-                : 'text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60'
-            }`}
-          >
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-            Promise Protection
-          </NextLink>
+            {isOwner && (
+              <div className="flex items-center pl-2 ml-2 border-l border-[#38312C] gap-1">
+                <NextLink
+                  href="/owner/resources"
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    pathname.startsWith('/owner/resources')
+                      ? 'bg-[#211E1B] text-[#F3EADF] border border-[#38312C]'
+                      : 'text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#191715]'
+                  }`}
+                >
+                  Inventory
+                </NextLink>
+                <NextLink
+                  href="/owner/requests"
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    pathname.startsWith('/owner/requests')
+                      ? 'bg-[#211E1B] text-[#F3EADF] border border-[#38312C]'
+                      : 'text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#191715]'
+                  }`}
+                >
+                  Requests
+                </NextLink>
+              </div>
+            )}
 
-          <NextLink
-            href="/dashboard"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer ${
-              pathname === '/dashboard'
-                ? 'bg-[#24110C] text-[#D4FF00] font-medium border border-[#AD7257]/30'
-                : 'text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60'
-            }`}
-          >
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            Dashboard
-          </NextLink>
-
-          <NextLink
-            href="/bookings"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer ${
-              pathname.startsWith('/bookings')
-                ? 'bg-[#24110C] text-[#D4FF00] font-medium border border-[#AD7257]/30'
-                : 'text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60'
-            }`}
-          >
-            <CalendarCheck className="w-3.5 h-3.5" />
-            Bookings
-          </NextLink>
-
-          {/* Owner Dropdown/Links */}
-          {isOwner && (
-            <div className="flex items-center pl-2 ml-2 border-l border-[#AD7257]/20 gap-1">
+            {isAdmin && (
               <NextLink
-                href="/owner/resources"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60 transition-colors cursor-pointer ${
-                  pathname.startsWith('/owner/resources') ? 'bg-[#24110C] text-[#D4FF00] border border-[#AD7257]/30' : ''
+                href="/admin"
+                className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  pathname.startsWith('/admin')
+                    ? 'bg-[#211E1B] text-[#D69A49] border border-[#38312C]'
+                    : 'text-[#B8ADA0] hover:text-[#D69A49] hover:bg-[#191715]'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" />
-                Inventory
+                Admin
               </NextLink>
-
-              <NextLink
-                href="/owner/requests"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60 transition-colors cursor-pointer ${
-                  pathname.startsWith('/owner/requests') ? 'bg-[#24110C] text-[#D4FF00] border border-[#AD7257]/30' : ''
-                }`}
-              >
-                <Inbox className="w-3.5 h-3.5" />
-                Requests
-              </NextLink>
-
-              <NextLink
-                href="/owner/analytics"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[#D9C5B4] hover:text-[#F1E7DE] hover:bg-[#24110C]/60 transition-colors cursor-pointer ${
-                  pathname.startsWith('/owner/analytics') ? 'bg-[#24110C] text-[#D4FF00] border border-[#AD7257]/30' : ''
-                }`}
-              >
-                <BarChart3 className="w-3.5 h-3.5 text-[#D4FF00]" />
-                Insights
-              </NextLink>
-            </div>
-          )}
-
-          {isAdmin && (
-            <NextLink
-              href="/admin"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-amber-300 hover:bg-[#24110C] transition-colors cursor-pointer ml-1 ${
-                pathname.startsWith('/admin') ? 'bg-[#24110C] text-[#D4FF00] border border-[#AD7257]/30' : ''
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Admin
-            </NextLink>
-          )}
+            )}
+          </nav>
         </div>
 
-        {/* Right Section: Notification & User Pill */}
-        <div className="flex items-center gap-3">
+        {/* Right: Operational Controls & Persona Switcher */}
+        <div className="flex items-center gap-2 sm:gap-3">
           
-          {/* Notifications Dropdown */}
-          <div className="relative">
+          {/* Persona Switcher & Demo Environment Indicator */}
+          <div className="relative" ref={personaRef}>
+            <button
+              onClick={() => setShowPersonaMenu(!showPersonaMenu)}
+              className="flex items-center gap-2 bg-[#191715] hover:bg-[#211E1B] text-[#F3EADF] px-2.5 py-1.5 rounded-md border border-[#38312C] transition-colors cursor-pointer text-xs"
+              title="Switch Demo Persona"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4E7A5D]" />
+              <span className="hidden sm:inline font-mono text-[10px] tracking-wider text-[#B8ADA0] uppercase">
+                SAMPLE DATA •
+              </span>
+              <span className="font-medium truncate max-w-[120px] sm:max-w-[150px]">
+                {currentUser?.name || 'Dev Patel'}
+              </span>
+              <ChevronDown className="w-3 h-3 text-[#B8ADA0]" />
+            </button>
+
+            {showPersonaMenu && (
+              <div className="absolute right-0 mt-2 w-72 bg-[#191715] border border-[#38312C] rounded-lg shadow-2xl py-1 z-50">
+                <div className="px-3 py-2 text-[10px] font-mono uppercase tracking-wider text-[#B8ADA0] border-b border-[#38312C] flex items-center justify-between">
+                  <span>Switch Demo Persona</span>
+                  <span className="text-[#D69A49]">Active Session</span>
+                </div>
+                <div className="max-h-64 overflow-y-auto divide-y divide-[#38312C]/40">
+                  {allUsers.map((u) => {
+                    const isCurrent = currentUser?.id === u.id;
+                    return (
+                      <button
+                        key={u.id}
+                        onClick={() => switchPersona(u.id)}
+                        className={`w-full text-left px-3 py-2.5 flex items-center justify-between hover:bg-[#211E1B] transition-colors cursor-pointer ${
+                          isCurrent ? 'bg-[#211E1B] text-[#F3EADF]' : 'text-[#B8ADA0]'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <div className="font-medium text-xs text-[#F3EADF] flex items-center gap-1.5">
+                            <span className="truncate">{u.name}</span>
+                            <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#211E1B] border border-[#38312C] text-[#B8ADA0]">
+                              {u.role}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-[#B8ADA0] truncate mt-0.5">
+                            {u.department}
+                          </div>
+                        </div>
+                        {isCurrent && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#B65E42] shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Reset Demo Button */}
+          <button
+            onClick={handleReset}
+            disabled={isResetting}
+            title="Reset demonstration database to initial verified state"
+            className="flex items-center gap-1.5 bg-[#191715] hover:bg-[#211E1B] text-[#B8ADA0] hover:text-[#F3EADF] px-2.5 py-1.5 rounded-md border border-[#38312C] transition-colors text-xs font-mono cursor-pointer"
+          >
+            <RefreshCw className={`w-3 h-3 ${isResetting ? 'animate-spin text-[#B65E42]' : ''}`} />
+            <span className="hidden md:inline">{resetFeedback || 'Reset'}</span>
+          </button>
+
+          {/* Notifications Popover */}
+          <div className="relative" ref={notifRef}>
             <button
               onClick={() => {
-                const nextState = !showNotifications;
-                setShowNotifications(nextState);
-                if (nextState) {
-                  fetchNotifications();
-                }
+                setShowNotifications(!showNotifications);
+                if (!showNotifications) loadAuthAndNotifications();
               }}
-              className="relative p-2 rounded-lg bg-[#1F100B] hover:bg-[#2A150F] text-[#D9C5B4] hover:text-[#F1E7DE] border border-[#AD7257]/25 transition-colors cursor-pointer"
+              className="relative p-1.5 rounded-md bg-[#191715] hover:bg-[#211E1B] text-[#B8ADA0] hover:text-[#F3EADF] border border-[#38312C] transition-colors cursor-pointer"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D4FF00] text-black font-mono font-bold text-[9px] rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#B65E42] text-white font-mono font-bold text-[9px] rounded-full flex items-center justify-center">
                   {unreadCount}
                 </span>
               )}
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-[#170D0A] border border-[#AD7257]/30 rounded-xl shadow-2xl overflow-hidden z-50">
-                <div className="p-3 border-b border-[#AD7257]/20 flex items-center justify-between">
-                  <span className="font-mono text-xs uppercase tracking-wider text-[#F1E7DE]">Notifications</span>
+              <div className="absolute right-0 mt-2 w-80 bg-[#191715] border border-[#38312C] rounded-lg shadow-2xl overflow-hidden z-50">
+                <div className="p-3 border-b border-[#38312C] flex items-center justify-between">
+                  <span className="font-mono text-xs uppercase tracking-wider text-[#F3EADF]">Activity Feed</span>
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
-                      className="text-[11px] text-[#D4FF00] hover:underline flex items-center gap-1 cursor-pointer font-mono"
+                      className="text-[11px] text-[#B65E42] hover:underline flex items-center gap-1 cursor-pointer font-mono"
                     >
                       <CheckCheck className="w-3 h-3" /> Mark all read
                     </button>
                   )}
                 </div>
-                <div className="max-h-80 overflow-y-auto divide-y divide-[#AD7257]/15">
+                <div className="max-h-72 overflow-y-auto divide-y divide-[#38312C]/40">
                   {notifications.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-[#A99A90]">
-                      No notifications logged
+                    <div className="p-6 text-center text-xs text-[#B8ADA0]">
+                      No active alerts logged
                     </div>
                   ) : (
                     notifications.map((n) => (
                       <div
                         key={n.id}
-                        className={`p-3 text-xs transition-colors hover:bg-[#24110C] ${
-                          n.read_status === 0 ? 'bg-[#D4FF00]/5' : ''
+                        className={`p-3 text-xs transition-colors hover:bg-[#211E1B] ${
+                          n.read_status === 0 ? 'bg-[#211E1B]/50' : ''
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-semibold text-[11px] ${
-                            n.type === 'alert' ? 'text-red-400' : n.type === 'warning' ? 'text-amber-400' : 'text-[#D4FF00]'
+                            n.type === 'alert' ? 'text-[#B84A39]' : n.type === 'warning' ? 'text-[#C68A3C]' : 'text-[#F3EADF]'
                           }`}>
                             {n.title}
                           </span>
-                          <span className="text-[10px] text-[#A99A90] font-mono">
+                          <span className="text-[10px] text-[#B8ADA0] font-mono">
                             {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-[#D9C5B4] text-[11px] leading-relaxed mb-1.5">{n.message}</p>
+                        <p className="text-[#B8ADA0] text-[11px] leading-relaxed mb-1">{n.message}</p>
                         {n.link && (
                           <NextLink
                             href={n.link}
                             onClick={() => setShowNotifications(false)}
-                            className="text-[10px] text-[#D4FF00] hover:underline font-mono uppercase"
+                            className="text-[11px] text-[#B65E42] hover:underline inline-block mt-0.5"
                           >
-                            Inspect details →
+                            View details →
                           </NextLink>
                         )}
                       </div>
@@ -342,77 +381,55 @@ export function Navbar() {
             )}
           </div>
 
-          {/* User Profile Pill */}
-          {currentUser && (
-            <div className="flex items-center gap-2 bg-[#1F100B] border border-[#AD7257]/25 pl-1.5 pr-3 py-1 rounded-full">
-              <img
-                src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&auto=format&fit=crop&q=80'}
-                alt={currentUser.name}
-                className="w-6 h-6 rounded-full object-cover border border-[#D4FF00]/50"
-              />
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-medium text-[#F1E7DE] truncate max-w-[100px] sm:max-w-[120px]">
-                  {currentUser.name}
-                </span>
-                <span className="text-[9px] font-mono text-[#D4FF00] uppercase tracking-wider -mt-0.5">
-                  {currentUser.role}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Mobile menu toggle */}
+          {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-[#A99A90] hover:text-[#F1E7DE]"
+            className="lg:hidden p-1.5 rounded-md bg-[#191715] text-[#B8ADA0] hover:text-[#F3EADF] border border-[#38312C]"
+            title="Toggle Menu"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden mt-3 pt-3 border-t border-[#AD7257]/20 flex flex-col gap-2 text-sm bg-[#170D0A]/95 p-4 rounded-xl">
-          <NextLink href="/explore" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D9C5B4] hover:text-[#D4FF00]">
-            Explore Resources
-          </NextLink>
-          <NextLink href="/match" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D9C5B4] hover:text-[#D4FF00]">
-            IdleX Match (AI Engine)
-          </NextLink>
-          <NextLink href="/incidents" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-amber-400">
-            Promise Protection
-          </NextLink>
-          <NextLink href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D9C5B4] hover:text-[#D4FF00]">
-            Dashboard
-          </NextLink>
-          <NextLink href="/bookings" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D9C5B4] hover:text-[#D4FF00]">
-            My Bookings
-          </NextLink>
-          <NextLink href="/waitlist" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D9C5B4] hover:text-[#D4FF00]">
-            FairShare Waitlists
-          </NextLink>
-          {isOwner && (
-            <>
-              <NextLink href="/owner/resources" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D9C5B4]">
-                Owner Inventory
-              </NextLink>
-              <NextLink href="/owner/requests" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D9C5B4]">
-                Booking Requests
-              </NextLink>
-              <NextLink href="/owner/analytics" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-[#D4FF00]">
-                Idle Insights Analytics
-              </NextLink>
-            </>
-          )}
-          {isAdmin && (
-            <NextLink href="/admin" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 text-amber-300">
-              Admin Verification & Audit
+        <div className="lg:hidden border-t border-[#38312C] bg-[#191715] px-4 py-3 space-y-1">
+          {navLinks.map((item) => (
+            <NextLink
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                item.match(pathname)
+                  ? 'bg-[#211E1B] text-[#F3EADF] border border-[#38312C]'
+                  : 'text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#211E1B]'
+              }`}
+            >
+              {item.label}
             </NextLink>
+          ))}
+          {isOwner && (
+            <div className="pt-2 border-t border-[#38312C] mt-2 space-y-1">
+              <div className="px-3 py-1 text-[10px] font-mono text-[#B8ADA0] uppercase tracking-wider">Owner Controls</div>
+              <NextLink
+                href="/owner/resources"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-md text-xs font-medium text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#211E1B]"
+              >
+                Inventory
+              </NextLink>
+              <NextLink
+                href="/owner/requests"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-md text-xs font-medium text-[#B8ADA0] hover:text-[#F3EADF] hover:bg-[#211E1B]"
+              >
+                Requests
+              </NextLink>
+            </div>
           )}
         </div>
       )}
-    </nav>
+    </header>
   );
 }
-

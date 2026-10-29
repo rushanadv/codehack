@@ -7,18 +7,17 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   ShieldCheck, 
-  ShieldAlert, 
   Clock, 
-  Send, 
   RotateCcw,
-  SlidersHorizontal
+  SlidersHorizontal,
+  MapPin
 } from 'lucide-react';
 import Link from 'next/link';
 import { MatchResultItem } from '@/lib/match';
 
 export default function MatchPage() {
   const [prompt, setPrompt] = useState(
-    'I need an industrial 3D printer for a carbon fiber aerospace prototype run tomorrow afternoon. My budget is ₹400/hr and I have completed the required safety training.'
+    'I need an industrial 3D printer for a carbon fiber aerospace prototype run tomorrow afternoon. Budget is $150/hr and I have completed operator training.'
   );
   const [maxBudget, setMaxBudget] = useState('');
   const [category, setCategory] = useState<'equipment' | 'space' | 'digital' | undefined>(undefined);
@@ -27,10 +26,22 @@ export default function MatchPage() {
   const [hasQueried, setHasQueried] = useState(false);
 
   const samplePrompts = [
-    'I need an industrial 3D printer for a carbon fiber aerospace prototype run tomorrow afternoon. My budget is ₹400/hr and I have completed the required safety training.',
-    'Need high-speed camera capturing at least 120fps for supersonic vortex tracking. Budget ₹900.',
-    'Require ISO Class 5 cleanroom bay for photolithography SU-8 resist spin coating.',
-    'High performance multi-GPU Slurm cluster node for training transformer models under ₹300/hr.'
+    {
+      title: 'Aerospace Prototype 3D Printing',
+      text: 'I need an industrial 3D printer for a carbon fiber aerospace prototype run tomorrow afternoon. Budget is $150/hr and I have completed operator training.'
+    },
+    {
+      title: 'Class 5 Microfabrication Bay',
+      text: 'Require an ISO Class 5 cleanroom bay for photolithography and SU-8 photoresist spin coating on silicon wafers.'
+    },
+    {
+      title: 'High-Performance GPU Cluster',
+      text: 'Need a dedicated multi-GPU Slurm cluster instance for training transformer models under $100/hr.'
+    },
+    {
+      title: 'Surface Metrology & Profiling',
+      text: 'Looking for a non-contact optical surface profilometer for sub-nanometer roughness measurement of microfluidic channels.'
+    }
   ];
 
   const handleMatch = async (e?: React.FormEvent) => {
@@ -45,7 +56,7 @@ export default function MatchPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
-          maxBudget: maxBudget || undefined,
+          maxBudget: maxBudget ? parseFloat(maxBudget) : undefined,
           category
         })
       });
@@ -60,209 +71,240 @@ export default function MatchPage() {
   };
 
   return (
-    <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* Header */}
-      <div className="pb-8 border-b border-[#AD7257]/20">
-        <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>IdleX Match™ Intent Intelligence</span>
+      <div className="pb-6 border-b border-[#38312C]">
+        <div className="flex items-center gap-2 text-xs font-mono text-[#D69A49] uppercase tracking-wider mb-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#B65E42]" />
+          <span>Intent Match Engine • Deterministic Compatibility Scoring</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#F1E7DE] tracking-tight">
-          Intelligent Resource Recommendations
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#F3EADF] tracking-tight">
+          Resource Intent Matching
         </h1>
-        <p className="text-sm text-[#D9C5B4] mt-1 max-w-2xl leading-relaxed">
-          Describe your experimental or prototyping requirements in plain language. The engine combines semantic matching with strict SkillGate safety gating and real-time buffer availability.
+        <p className="text-xs sm:text-sm text-[#B8ADA0] mt-1 max-w-2xl leading-relaxed">
+          Describe your experimental or prototyping requirements in natural language. The deterministic engine evaluates semantic requirements, verifies SkillGate credentials, and confirms buffer availability.
         </p>
       </div>
 
-      {/* Input Section */}
-      <div className="mt-8 p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/30 shadow-2xl">
+      {/* Input Console */}
+      <div className="p-5 sm:p-6 rounded-xl bg-[#191715] border border-[#38312C] space-y-5">
         <form onSubmit={handleMatch} className="space-y-4">
-          <div className="relative">
+          <div>
+            <label className="block text-xs font-mono uppercase text-[#B8ADA0] mb-2">
+              Experimental Requirement Description
+            </label>
             <textarea
-              rows={4}
+              rows={3}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g. I need an industrial 3D printer near my department tomorrow afternoon for an engineering project..."
-              className="w-full bg-[#24110C] text-[#F1E7DE] p-4 rounded-xl border border-[#AD7257]/30 text-sm focus:outline-none focus:border-[#D4FF00] font-sans leading-relaxed resize-none shadow-inner"
+              placeholder="e.g. Need high-throughput thermal chamber for -40°C stress testing under $120/hr..."
+              className="w-full bg-[#11100F] text-[#F3EADF] p-3.5 rounded-lg border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] leading-relaxed resize-none"
             />
           </div>
 
-          {/* Quick Preset Prompts */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-mono text-[#A99A90] uppercase">Presets:</span>
-            {samplePrompts.map((s, idx) => (
-              <button
-                type="button"
-                key={idx}
-                onClick={() => setPrompt(s)}
-                className="text-[11px] font-mono bg-[#24110C] hover:bg-[#2F1711] text-[#D9C5B4] hover:text-[#F1E7DE] px-3 py-1.5 rounded-lg border border-[#AD7257]/25 transition-colors cursor-pointer text-left truncate max-w-[280px]"
-              >
-                Preset {idx + 1}: {s.slice(0, 35)}...
-              </button>
-            ))}
+          {/* Quick Preset Scenarios */}
+          <div>
+            <div className="text-[11px] font-mono text-[#B8ADA0] uppercase mb-2">
+              Sample Request Scenarios:
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              {samplePrompts.map((p, idx) => (
+                <button
+                  type="button"
+                  key={idx}
+                  onClick={() => setPrompt(p.text)}
+                  className="text-left p-2.5 rounded-lg bg-[#211E1B] hover:bg-[#292420] border border-[#38312C] hover:border-[#B65E42] text-xs transition-colors cursor-pointer group"
+                >
+                  <div className="font-medium text-[#F3EADF] group-hover:text-white truncate">
+                    {p.title}
+                  </div>
+                  <div className="text-[11px] text-[#B8ADA0] line-clamp-1 mt-0.5">
+                    {p.text}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Controls Bar */}
-          <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#AD7257]/20">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center gap-1.5 bg-[#24110C] px-3.5 py-2 rounded-xl border border-[#AD7257]/25 text-xs font-mono">
-                <span className="text-[#A99A90]">Max ₹/hr:</span>
+          {/* Parameters Bar & Submit */}
+          <div className="pt-3 border-t border-[#38312C]/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-[#B8ADA0] font-mono text-[11px]">Budget Cap:</span>
                 <input
                   type="number"
                   value={maxBudget}
                   onChange={(e) => setMaxBudget(e.target.value)}
-                  placeholder="Auto"
-                  className="w-16 bg-transparent text-[#F1E7DE] focus:outline-none text-xs"
+                  placeholder="Auto ($/hr)"
+                  className="w-28 bg-[#11100F] text-[#F3EADF] px-2.5 py-1.5 rounded-md border border-[#38312C] text-xs font-mono focus:outline-none focus:border-[#B65E42]"
                 />
               </div>
 
-              <select
-                value={category || ''}
-                onChange={(e) => setCategory((e.target.value as any) || undefined)}
-                className="bg-[#24110C] text-[#D9C5B4] px-3.5 py-2 rounded-xl border border-[#AD7257]/25 text-xs font-mono focus:outline-none cursor-pointer"
-              >
-                <option value="">All Categories</option>
-                <option value="equipment">Equipment Only</option>
-                <option value="space">Spaces Only</option>
-                <option value="digital">Digital Only</option>
-              </select>
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-[#B8ADA0] font-mono text-[11px]">Domain:</span>
+                <select
+                  value={category || ''}
+                  onChange={(e) => setCategory((e.target.value as any) || undefined)}
+                  className="bg-[#11100F] text-[#F3EADF] px-2.5 py-1.5 rounded-md border border-[#38312C] text-xs font-mono focus:outline-none focus:border-[#B65E42] cursor-pointer"
+                >
+                  <option value="">All Categories</option>
+                  <option value="equipment">Physical Assets</option>
+                  <option value="space">Property & Spaces</option>
+                  <option value="digital">Digital & Tech</option>
+                </select>
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-6 py-3 rounded-xl font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-[#D4FF00]/15"
+              disabled={isLoading || !prompt.trim()}
+              className="inline-flex items-center justify-center gap-2 bg-[#B65E42] hover:bg-[#C86C4E] text-white px-5 py-2 rounded-md font-medium text-xs transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
             >
-              {isLoading ? 'Synthesizing Matches...' : 'Execute Match Engine'}
-              <ArrowRight className="w-3.5 h-3.5" />
+              {isLoading ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Computing Scores...</span>
+                </>
+              ) : (
+                <>
+                  <span>Evaluate Matches</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
             </button>
           </div>
         </form>
       </div>
 
       {/* Results Section */}
-      <div className="mt-12 space-y-6">
-        {isLoading && (
-          <div className="py-20 text-center">
-            <div className="w-8 h-8 border-2 border-[#D4FF00] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-xs font-mono text-[#A99A90] uppercase tracking-widest">
-              Evaluating SkillGate Qualifications & Proximity Scoring...
-            </div>
+      {hasQueried && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs pb-2 border-b border-[#38312C]">
+            <span className="font-mono text-[#F3EADF] font-medium uppercase tracking-wider">
+              Ranked Compatibility Matches ({results.length})
+            </span>
+            <span className="text-[#B8ADA0] text-[11px] font-mono">
+              Deterministic Scoring • SkillGate Verified
+            </span>
           </div>
-        )}
 
-        {!isLoading && hasQueried && results.length === 0 && (
-          <div className="p-8 text-center bg-[#170D0A] rounded-2xl border border-[#AD7257]/25 text-[#D9C5B4]">
-            No matching resources met the threshold.
-          </div>
-        )}
-
-        {!isLoading && results.length > 0 && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between font-mono text-xs text-[#A99A90]">
-              <span>RANKED RECOMMENDATIONS ({results.length} CANDIDATES)</span>
-              <span className="text-[#D4FF00]">HARD SAFETY GATING APPLIED</span>
+          {results.length === 0 ? (
+            <div className="p-8 text-center bg-[#191715] rounded-xl border border-[#38312C] text-xs text-[#B8ADA0]">
+              No resources matched the provided specifications and constraints. Try broadening your budget or prompt keywords.
             </div>
+          ) : (
+            <div className="space-y-3.5">
+              {results.map((item, index) => {
+                const res = item.resource;
+                const isRecommended = item.isRecommended || index === 0;
 
-            {results.map((item, idx) => (
-              <div
-                key={item.resource.id}
-                className={`p-6 sm:p-8 rounded-2xl border transition-all ${
-                  item.isRecommended
-                    ? 'bg-[#1C0F0B] border-[#D4FF00]/45 shadow-2xl'
-                    : 'bg-[#170D0A] border-[#AD7257]/25 opacity-90 hover:opacity-100'
-                }`}
-              >
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                  
-                  {/* Left: Thumbnail & Main info */}
-                  <div className="flex items-start gap-4">
-                    <img
-                      src={item.resource.image_url}
-                      alt={item.resource.title}
-                      className="w-24 h-24 rounded-xl object-cover border border-[#AD7257]/30 shrink-0"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="badge-tech bg-[#24110C] text-[#D9C5B4] border border-[#AD7257]/25 font-mono">
-                          {item.resource.subcategory}
-                        </span>
-                        {item.isRecommended && (
-                          <span className="badge-tech bg-[#D4FF00]/20 text-[#D4FF00] border border-[#D4FF00]/40 font-mono">
-                            TOP MATCH
-                          </span>
-                        )}
-                        {!item.isEligible && (
-                          <span className="badge-tech bg-red-500/20 text-red-400 border border-red-500/40 font-mono">
-                            SKILLGATE BLOCKED
-                          </span>
-                        )}
+                return (
+                  <div
+                    key={res.id}
+                    className={`p-4 sm:p-5 rounded-xl border transition-all ${
+                      isRecommended
+                        ? 'bg-[#191715] border-[#B65E42]'
+                        : 'bg-[#191715] border-[#38312C] hover:border-[#4E443E]'
+                    }`}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      
+                      {/* Left: Thumbnail & Core Details */}
+                      <div className="flex items-start gap-4 min-w-0">
+                        <img
+                          src={res.image_url}
+                          alt={res.title}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover shrink-0 border border-[#38312C]"
+                        />
+
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {isRecommended && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#B65E42]/20 text-[#D69A49] border border-[#B65E42]/40 uppercase font-mono">
+                                Top Recommendation
+                              </span>
+                            )}
+                            <span className="text-[11px] font-mono text-[#B8ADA0] uppercase">
+                              {res.subcategory}
+                            </span>
+                          </div>
+
+                          <h3 className="text-sm sm:text-base font-semibold text-[#F3EADF] truncate">
+                            {res.title}
+                          </h3>
+
+                          <div className="flex items-center gap-1.5 text-xs text-[#B8ADA0]">
+                            <MapPin className="w-3.5 h-3.5 text-[#B65E42] shrink-0" />
+                            <span className="truncate">{res.building} • {res.location}</span>
+                          </div>
+
+                          {/* Fit Reason Explanation */}
+                          <p className="text-xs text-[#F3EADF] leading-relaxed pt-1">
+                            <span className="text-[#D69A49] font-medium">Why it fits: </span>
+                            {item.explanation}
+                          </p>
+                        </div>
                       </div>
 
-                      <h3 className="text-lg font-bold text-[#F1E7DE] hover:text-[#D4FF00] transition-colors">
-                        <Link href={`/resources/${item.resource.id}`}>
-                          {item.resource.title}
-                        </Link>
-                      </h3>
+                      {/* Right: Score, SkillGate Status & Action */}
+                      <div className="flex lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#38312C]/60 shrink-0">
+                        
+                        {/* Compatibility Score */}
+                        <div className="text-left lg:text-right">
+                          <div className="text-[10px] font-mono text-[#B8ADA0] uppercase">Match Score</div>
+                          <div className="text-xl font-bold font-mono text-[#F3EADF]">
+                            {item.score}%
+                          </div>
+                        </div>
 
-                      <div className="text-xs text-[#A99A90] mt-1 font-mono">
-                        {item.resource.building}, {item.resource.room} ({item.resource.location})
+                        {/* SkillGate Clearance Pill */}
+                        <div className="text-left lg:text-right">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border ${
+                            item.isEligible
+                              ? 'bg-[#4E7A5D]/15 text-[#6BA87E] border-[#4E7A5D]/30'
+                              : 'bg-[#C68A3C]/15 text-[#E0A85C] border-[#C68A3C]/30'
+                          }`}>
+                            {item.isEligible ? (
+                              <>
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>SkillGate: Cleared</span>
+                              </>
+                            ) : (
+                              <>
+                                <AlertTriangle className="w-3 h-3" />
+                                <span>Skill Required</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Hourly Rate & CTA */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono text-[#B8ADA0]">
+                            ${res.hourly_rate}/hr
+                          </span>
+
+                          <Link
+                            href={`/resources/${res.slug || res.id}`}
+                            className="inline-flex items-center gap-1 bg-[#211E1B] hover:bg-[#B65E42] text-[#F3EADF] hover:text-white px-3 py-1.5 rounded-md text-xs font-medium border border-[#38312C] transition-colors"
+                          >
+                            <span>Reserve</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+
                       </div>
 
-                      {/* Explainable match statement */}
-                      <p className="text-xs text-[#D9C5B4] mt-3 p-3.5 rounded-xl bg-[#24110C] border border-[#AD7257]/20 leading-relaxed font-sans">
-                        <span className="font-mono text-[#D4FF00] text-[10px] uppercase block mb-1">Match Rationale:</span>
-                        {item.explanation}
-                      </p>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
-                  {/* Right: Score Breakdown & CTA */}
-                  <div className="shrink-0 flex flex-col md:items-end justify-between self-stretch">
-                    <div className="text-right">
-                      <div className="text-[10px] font-mono uppercase text-[#A99A90]">Compatibility Score</div>
-                      <div className="text-3xl font-extrabold font-mono text-[#F1E7DE] flex items-baseline justify-end gap-1">
-                        <span className={item.score >= 70 ? 'text-[#D4FF00]' : 'text-[#D9C5B4]'}>
-                          {item.score}
-                        </span>
-                        <span className="text-xs text-[#A99A90] font-normal">/ 100</span>
-                      </div>
-                      <div className="text-xs font-mono text-[#D9C5B4] mt-1">
-                        ₹{item.resource.hourly_rate}/hr
-                      </div>
-                    </div>
-
-                    <div className="mt-4 md:mt-0 flex items-center gap-3">
-                      <Link
-                        href={`/resources/${item.resource.id}`}
-                        className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                          item.isEligible
-                            ? 'bg-[#D4FF00] hover:bg-[#C2EA00] text-black shadow-md shadow-[#D4FF00]/15'
-                            : 'bg-[#24110C] hover:bg-[#2F1711] text-[#F1E7DE] border border-[#AD7257]/30'
-                        }`}
-                      >
-                        {item.isEligible ? 'Reserve Slot' : 'View Requirements'}
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Score telemetry pill breakdown */}
-                <div className="mt-4 pt-3 border-t border-[#AD7257]/20 flex flex-wrap items-center gap-4 text-[11px] font-mono text-[#A99A90]">
-                  <span>Intent Match: <strong className="text-[#F1E7DE]">{item.breakdown.intentScore}/30</strong></span>
-                  <span>Budget Compatibility: <strong className="text-[#F1E7DE]">{item.breakdown.budgetScore}/25</strong></span>
-                  <span>SkillGate Clearance: <strong className={item.isEligible ? 'text-emerald-400' : 'text-red-400'}>{item.breakdown.eligibilityScore}/25</strong></span>
-                  <span>Readiness: <strong className="text-[#F1E7DE]">{item.breakdown.availabilityScore}/20</strong></span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
-

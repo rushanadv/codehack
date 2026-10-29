@@ -18,6 +18,23 @@
     --text-primary: #F1E7DE;
     --text-secondary: #D9C5B4;
     --text-muted: #A99A90;
+
+    /* Internal Application Theme Tokens (Industrial Technology) */
+    --app-bg: #11100F;
+    --app-surface: #191715;
+    --app-surface-elevated: #211E1B;
+    --app-border: #38312C;
+    --app-border-subtle: #26221E;
+    --app-border-hover: #4E443E;
+    --app-text-primary: #F3EADF;
+    --app-text-muted: #B8ADA0;
+    --app-accent: #B65E42;
+    --app-accent-hover: #C86C4E;
+    --app-accent-secondary: #D69A49;
+    --app-status-success: #4E7A5D;
+    --app-status-warning: #C68A3C;
+    --app-status-error: #B84A39;
+    --app-accent-lime: #D5E64A;
   }
 
   body {

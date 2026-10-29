@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  ArrowRight, 
+  ArrowLeft,
   CalendarCheck, 
   Clock, 
   CheckCircle2, 
@@ -17,7 +17,9 @@ import {
   User,
   Zap,
   HelpCircle,
-  GitCommit
+  GitCommit,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 import { Booking, ConditionReport, AuditEvent } from '@/lib/types';
 
@@ -34,10 +36,10 @@ function BookingDetailContent() {
   const [conditionRating, setConditionRating] = useState('pristine');
   const [discrepancies, setDiscrepancies] = useState('');
   const [checklist, setChecklist] = useState<Record<string, boolean>>({
-    safety_gear_worn: true,
-    calibration_verified: true,
-    workspace_clean: true,
-    all_components_present: true
+    safety_gear_verified: true,
+    calibration_confirmed: true,
+    workstation_cleared: true,
+    peripherals_accounted: true
   });
 
   // Delay simulation on this booking
@@ -64,10 +66,10 @@ function BookingDetailContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen py-32 text-center">
-        <div className="w-8 h-8 border-2 border-[#D4FF00] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <div className="text-xs font-mono text-neutral-400 uppercase tracking-widest">
-          Loading Booking Lifecycle & Audit History...
+      <div className="min-h-screen bg-[#11100F] py-32 text-center">
+        <div className="w-7 h-7 border-2 border-[#B65E42] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <div className="text-[11px] font-mono text-[#8C827A] uppercase tracking-wider">
+          Loading Reservation Lifecycle & Audit Trail...
         </div>
       </div>
     );
@@ -75,17 +77,24 @@ function BookingDetailContent() {
 
   if (!data?.booking) {
     return (
-      <div className="min-h-screen py-32 text-center max-w-md mx-auto px-4">
-        <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Booking Not Found</h2>
-        <Link href="/bookings" className="bg-[#D4FF00] text-black px-4 py-2 rounded font-mono text-xs font-bold uppercase">
-          Back to Bookings
+      <div className="min-h-screen bg-[#11100F] py-32 text-center max-w-md mx-auto px-4">
+        <AlertTriangle className="w-10 h-10 text-[#B65E42] mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-[#F3EADF] mb-2 tracking-tight">Reservation Not Found</h2>
+        <p className="text-xs text-[#8C827A] mb-6">
+          The requested booking record could not be retrieved from the ledger.
+        </p>
+        <Link 
+          href="/bookings" 
+          className="inline-flex items-center gap-2 bg-[#B65E42] hover:bg-[#A35238] text-[#F3EADF] px-4 py-2 rounded-lg font-mono text-xs font-semibold uppercase tracking-wider transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Back to Reservations
         </Link>
       </div>
     );
   }
 
-  const { booking, conditionReports, auditEvents, nextReservation, isOwner, isBooker, isAdmin } = data;
+  const { booking, conditionReports = [], auditEvents = [], nextReservation, isOwner, isBooker, isAdmin } = data;
 
   const handleHandoverReport = async (reportType: 'checkout' | 'return') => {
     setIsSubmittingReport(true);
@@ -107,7 +116,7 @@ function BookingDetailContent() {
 
       const resData = await res.json();
       if (res.ok && resData.success) {
-        setReportSuccess(`${reportType === 'checkout' ? 'Check-in handover' : 'Return inspection'} recorded in Resource Passport.`);
+        setReportSuccess(`${reportType === 'checkout' ? 'Check-in handover' : 'Return inspection'} logged in Resource Passport.`);
         fetchBookingDetail();
       } else {
         alert(resData.error || 'Failed to submit condition report');
@@ -151,69 +160,82 @@ function BookingDetailContent() {
   ];
 
   return (
-    <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#11100F] text-[#F3EADF] py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-[#AD7257]/20 gap-4">
+      {/* Breadcrumb & Navigation */}
+      <div className="flex items-center gap-2 text-xs font-mono text-[#8C827A]">
+        <Link href="/bookings" className="hover:text-[#F3EADF] transition-colors flex items-center gap-1">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Reservations
+        </Link>
+        <ChevronRight className="w-3 h-3 text-[#544B43]" />
+        <span className="text-[#B8ADA0] truncate">{booking.id}</span>
+      </div>
+
+      {/* Top Header Card */}
+      <div className="p-6 rounded-xl bg-[#191715] border border-[#2C2723] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2 mb-1.5 font-mono text-xs">
-            <span className="text-[#A99A90]">BOOKING ID: {booking.id}</span>
-            <span className="text-[#AD7257]">•</span>
-            <span className="text-[#D4FF00]">PASSPORT: {booking.resource_passport_id}</span>
+          <div className="flex flex-wrap items-center gap-2.5 mb-2 font-mono text-[11px]">
+            <span className="text-[#8C827A]">ID: {booking.id}</span>
+            <span className="text-[#544B43]">•</span>
+            <span className="text-[#D69A49]">PASSPORT: {booking.resource_passport_id}</span>
+            <span className="text-[#544B43]">•</span>
+            <span className="text-[#8C827A]">{booking.resource_building}, {booking.resource_room}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F1E7DE] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#F3EADF] tracking-tight">
             {booking.resource_title}
           </h1>
-          <p className="text-xs text-[#D9C5B4] font-mono mt-1">
-            Booked by {booking.user_name} ({booking.user_email}) • {booking.resource_building}, {booking.resource_room}
+          <p className="text-xs text-[#8C827A] font-mono mt-1.5">
+            Booker: <span className="text-[#B8ADA0]">{booking.user_name}</span> ({booking.user_email})
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className={`badge-tech font-mono ${
-            booking.status === 'in_progress' ? 'bg-[#D4FF00]/20 text-[#D4FF00] border border-[#D4FF00]/40' :
-            booking.status === 'confirmed' ? 'bg-[#D96335]/25 text-[#D96335] border border-[#D96335]/40' :
-            booking.status === 'returned' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
-            booking.status === 'delayed' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
-            'bg-neutral-500/20 text-[#A99A90]'
+        <div className="flex flex-wrap items-center gap-3">
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-mono font-medium border ${
+            booking.status === 'in_progress' ? 'bg-[#D69A49]/15 text-[#D69A49] border-[#D69A49]/30' :
+            booking.status === 'confirmed' ? 'bg-[#B65E42]/15 text-[#B65E42] border-[#B65E42]/30' :
+            booking.status === 'returned' ? 'bg-[#4E7A5D]/15 text-[#4E7A5D] border-[#4E7A5D]/30' :
+            booking.status === 'delayed' ? 'bg-[#B84A39]/15 text-[#B84A39] border-[#B84A39]/30' :
+            'bg-[#211E1B] text-[#8C827A] border-[#2C2723]'
           }`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-            STATUS: {booking.status.toUpperCase()}
+            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+            {booking.status.toUpperCase()}
           </span>
 
           <Link
             href={`/resources/${booking.resource_id}`}
-            className="px-3.5 py-2 bg-[#24110C] hover:bg-[#2F1711] text-[#F1E7DE] rounded-xl text-xs font-mono uppercase border border-[#AD7257]/30 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#211E1B] hover:bg-[#2A2622] text-[#F3EADF] rounded-lg text-xs font-mono border border-[#38312C] transition-colors"
           >
-            Resource Passport →
+            <span>Resource Ledger</span>
+            <ExternalLink className="w-3 h-3 text-[#8C827A]" />
           </Link>
         </div>
       </div>
 
       {/* Visual Lifecycle Stepper */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 shadow-lg">
-        <div className="text-[11px] font-mono uppercase tracking-widest text-[#A99A90] mb-4">
-          Booking Lifecycle State Machine
+      <div className="p-6 rounded-xl bg-[#191715] border border-[#2C2723] shadow-sm">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-[#8C827A] mb-4">
+          Lifecycle State Transition
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {lifecycleStages.map((stage, idx) => (
             <div
               key={idx}
-              className={`p-4 rounded-xl border text-xs font-mono flex items-center justify-between ${
+              className={`p-3.5 rounded-lg border text-xs font-mono flex items-center justify-between transition-colors ${
                 stage.done
-                  ? 'bg-[#24110C] border-[#D4FF00]/40 text-[#F1E7DE]'
-                  : 'bg-[#120A08] border-[#AD7257]/15 text-[#A99A90]'
+                  ? 'bg-[#211E1B] border-[#38312C] text-[#F3EADF]'
+                  : 'bg-[#151312] border-[#24201D] text-[#6B6158]'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                  stage.done ? 'bg-[#D4FF00] text-black font-bold' : 'bg-[#24110C] text-[#A99A90]'
+                <div className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
+                  stage.done ? 'bg-[#B65E42] text-white' : 'bg-[#211E1B] text-[#6B6158]'
                 }`}>
                   {idx + 1}
                 </div>
                 <span>{stage.label}</span>
               </div>
-              {stage.done && <CheckCircle2 className="w-4 h-4 text-[#D4FF00]" />}
+              {stage.done && <CheckCircle2 className="w-4 h-4 text-[#4E7A5D]" />}
             </div>
           ))}
         </div>
@@ -226,33 +248,33 @@ function BookingDetailContent() {
         <div className="lg:col-span-7 space-y-6">
           
           {/* Handover Form Interface */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/30 space-y-5 shadow-xl">
-            <div className="flex items-center justify-between pb-3 border-b border-[#AD7257]/20">
-              <h3 className="text-sm font-bold font-mono uppercase text-[#F1E7DE] flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#D4FF00]" />
-                Custody & Handover Inspection Console
+          <div className="p-6 rounded-xl bg-[#191715] border border-[#2C2723] space-y-5 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2C2723]">
+              <h3 className="text-xs font-semibold font-mono uppercase text-[#F3EADF] flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#B65E42]" />
+                Custody & Handover Inspection
               </h3>
-              <span className="text-[10px] font-mono text-[#A99A90]">
-                PASSPORT AUDITED
+              <span className="text-[10px] font-mono text-[#8C827A]">
+                IMMUTABLE AUDIT RECORD
               </span>
             </div>
 
             {/* If Confirmed -> Checkout button */}
             {booking.status === 'confirmed' && (
               <div className="space-y-4">
-                <p className="text-xs text-[#D9C5B4] leading-relaxed">
-                  Before physical operation begins, verify all baseline safety requirements and record the starting condition into the Resource Passport.
+                <p className="text-xs text-[#B8ADA0] leading-relaxed">
+                  Before operating this resource, confirm prerequisite calibration and physical safety checks to start custody.
                 </p>
 
                 {/* Checklist */}
-                <div className="space-y-2 text-xs font-mono">
+                <div className="space-y-2.5 text-xs font-mono bg-[#151312] p-4 rounded-lg border border-[#24201D]">
                   {Object.entries(checklist).map(([key, val]) => (
-                    <label key={key} className="flex items-center gap-2.5 text-[#D9C5B4] cursor-pointer">
+                    <label key={key} className="flex items-center gap-2.5 text-[#B8ADA0] cursor-pointer hover:text-[#F3EADF] transition-colors">
                       <input
                         type="checkbox"
                         checked={val}
                         onChange={(e) => setChecklist({ ...checklist, [key]: e.target.checked })}
-                        className="rounded border-[#AD7257]/30 text-[#D4FF00] focus:ring-0 bg-[#24110C]"
+                        className="rounded border-[#38312C] text-[#B65E42] focus:ring-0 bg-[#211E1B]"
                       />
                       <span className="capitalize">{key.replace(/_/g, ' ')}</span>
                     </label>
@@ -262,10 +284,10 @@ function BookingDetailContent() {
                 <button
                   onClick={() => handleHandoverReport('checkout')}
                   disabled={isSubmittingReport}
-                  className="w-full flex items-center justify-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black py-3 rounded-xl font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
+                  className="w-full flex items-center justify-center gap-2 bg-[#B65E42] hover:bg-[#A35238] text-white py-2.5 rounded-lg font-mono font-semibold text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
                 >
                   {isSubmittingReport ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                  Complete Verified Checkout & Begin Session
+                  Verify Handover & Start Custody
                 </button>
               </div>
             )}
@@ -273,53 +295,53 @@ function BookingDetailContent() {
             {/* If In Progress or Delayed -> Return Handover Form */}
             {(booking.status === 'in_progress' || booking.status === 'delayed') && (
               <div className="space-y-4">
-                <p className="text-xs text-[#D9C5B4] leading-relaxed">
-                  Session is currently active. When work is complete, verify clean workspace shutdown and document return state.
+                <p className="text-xs text-[#B8ADA0] leading-relaxed">
+                  Active allocation session in progress. Verify physical condition and submit final inspection report to complete return.
                 </p>
 
                 <div>
-                  <label className="block text-[11px] font-mono uppercase text-[#A99A90] mb-1.5">
-                    Returned Asset Condition Rating:
+                  <label className="block text-[11px] font-mono uppercase text-[#8C827A] mb-1.5">
+                    Return Condition Rating:
                   </label>
                   <select
                     value={conditionRating}
                     onChange={(e) => setConditionRating(e.target.value)}
-                    className="w-full bg-[#24110C] text-[#F1E7DE] px-3.5 py-2.5 rounded-xl border border-[#AD7257]/30 text-xs font-mono focus:outline-none focus:border-[#D4FF00]"
+                    className="w-full bg-[#211E1B] text-[#F3EADF] px-3.5 py-2.5 rounded-lg border border-[#38312C] text-xs font-mono focus:outline-none focus:border-[#B65E42]"
                   >
-                    <option value="pristine">Pristine (Clean, zero issues)</option>
-                    <option value="good">Good (Normal wear, cleaned)</option>
-                    <option value="fair">Fair (Minor cosmetic wear)</option>
-                    <option value="maintenance_required">Requires Preventative Maintenance</option>
+                    <option value="pristine">Pristine (Cleaned, calibrated, zero issues)</option>
+                    <option value="good">Good (Normal nominal wear, cleaned)</option>
+                    <option value="fair">Fair (Minor cosmetic wear noted)</option>
+                    <option value="maintenance_required">Maintenance Required (Service flag)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono uppercase text-[#A99A90] mb-1.5">
-                    Inspection Notes / Discrepancy Observation:
+                  <label className="block text-[11px] font-mono uppercase text-[#8C827A] mb-1.5">
+                    Inspection Notes / Discrepancies:
                   </label>
                   <input
                     type="text"
                     value={discrepancies}
                     onChange={(e) => setDiscrepancies(e.target.value)}
-                    placeholder="e.g. Nozzle purged and cooled, 84% spool remaining, work surface wiped down."
-                    className="w-full bg-[#24110C] text-[#F1E7DE] px-3.5 py-2.5 rounded-xl border border-[#AD7257]/30 text-xs focus:outline-none focus:border-[#D4FF00]"
+                    placeholder="e.g., Work surface cleaned, optical path inspected, consumable replaced."
+                    className="w-full bg-[#211E1B] text-[#F3EADF] px-3.5 py-2.5 rounded-lg border border-[#38312C] text-xs placeholder:text-[#6B6158] focus:outline-none focus:border-[#B65E42]"
                   />
                 </div>
 
                 <button
                   onClick={() => handleHandoverReport('return')}
                   disabled={isSubmittingReport}
-                  className="w-full flex items-center justify-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black py-3 rounded-xl font-mono font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
+                  className="w-full flex items-center justify-center gap-2 bg-[#B65E42] hover:bg-[#A35238] text-white py-2.5 rounded-lg font-mono font-semibold text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
                 >
                   {isSubmittingReport ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                  Submit Return Handover & Release Custody
+                  Submit Return Inspection & Release Custody
                 </button>
 
                 {/* Overrun simulation on this active session */}
-                <div className="pt-4 mt-4 border-t border-[#AD7257]/20 space-y-2">
-                  <div className="text-[11px] font-mono text-[#D96335] uppercase flex items-center gap-1.5 font-bold">
-                    <Zap className="w-3 h-3" />
-                    Simulate Overrun on This Active Session
+                <div className="pt-4 mt-4 border-t border-[#2C2723] space-y-2.5">
+                  <div className="text-[11px] font-mono text-[#D69A49] uppercase flex items-center gap-1.5 font-medium">
+                    <Zap className="w-3.5 h-3.5" />
+                    Simulate Experimental Overrun (Disruption Cascade)
                   </div>
                   <div className="flex items-center gap-2">
                     {[15, 30, 45].map((m) => (
@@ -327,14 +349,14 @@ function BookingDetailContent() {
                         key={m}
                         onClick={() => handleSimulateOverrun(m)}
                         disabled={isSimulatingDelay}
-                        className="px-3.5 py-1.5 bg-[#24110C] hover:bg-[#D96335]/20 hover:text-[#F1E7DE] text-[#D9C5B4] rounded-lg text-xs font-mono border border-[#AD7257]/30 transition-colors cursor-pointer"
+                        className="px-3 py-1.5 bg-[#211E1B] hover:bg-[#2A2622] text-[#B8ADA0] hover:text-[#F3EADF] rounded-md text-xs font-mono border border-[#38312C] transition-colors"
                       >
                         +{m}m Overrun
                       </button>
                     ))}
                   </div>
                   {delayMessage && (
-                    <div className="p-3 bg-[#D96335]/15 border border-[#D96335]/35 rounded-xl text-xs text-[#F1E7DE] font-mono">
+                    <div className="p-3 bg-[#B84A39]/15 border border-[#B84A39]/30 rounded-lg text-xs text-[#F3EADF] font-mono">
                       {delayMessage}
                     </div>
                   )}
@@ -344,18 +366,22 @@ function BookingDetailContent() {
 
             {/* If already returned */}
             {booking.status === 'returned' && (
-              <div className="p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200 font-mono space-y-1">
-                <div className="font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <div className="p-4 rounded-lg bg-[#4E7A5D]/10 border border-[#4E7A5D]/30 text-xs text-[#F3EADF] font-mono space-y-1">
+                <div className="font-semibold text-[#4E7A5D] flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
                   Custody Completed & Verified
                 </div>
-                <div>Returned at: {new Date(booking.actual_return_time || booking.updated_at).toLocaleString()}</div>
-                <div>Full inspection reports archived into Resource Passport.</div>
+                <div className="text-[#B8ADA0]">
+                  Returned at: {new Date(booking.actual_return_time || booking.updated_at).toLocaleString()}
+                </div>
+                <div className="text-[#8C827A] text-[11px]">
+                  All condition inspection records committed to the immutable resource ledger.
+                </div>
               </div>
             )}
 
             {reportSuccess && (
-              <div className="p-3.5 bg-[#D4FF00]/10 border border-[#D4FF00]/30 rounded-xl text-xs text-[#D4FF00] font-mono">
+              <div className="p-3 bg-[#4E7A5D]/15 border border-[#4E7A5D]/30 rounded-lg text-xs text-[#4E7A5D] font-mono">
                 {reportSuccess}
               </div>
             )}
@@ -363,26 +389,26 @@ function BookingDetailContent() {
 
           {/* Condition Reports Inspection History */}
           {conditionReports.length > 0 && (
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 space-y-4 shadow-xl">
-              <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-[#F1E7DE]">
-                Condition Reports on This Booking ({conditionReports.length})
+            <div className="p-6 rounded-xl bg-[#191715] border border-[#2C2723] space-y-4 shadow-sm">
+              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#F3EADF]">
+                Logged Inspection Reports ({conditionReports.length})
               </h3>
               <div className="space-y-3">
                 {conditionReports.map((cr: any) => (
-                  <div key={cr.id} className="p-4 rounded-xl bg-[#24110C] border border-[#AD7257]/20 text-xs space-y-1.5">
+                  <div key={cr.id} className="p-4 rounded-lg bg-[#211E1B] border border-[#2C2723] text-xs space-y-2">
                     <div className="flex items-center justify-between font-mono">
-                      <span className="text-[#D4FF00] uppercase font-bold text-[10px]">
-                        {cr.report_type} REPORT
+                      <span className="text-[#D69A49] uppercase font-semibold text-[10px]">
+                        {cr.report_type} INSPECTION
                       </span>
-                      <span className="text-[#A99A90] text-[10px]">
+                      <span className="text-[#8C827A] text-[10px]">
                         {new Date(cr.timestamp).toLocaleString()}
                       </span>
                     </div>
-                    <div className="text-[#D9C5B4]">
-                      Reported by: <span className="text-[#F1E7DE] font-medium">{cr.reporter_name}</span> • Rating: <span className="uppercase text-[#D4FF00] font-bold">{cr.condition_rating}</span>
+                    <div className="text-[#B8ADA0]">
+                      Inspector: <span className="text-[#F3EADF] font-medium">{cr.reporter_name}</span> • Rating: <span className="uppercase text-[#4E7A5D] font-bold">{cr.condition_rating}</span>
                     </div>
                     {cr.discrepancies && (
-                      <p className="text-[#A99A90] text-[11px] font-mono bg-[#170D0A] p-2.5 rounded-lg border border-[#AD7257]/20">
+                      <p className="text-[#8C827A] text-[11px] font-mono bg-[#151312] p-2.5 rounded border border-[#24201D]">
                         {cr.discrepancies}
                       </p>
                     )}
@@ -395,31 +421,31 @@ function BookingDetailContent() {
 
         {/* Right Column: Audit Events Timeline (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/30 space-y-4 shadow-xl">
-            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-[#F1E7DE] flex items-center gap-2">
-              <GitCommit className="w-4 h-4 text-[#D4FF00]" />
-              Immutable Audit Events
+          <div className="p-6 rounded-xl bg-[#191715] border border-[#2C2723] space-y-4 shadow-sm">
+            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#F3EADF] flex items-center gap-2">
+              <GitCommit className="w-4 h-4 text-[#B65E42]" />
+              Immutable Audit Log
             </h3>
 
             {auditEvents.length === 0 ? (
-              <div className="text-xs text-[#A99A90]">No audit logs recorded for this entity.</div>
+              <div className="text-xs text-[#8C827A] py-4">No audit events recorded for this entity.</div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {auditEvents.map((aud: any) => (
-                  <div key={aud.id} className="p-3.5 rounded-xl bg-[#24110C] border border-[#AD7257]/20 text-xs space-y-1 font-mono">
+                  <div key={aud.id} className="p-3 rounded-lg bg-[#211E1B] border border-[#2C2723] text-xs space-y-1 font-mono">
                     <div className="flex items-center justify-between">
-                      <span className="text-[#D4FF00] font-bold text-[10px]">
+                      <span className="text-[#F3EADF] font-semibold text-[10px]">
                         {aud.action}
                       </span>
-                      <span className="text-[#A99A90] text-[10px]">
+                      <span className="text-[#8C827A] text-[10px]">
                         {new Date(aud.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#D9C5B4]">
-                      Actor: <span className="text-[#F1E7DE]">{aud.actor_name || aud.actor_id}</span>
+                    <div className="text-[11px] text-[#8C827A]">
+                      Actor: <span className="text-[#B8ADA0]">{aud.actor_name || aud.actor_id}</span>
                     </div>
                     {aud.payload && (
-                      <div className="text-[10px] text-[#A99A90] bg-[#170D0A] p-2 rounded-lg border border-[#AD7257]/15 truncate max-w-full">
+                      <div className="text-[10px] text-[#6B6158] bg-[#151312] p-2 rounded border border-[#24201D] truncate max-w-full font-mono">
                         {aud.payload}
                       </div>
                     )}
@@ -436,7 +462,7 @@ function BookingDetailContent() {
 
 export default function BookingDetailPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen py-32 text-center text-xs font-mono text-neutral-400 uppercase tracking-widest">Loading Booking...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#11100F] py-32 text-center text-xs font-mono text-[#8C827A] uppercase tracking-wider">Loading Reservation...</div>}>
       <BookingDetailContent />
     </Suspense>
   );

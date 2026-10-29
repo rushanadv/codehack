@@ -8,7 +8,7 @@ import { ArrowRight, UserCheck, Shield, Sparkles, Lock, Mail, User, Building } f
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [department, setDepartment] = useState('Department of Aerospace & Robotics');
+  const [department, setDepartment] = useState('Precision Robotics Laboratory');
   const [role, setRole] = useState<'user' | 'owner'>('user');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -16,7 +16,6 @@ export default function SignupPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // For demo instant login as new session or dev
     try {
       const res = await fetch('/api/auth/current', {
         method: 'POST',
@@ -35,91 +34,91 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 flex items-center justify-center">
-      <div className="max-w-md w-full bg-[#0D0F14] border border-white/10 rounded-2xl p-8 shadow-2xl space-y-6">
+    <div className="min-h-screen bg-[#11100F] text-[#F3EADF] py-16 px-4 flex items-center justify-center">
+      <div className="max-w-md w-full bg-[#191715] border border-[#2C2723] rounded-xl p-8 shadow-2xl space-y-6">
         
         {/* Brand */}
         <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded-lg bg-[#151921] border border-white/15 flex items-center justify-center mx-auto">
-            <div className="w-4 h-4 bg-[#D4FF00] rounded-sm transform rotate-45"></div>
+          <div className="w-9 h-9 rounded-lg bg-[#211E1B] border border-[#38312C] flex items-center justify-center mx-auto">
+            <div className="w-3.5 h-3.5 bg-[#B65E42] rounded-sm transform rotate-45" />
           </div>
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">
-            Create Idle<span className="text-[#D4FF00]">X</span> Account
+          <h2 className="text-2xl font-semibold text-[#F3EADF] tracking-tight">
+            Create Idle<span className="text-[#B65E42]">X</span> Account
           </h2>
-          <p className="text-xs text-neutral-400">
-            Join the Verified Institutional Research Exchange
+          <p className="text-xs text-[#8C827A] font-mono">
+            Verified Infrastructure Exchange Registry
           </p>
         </div>
 
         {/* Signup Form */}
         <form onSubmit={handleSignup} className="space-y-4 text-xs font-mono">
           <div>
-            <label className="block text-neutral-400 uppercase text-[10px] mb-1">Full Name & Title</label>
+            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Full Name & Title</label>
             <div className="relative">
-              <User className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-[#6B6158] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Dr. Maya Rao"
-                className="w-full bg-[#12151B] text-white pl-9 pr-3 py-2.5 rounded-lg border border-white/10 focus:outline-none focus:border-[#D4FF00] font-sans text-xs"
+                className="w-full bg-[#151312] text-[#F3EADF] pl-9 pr-3 py-2 rounded-lg border border-[#2C2723] focus:outline-none focus:border-[#B65E42] font-sans text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-neutral-400 uppercase text-[10px] mb-1">Institutional Email</label>
+            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Institutional Email</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-[#6B6158] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="maya.rao@iitb.ac.in"
-                className="w-full bg-[#12151B] text-white pl-9 pr-3 py-2.5 rounded-lg border border-white/10 focus:outline-none focus:border-[#D4FF00] font-sans text-xs"
+                placeholder="maya.rao@synthetic-lab.io"
+                className="w-full bg-[#151312] text-[#F3EADF] pl-9 pr-3 py-2 rounded-lg border border-[#2C2723] focus:outline-none focus:border-[#B65E42] font-sans text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-neutral-400 uppercase text-[10px] mb-1">Department / Lab</label>
+            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Facility / Lab Unit</label>
             <div className="relative">
-              <Building className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Building className="w-4 h-4 text-[#6B6158] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full bg-[#12151B] text-white pl-9 pr-3 py-2.5 rounded-lg border border-white/10 focus:outline-none focus:border-[#D4FF00] font-sans text-xs"
+                className="w-full bg-[#151312] text-[#F3EADF] pl-9 pr-3 py-2 rounded-lg border border-[#2C2723] focus:outline-none focus:border-[#B65E42] font-sans text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-neutral-400 uppercase text-[10px] mb-1">Account Role</label>
+            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Account Role</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setRole('user')}
-                className={`p-2.5 rounded-lg border text-left cursor-pointer transition-colors ${
-                  role === 'user' ? 'bg-[#D4FF00]/15 border-[#D4FF00] text-white' : 'bg-[#12151B] border-white/10 text-neutral-400'
+                className={`p-2.5 rounded-lg border text-left transition-colors ${
+                  role === 'user' ? 'bg-[#211E1B] border-[#B65E42] text-[#F3EADF]' : 'bg-[#151312] border-[#2C2723] text-[#8C827A]'
                 }`}
               >
-                <div className="font-bold text-xs">Researcher</div>
-                <div className="text-[10px] opacity-75">Book resources</div>
+                <div className="font-semibold text-xs">Researcher</div>
+                <div className="text-[10px] opacity-75">Book capacity</div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setRole('owner')}
-                className={`p-2.5 rounded-lg border text-left cursor-pointer transition-colors ${
-                  role === 'owner' ? 'bg-[#D4FF00]/15 border-[#D4FF00] text-white' : 'bg-[#12151B] border-white/10 text-neutral-400'
+                className={`p-2.5 rounded-lg border text-left transition-colors ${
+                  role === 'owner' ? 'bg-[#211E1B] border-[#B65E42] text-[#F3EADF]' : 'bg-[#151312] border-[#2C2723] text-[#8C827A]'
                 }`}
               >
-                <div className="font-bold text-xs">Lab Owner</div>
-                <div className="text-[10px] opacity-75">List assets & manage</div>
+                <div className="font-semibold text-xs">Facility Owner</div>
+                <div className="text-[10px] opacity-75">List assets & govern</div>
               </button>
             </div>
           </div>
@@ -127,15 +126,15 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-bold rounded-lg font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-[#D4FF00]/15"
+            className="w-full py-2.5 bg-[#B65E42] hover:bg-[#A35238] text-white font-medium rounded-lg font-mono text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Creating Node...' : 'Register & Launch Sandbox'}
+            {isLoading ? 'Creating Node...' : 'Register & Launch Workspace'}
           </button>
         </form>
 
-        <div className="text-center text-xs text-neutral-500 font-mono">
+        <div className="text-center text-xs text-[#8C827A] font-mono">
           Already registered?{' '}
-          <Link href="/auth/login" className="text-[#D4FF00] hover:underline">
+          <Link href="/auth/login" className="text-[#D69A49] hover:underline">
             Sign In Here
           </Link>
         </div>
@@ -143,4 +142,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

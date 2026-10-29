@@ -66,39 +66,43 @@ export default function OwnerRequestsPage() {
   const pastList = requests.filter(r => r.status !== 'pending');
 
   return (
-    <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#11100F] text-[#F3EADF] py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* Header */}
-      <div className="pb-8 border-b border-[#AD7257]/20">
-        <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
-          <Inbox className="w-4 h-4" />
+      <div className="pb-6 border-b border-[#2C2723]">
+        <div className="flex items-center gap-2 mb-2 font-mono text-[11px] uppercase tracking-wider text-[#D69A49]">
+          <Inbox className="w-3.5 h-3.5" />
           <span>Custodial Governance</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#F1E7DE] tracking-tight">
-          Booking Requests Queue
+        <h1 className="text-2xl sm:text-3xl font-semibold text-[#F3EADF] tracking-tight">
+          Allocation Requests Queue
         </h1>
-        <p className="text-sm text-[#D9C5B4] mt-1 max-w-xl">
-          Review incoming student and researcher requests for your lab assets. Verify purpose and confirm reservations into the immutable schedule.
+        <p className="text-xs text-[#8C827A] mt-1.5 max-w-xl">
+          Review incoming researcher requests for lab assets. Verify operator prerequisites and confirm reservations into the schedule.
         </p>
       </div>
 
       {/* Pending Requests Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#AD7257]/20">
-          <span className="text-[#F1E7DE] font-bold uppercase">
-            Awaiting Your Decision ({pendingList.length})
+        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#2C2723]">
+          <span className="text-[#B8ADA0] font-medium uppercase tracking-wider">
+            Awaiting Review ({pendingList.length})
           </span>
-          <button onClick={fetchRequests} className="text-[#A99A90] hover:text-[#F1E7DE] flex items-center gap-1 cursor-pointer transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          <button 
+            onClick={fetchRequests} 
+            className="text-[#8C827A] hover:text-[#F3EADF] flex items-center gap-1.5 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> 
+            <span>Sync</span>
           </button>
         </div>
 
         {isLoading ? (
-          <div className="py-16 text-center text-xs font-mono text-[#A99A90] uppercase tracking-widest">
+          <div className="py-16 text-center text-xs font-mono text-[#8C827A] uppercase tracking-wider">
             Loading Queued Requests...
           </div>
         ) : pendingList.length === 0 ? (
-          <div className="p-8 text-center bg-[#170D0A] rounded-2xl border border-[#AD7257]/25 text-[#D9C5B4] text-xs shadow-xl">
+          <div className="p-8 text-center bg-[#191715] rounded-xl border border-[#2C2723] text-[#8C827A] text-xs">
             Queue clear. Zero requests currently pending custodial review.
           </div>
         ) : (
@@ -106,43 +110,43 @@ export default function OwnerRequestsPage() {
             {pendingList.map((req) => (
               <div
                 key={req.id}
-                className="p-6 sm:p-7 rounded-2xl bg-[#170D0A] border border-[#D96335]/40 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl"
+                className="p-5 sm:p-6 rounded-xl bg-[#191715] border border-[#2C2723] flex flex-col md:flex-row md:items-center justify-between gap-6"
               >
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="badge-tech bg-[#D96335]/25 text-[#D96335] border border-[#D96335]/40 font-mono">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#D69A49]/15 text-[#D69A49] border border-[#D69A49]/30">
                       PENDING REVIEW
                     </span>
-                    <span className="badge-tech bg-[#24110C] text-[#D9C5B4] border border-[#AD7257]/25 font-mono">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#211E1B] text-[#8C827A] border border-[#2C2723]">
                       {req.id}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-[#F1E7DE]">
+                  <h3 className="text-base font-semibold text-[#F3EADF]">
                     {req.resource_title}
                   </h3>
 
-                  <div className="text-xs text-[#D9C5B4] flex items-center gap-2 font-mono">
-                    <User className="w-3.5 h-3.5 text-[#D4FF00]" />
-                    Applicant: <strong className="text-[#F1E7DE]">{req.user_name}</strong> ({req.user_email})
+                  <div className="text-xs text-[#8C827A] flex items-center gap-2 font-mono">
+                    <User className="w-3.5 h-3.5 text-[#B65E42]" />
+                    Applicant: <strong className="text-[#F3EADF] font-medium">{req.user_name}</strong> ({req.user_email})
                   </div>
 
-                  <p className="text-xs text-[#D9C5B4] max-w-2xl font-sans bg-[#24110C] p-3.5 rounded-xl border border-[#AD7257]/20 leading-relaxed">
-                    <strong className="font-mono text-[#A99A90] uppercase text-[10px] block mb-0.5">Stated Purpose:</strong>
+                  <p className="text-xs text-[#8C827A] max-w-2xl bg-[#151312] p-3 rounded-lg border border-[#24201D] leading-relaxed">
+                    <strong className="font-mono text-[#6B6158] uppercase text-[10px] block mb-0.5">Stated Purpose:</strong>
                     {req.purpose}
                   </p>
 
-                  <div className="text-[11px] font-mono text-[#A99A90] flex items-center gap-4 pt-1">
+                  <div className="text-[11px] font-mono text-[#6B6158] flex items-center gap-4 pt-1">
                     <span>Requested: {new Date(req.start_time).toLocaleString()}</span>
-                    <span>Fee: <strong className="text-[#F1E7DE]">₹{req.total_cost}</strong></span>
+                    <span>Fee: <strong className="text-[#F3EADF]">${req.total_cost}</strong></span>
                   </div>
                 </div>
 
-                <div className="shrink-0 flex items-center gap-3 self-end md:self-auto">
+                <div className="shrink-0 flex items-center gap-2.5 self-end md:self-auto">
                   <button
                     onClick={() => handleAction(req.id, 'cancelled')}
                     disabled={processingId === req.id}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl font-mono text-xs uppercase border border-red-500/30 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#211E1B] hover:bg-[#B84A39]/20 text-[#B8ADA0] hover:text-[#B84A39] rounded-lg font-mono text-xs border border-[#38312C] transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
                     Reject
@@ -151,7 +155,7 @@ export default function OwnerRequestsPage() {
                   <button
                     onClick={() => handleAction(req.id, 'confirmed')}
                     disabled={processingId === req.id}
-                    className="flex items-center gap-1.5 px-5 py-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-bold rounded-xl font-mono text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-[#B65E42] hover:bg-[#A35238] text-white font-medium rounded-lg font-mono text-xs tracking-wider transition-colors"
                   >
                     <Check className="w-3.5 h-3.5" />
                     Approve Reservation
@@ -165,24 +169,24 @@ export default function OwnerRequestsPage() {
 
       {/* Past Decision History */}
       {pastList.length > 0 && (
-        <div className="space-y-4 pt-8">
-          <div className="font-mono text-xs pb-3 border-b border-[#AD7257]/20 text-[#F1E7DE] font-bold uppercase">
+        <div className="space-y-4 pt-6">
+          <div className="font-mono text-xs pb-3 border-b border-[#2C2723] text-[#B8ADA0] font-medium uppercase tracking-wider">
             Resolved Decision History ({pastList.length})
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {pastList.map((req) => (
               <div
                 key={req.id}
-                className="p-4 rounded-xl bg-[#170D0A] border border-[#AD7257]/20 flex items-center justify-between text-xs"
+                className="p-3.5 rounded-lg bg-[#191715] border border-[#2C2723] flex items-center justify-between text-xs"
               >
                 <div>
-                  <div className="font-bold text-[#F1E7DE]">{req.resource_title}</div>
-                  <div className="text-[#A99A90] text-[11px] font-mono">
+                  <div className="font-medium text-[#F3EADF]">{req.resource_title}</div>
+                  <div className="text-[#8C827A] text-[11px] font-mono">
                     User: {req.user_name} • {new Date(req.start_time).toLocaleDateString()}
                   </div>
                 </div>
-                <span className="badge-tech bg-[#24110C] text-[#D9C5B4] border border-[#AD7257]/20 uppercase font-mono">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#211E1B] text-[#8C827A] border border-[#2C2723] uppercase">
                   {req.status}
                 </span>
               </div>
@@ -193,4 +197,3 @@ export default function OwnerRequestsPage() {
     </div>
   );
 }
-

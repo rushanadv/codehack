@@ -12,7 +12,7 @@ import {
   ArrowRight,
   RefreshCw,
   X,
-  Sparkles
+  ChevronRight
 } from 'lucide-react';
 import { Resource } from '@/lib/types';
 
@@ -27,12 +27,12 @@ export default function OwnerResourcesPage() {
   const [category, setCategory] = useState<'equipment' | 'space' | 'digital'>('equipment');
   const [subcategory, setSubcategory] = useState('Additive Manufacturing');
   const [description, setDescription] = useState('');
-  const [hourlyRate, setHourlyRate] = useState('300');
-  const [deposit, setDeposit] = useState('1000');
+  const [hourlyRate, setHourlyRate] = useState('85');
+  const [deposit, setDeposit] = useState('250');
   const [bufferMins, setBufferMins] = useState('30');
-  const [building, setBuilding] = useState('Advanced FabLab Complex');
+  const [building, setBuilding] = useState('Precision Prototyping Bay');
   const [room, setRoom] = useState('Bay 108');
-  const [location, setLocation] = useState('Central Campus');
+  const [location, setLocation] = useState('North Facility');
 
   const fetchResources = async () => {
     setIsLoading(true);
@@ -70,9 +70,9 @@ export default function OwnerResourcesPage() {
           room,
           location,
           specifications: {
-            operational_voltage: '415V 3-phase',
-            preventative_service_cycle: 'Monthly',
-            safety_clearance: 'Standard Lab Protocol'
+            power_rating: '208V 3-phase',
+            calibration_cycle: 'Bi-weekly',
+            safety_rating: 'Standard Cleanroom'
           }
         })
       });
@@ -94,77 +94,77 @@ export default function OwnerResourcesPage() {
   };
 
   return (
-    <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#11100F] text-[#F3EADF] py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[#AD7257]/20 gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between pb-6 border-b border-[#2C2723] gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
-            <Layers className="w-4 h-4" />
-            <span>Asset Governance Console</span>
+          <div className="flex items-center gap-2 mb-2 font-mono text-[11px] uppercase tracking-wider text-[#D69A49]">
+            <Layers className="w-3.5 h-3.5" />
+            <span>Asset Governance Ledger</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#F1E7DE] tracking-tight">
-            Resource Inventory
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#F3EADF] tracking-tight">
+            Managed Resources
           </h1>
-          <p className="text-sm text-[#D9C5B4] mt-1 max-w-xl">
-            Maintain institutional laboratory instruments, configure turnaround buffers, monitor maintenance intervals, and issue Resource Passports.
+          <p className="text-xs text-[#8C827A] mt-1.5 max-w-xl">
+            Maintain laboratory instruments, configure turnaround buffers, monitor maintenance intervals, and issue Resource Passports.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-5 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
+          className="flex items-center gap-2 bg-[#B65E42] hover:bg-[#A35238] text-white px-4 py-2 rounded-lg font-mono text-xs font-medium uppercase tracking-wider transition-colors"
         >
           <Plus className="w-4 h-4" />
-          List New Asset
+          <span>Register New Asset</span>
         </button>
       </div>
 
       {/* Inventory List */}
       {isLoading ? (
-        <div className="py-24 text-center text-xs font-mono text-[#A99A90] uppercase tracking-widest">
+        <div className="py-24 text-center text-xs font-mono text-[#8C827A] uppercase tracking-wider">
           Loading Inventory Assets...
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {resources.map((r) => (
             <div
               key={r.id}
-              className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 hover:border-[#AD7257]/45 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl"
+              className="p-5 rounded-xl bg-[#191715] border border-[#2C2723] hover:border-[#38312C] transition-colors flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
               <div className="flex items-start gap-4">
                 <img
                   src={r.image_url}
                   alt={r.title}
-                  className="w-20 h-20 rounded-xl object-cover border border-[#AD7257]/30 shrink-0"
+                  className="w-16 h-16 rounded-lg object-cover border border-[#2C2723] shrink-0"
                 />
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="badge-tech bg-[#24110C] text-[#D9C5B4] border border-[#AD7257]/25 font-mono">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#211E1B] text-[#8C827A] border border-[#2C2723]">
                       {r.passport_id}
                     </span>
-                    <span className={`badge-tech font-mono ${
-                      r.status === 'available' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
-                      r.status === 'in_use' ? 'bg-[#D96335]/25 text-[#D96335] border border-[#D96335]/40' :
-                      'bg-red-500/20 text-red-400 border border-red-500/40'
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${
+                      r.status === 'available' ? 'bg-[#4E7A5D]/15 text-[#4E7A5D] border-[#4E7A5D]/30' :
+                      r.status === 'in_use' ? 'bg-[#D69A49]/15 text-[#D69A49] border-[#D69A49]/30' :
+                      'bg-[#B84A39]/15 text-[#B84A39] border-[#B84A39]/30'
                     }`}>
                       {r.status.toUpperCase()}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-[#F1E7DE]">
-                    <Link href={`/resources/${r.id}`} className="hover:text-[#D4FF00] transition-colors">
+                  <h3 className="text-base font-semibold text-[#F3EADF]">
+                    <Link href={`/resources/${r.id}`} className="hover:text-[#D69A49] transition-colors">
                       {r.title}
                     </Link>
                   </h3>
 
-                  <div className="text-xs text-[#D9C5B4]">
-                    {r.building}, {r.room} ({r.location}) • Rate: ₹{r.hourly_rate}/hr
+                  <div className="text-xs text-[#8C827A]">
+                    {r.building}, {r.room} ({r.location}) • Rate: <strong className="text-[#F3EADF] font-mono">${r.hourly_rate}/hr</strong>
                   </div>
 
-                  <div className="text-[11px] font-mono text-[#A99A90] pt-1 flex items-center gap-4">
-                    <span>Turnaround Buffer: <strong className="text-[#F1E7DE]">+{r.turnaround_buffer_mins}m</strong></span>
-                    <span>Condition: <strong className="text-[#D4FF00] uppercase">{r.condition_rating}</strong></span>
+                  <div className="text-[11px] font-mono text-[#6B6158] pt-1 flex items-center gap-4">
+                    <span>Turnaround Buffer: <strong className="text-[#B8ADA0]">+{r.turnaround_buffer_mins}m</strong></span>
+                    <span>Condition: <strong className="text-[#4E7A5D] uppercase">{r.condition_rating}</strong></span>
                   </div>
                 </div>
               </div>
@@ -172,9 +172,10 @@ export default function OwnerResourcesPage() {
               <div className="shrink-0 flex items-center gap-3 self-end md:self-auto">
                 <Link
                   href={`/resources/${r.id}`}
-                  className="px-4 py-2 bg-[#24110C] hover:bg-[#D4FF00] text-[#D9C5B4] hover:text-black border border-[#AD7257]/30 hover:border-[#D4FF00] rounded-xl text-xs font-mono uppercase transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#211E1B] hover:bg-[#2A2622] text-[#F3EADF] border border-[#38312C] rounded-lg text-xs font-mono transition-colors"
                 >
-                  View Passport →
+                  <span>Resource Ledger</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-[#8C827A]" />
                 </Link>
               </div>
             </div>
@@ -185,95 +186,95 @@ export default function OwnerResourcesPage() {
       {/* Add Asset Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#170D0A] border border-[#AD7257]/30 rounded-2xl max-w-xl w-full p-6 sm:p-8 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-[#AD7257]/20">
-              <h3 className="text-sm font-bold font-mono uppercase text-[#F1E7DE] flex items-center gap-2">
-                <Plus className="w-4 h-4 text-[#D4FF00]" />
-                Register Institutional Asset
+          <div className="bg-[#191715] border border-[#2C2723] rounded-xl max-w-xl w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2C2723]">
+              <h3 className="text-sm font-semibold font-mono uppercase text-[#F3EADF] flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#B65E42]" />
+                Register Institutional Resource
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-[#A99A90] hover:text-[#F1E7DE] cursor-pointer">
+              <button onClick={() => setShowAddModal(false)} className="text-[#8C827A] hover:text-[#F3EADF]">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateResource} className="space-y-4 text-xs font-mono">
               <div>
-                <label className="block text-neutral-400 uppercase text-[10px] mb-1">Asset Title</label>
+                <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Asset Name</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Olympus LEXT OLS5000 3D Laser Microscope"
-                  className="w-full bg-[#151921] text-white p-2.5 rounded border border-white/10 focus:outline-none focus:border-[#D4FF00]"
+                  placeholder="e.g., Olympus LEXT OLS5000 3D Laser Microscope"
+                  className="w-full bg-[#211E1B] text-[#F3EADF] p-2.5 rounded-lg border border-[#38312C] focus:outline-none focus:border-[#B65E42]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-neutral-400 uppercase text-[10px] mb-1">Category</label>
+                  <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Domain</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as any)}
-                    className="w-full bg-[#151921] text-white p-2.5 rounded border border-white/10 focus:outline-none focus:border-[#D4FF00]"
+                    className="w-full bg-[#211E1B] text-[#F3EADF] p-2.5 rounded-lg border border-[#38312C] focus:outline-none focus:border-[#B65E42]"
                   >
-                    <option value="equipment">Physical Equipment</option>
-                    <option value="space">Space / Facility</option>
-                    <option value="digital">Digital / Compute</option>
+                    <option value="equipment">Physical Asset</option>
+                    <option value="space">Property & Space</option>
+                    <option value="digital">Digital & Tech</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-neutral-400 uppercase text-[10px] mb-1">Subcategory</label>
+                  <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Subcategory</label>
                   <input
                     type="text"
                     required
                     value={subcategory}
                     onChange={(e) => setSubcategory(e.target.value)}
-                    className="w-full bg-[#151921] text-white p-2.5 rounded border border-white/10 focus:outline-none focus:border-[#D4FF00]"
+                    className="w-full bg-[#211E1B] text-[#F3EADF] p-2.5 rounded-lg border border-[#38312C] focus:outline-none focus:border-[#B65E42]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-neutral-400 uppercase text-[10px] mb-1">Description & Capabilities</label>
+                <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Description & Operational Specifications</label>
                 <textarea
                   rows={3}
                   required
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Detailed specifications, laser wavelength, sample preparation rules..."
-                  className="w-full bg-[#151921] text-white p-2.5 rounded border border-white/10 focus:outline-none focus:border-[#D4FF00] font-sans text-xs"
+                  placeholder="Operational parameters, sample preparation guidelines, safety protocols..."
+                  className="w-full bg-[#211E1B] text-[#F3EADF] p-2.5 rounded-lg border border-[#38312C] focus:outline-none focus:border-[#B65E42] font-sans text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-neutral-400 uppercase text-[10px] mb-1">Hourly Fee (₹)</label>
+                  <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Hourly Fee ($)</label>
                   <input
                     type="number"
                     value={hourlyRate}
                     onChange={(e) => setHourlyRate(e.target.value)}
-                    className="w-full bg-[#151921] text-white p-2 rounded border border-white/10"
+                    className="w-full bg-[#211E1B] text-[#F3EADF] p-2 rounded-lg border border-[#38312C]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-neutral-400 uppercase text-[10px] mb-1">Deposit (₹)</label>
+                  <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Escrow Deposit ($)</label>
                   <input
                     type="number"
                     value={deposit}
                     onChange={(e) => setDeposit(e.target.value)}
-                    className="w-full bg-[#151921] text-white p-2 rounded border border-white/10"
+                    className="w-full bg-[#211E1B] text-[#F3EADF] p-2 rounded-lg border border-[#38312C]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-neutral-400 uppercase text-[10px] mb-1">Turnaround Buffer</label>
+                  <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Turnaround Buffer</label>
                   <select
                     value={bufferMins}
                     onChange={(e) => setBufferMins(e.target.value)}
-                    className="w-full bg-[#151921] text-white p-2 rounded border border-white/10"
+                    className="w-full bg-[#211E1B] text-[#F3EADF] p-2 rounded-lg border border-[#38312C]"
                   >
                     <option value="15">15 mins</option>
                     <option value="30">30 mins</option>
@@ -283,18 +284,18 @@ export default function OwnerResourcesPage() {
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-3">
+              <div className="pt-2 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-[#151921] text-neutral-300 rounded font-mono text-xs uppercase"
+                  className="px-4 py-2 bg-[#211E1B] hover:bg-[#2A2622] text-[#8C827A] hover:text-[#F3EADF] rounded-lg font-mono text-xs border border-[#38312C] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-[#D4FF00] text-black font-bold rounded font-mono text-xs uppercase tracking-wider"
+                  className="px-5 py-2 bg-[#B65E42] hover:bg-[#A35238] text-white font-medium rounded-lg font-mono text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
                 >
                   {isSubmitting ? 'Registering...' : 'Confirm Listing'}
                 </button>
@@ -306,4 +307,3 @@ export default function OwnerResourcesPage() {
     </div>
   );
 }
-

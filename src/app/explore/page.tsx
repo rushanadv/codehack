@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   Search, 
@@ -10,9 +10,10 @@ import {
   Cpu, 
   Sparkles, 
   RotateCcw,
+  SlidersHorizontal,
+  MapPin,
   CheckCircle2,
-  ShieldCheck,
-  ArrowUpRight
+  AlertCircle
 } from 'lucide-react';
 import { ResourceCard } from '@/components/ResourceCard';
 import { Resource } from '@/lib/types';
@@ -28,7 +29,6 @@ function ExploreContent() {
   const [selectedCategory, setSelectedCategory] = useState(categoryFromQuery || 'all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
-  const [maxBudget, setMaxBudget] = useState('');
   const [sortBy, setSortBy] = useState('recommended');
 
   useEffect(() => {
@@ -45,7 +45,6 @@ function ExploreContent() {
       if (selectedCategory !== 'all') params.set('category', selectedCategory);
       if (selectedStatus !== 'all') params.set('status', selectedStatus);
       if (selectedLocation !== 'all') params.set('location', selectedLocation);
-      if (maxBudget) params.set('maxPrice', maxBudget);
       if (sortBy) params.set('sort', sortBy);
 
       const res = await fetch(`/api/resources?${params.toString()}`);
@@ -72,94 +71,86 @@ function ExploreContent() {
     setSelectedCategory('all');
     setSelectedStatus('all');
     setSelectedLocation('all');
-    setMaxBudget('');
     setSortBy('recommended');
   };
 
   const categories = [
-    { 
-      id: 'all', 
-      label: 'All Registers', 
-      icon: Layers,
-      activeClass: 'bg-[#F1E7DE] text-black border-white',
-    },
-    { 
-      id: 'space', 
-      label: '01 // Spaces & Cleanrooms', 
-      icon: Building2,
-      activeClass: 'bg-[#1C3E48] text-white border-[#3E8094]',
-    },
-    { 
-      id: 'equipment', 
-      label: '02 // Physical Instruments', 
-      icon: Box,
-      activeClass: 'bg-[#B53F1E] text-white border-[#E25822]',
-    },
-    { 
-      id: 'digital', 
-      label: '03 // Digital & Compute', 
-      icon: Cpu,
-      activeClass: 'bg-[#D4FF00] text-black border-[#D4FF00]',
-    },
+    { id: 'all', label: 'All Resources', icon: Layers },
+    { id: 'space', label: 'Property & Spaces', icon: Building2 },
+    { id: 'equipment', label: 'Physical Assets', icon: Box },
+    { id: 'digital', label: 'Digital & Tech', icon: Cpu },
   ];
 
+  // Derive honest metrics from current real dataset
+  const metrics = useMemo(() => {
+    const total = resources.length;
+    const available = resources.filter(r => r.status === 'available').length;
+    const inUse = resources.filter(r => r.status === 'in_use').length;
+    return { total, available, inUse };
+  }, [resources]);
+
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-8 lg:px-12 max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
-      {/* 1. ARCHITECTURAL EXPLORE HEADER */}
-      <div className="pb-8 border-b-2 border-[#AD7257]/30 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      {/* 1. Page Header */}
+      <div className="pb-6 border-b border-[#38312C] flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1A120E] border border-[#AD7257]/40 rounded-sm font-mono text-xs uppercase tracking-[0.2em] text-[#D4FF00] mb-3">
-            <span className="w-2 h-2 bg-[#D4FF00]" />
-            <span>EXCHANGE DIRECTORY // REF. 884-X</span>
+          <div className="flex items-center gap-2 text-xs font-mono text-[#D69A49] uppercase tracking-wider mb-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4E7A5D]" />
+            <span>Exchange Directory • Verified Inventory</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-[#F1E7DE] tracking-tight leading-[0.95] mb-3">
-            VERIFIED CAPACITY <br />
-            <span className="text-[#D4FF00] bg-[#16100E] px-3 py-0.5 inline-block mt-1 border border-[#D4FF00]/40">
-              INVENTORY ARCHIVE
-            </span>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#F3EADF] tracking-tight">
+            Resource Directory
           </h1>
 
-          <p className="text-sm sm:text-base text-[#D9C5B4] max-w-2xl leading-relaxed">
-            Discover precision research instruments, experimental facilities, and dedicated compute nodes with guaranteed turnaround buffers and zero race-condition bookings.
+          <p className="text-xs sm:text-sm text-[#B8ADA0] max-w-2xl mt-1 leading-relaxed">
+            Reserve verified microfabrication cleanrooms, precision instruments, and high-performance compute allocations with deterministic buffer scheduling.
           </p>
         </div>
 
-        {/* Action Header Button */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        {/* Quick Action Button */}
+        <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/match"
-            className="inline-flex items-center gap-2 bg-[#B53F1E] hover:bg-[#C84725] text-white font-mono font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-md border border-[#E25822] transition-all active:translate-y-0.5"
+            className="inline-flex items-center gap-2 bg-[#B65E42] hover:bg-[#C86C4E] text-white text-xs font-medium px-4 py-2 rounded-md transition-colors shadow-sm"
           >
-            <Sparkles className="w-4 h-4 text-white" />
-            <span>Natural Language Matcher ↗</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Intent Match Engine</span>
           </Link>
         </div>
       </div>
 
-      {/* 2. REAL-TIME TELEMETRY STRIP */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-        <div className="p-3.5 rounded-lg bg-[#140F0D] border border-[#AD7257]/30">
-          <div className="text-[10px] text-[#A99A90] uppercase tracking-wider">Total Assets</div>
-          <div className="text-xl font-bold text-[#F1E7DE] mt-0.5">184 Verified</div>
+      {/* 2. Honest Summary Metrics (Derived from Live Database) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
+          <div className="text-[11px] text-[#B8ADA0]">Active Catalog</div>
+          <div className="text-lg font-bold text-[#F3EADF] mt-0.5 font-mono">
+            {metrics.total} Listings
+          </div>
         </div>
-        <div className="p-3.5 rounded-lg bg-[#140F0D] border border-[#AD7257]/30">
-          <div className="text-[10px] text-[#A99A90] uppercase tracking-wider">Monitored Capital</div>
-          <div className="text-xl font-bold text-[#D4FF00] mt-0.5">₹14.2B+ Active</div>
+        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
+          <div className="text-[11px] text-[#B8ADA0]">Available Now</div>
+          <div className="text-lg font-bold text-[#6BA87E] mt-0.5 font-mono">
+            {metrics.available} Ready
+          </div>
         </div>
-        <div className="p-3.5 rounded-lg bg-[#140F0D] border border-[#AD7257]/30">
-          <div className="text-[10px] text-[#A99A90] uppercase tracking-wider">Turnaround SLA</div>
-          <div className="text-xl font-bold text-emerald-400 mt-0.5">+30m Guaranteed</div>
+        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
+          <div className="text-[11px] text-[#B8ADA0]">Currently Reserved</div>
+          <div className="text-lg font-bold text-[#E0A85C] mt-0.5 font-mono">
+            {metrics.inUse} In Session
+          </div>
         </div>
-        <div className="p-3.5 rounded-lg bg-[#140F0D] border border-[#AD7257]/30">
-          <div className="text-[10px] text-[#A99A90] uppercase tracking-wider">Booking Concurrency</div>
-          <div className="text-xl font-bold text-[#D95927] mt-0.5">100% ACID Lock</div>
+        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
+          <div className="text-[11px] text-[#B8ADA0]">Turnaround Buffer</div>
+          <div className="text-lg font-bold text-[#F3EADF] mt-0.5 font-mono">
+            15m – 60m Enforced
+          </div>
         </div>
       </div>
 
-      {/* 3. SOLID CATEGORY SELECTION TABS */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar font-mono text-xs">
+      {/* 3. Category Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
         {categories.map((c) => {
           const Icon = c.icon;
           const isActive = selectedCategory === c.id;
@@ -167,10 +158,10 @@ function ExploreContent() {
             <button
               key={c.id}
               onClick={() => setSelectedCategory(c.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md font-bold uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer border-2 ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-medium whitespace-nowrap transition-colors cursor-pointer border ${
                 isActive
-                  ? c.activeClass
-                  : 'bg-[#150F0D] text-[#A99A90] border-[#AD7257]/30 hover:text-white hover:border-[#AD7257]/60'
+                  ? 'bg-[#211E1B] text-[#F3EADF] border-[#B65E42]'
+                  : 'bg-[#191715] text-[#B8ADA0] border-[#38312C] hover:text-[#F3EADF] hover:bg-[#211E1B]'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -180,120 +171,89 @@ function ExploreContent() {
         })}
       </div>
 
-      {/* 4. SOLID INDUSTRIAL SEARCH & FILTER TOOLBAR */}
-      <div className="p-4 sm:p-5 rounded-xl bg-[#140F0D] border-2 border-[#AD7257]/35 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center font-mono text-xs">
+      {/* 4. Filter Toolbar */}
+      <div className="p-4 rounded-lg bg-[#191715] border border-[#38312C] space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center text-xs">
           
           {/* Search Input */}
           <form onSubmit={handleSearchSubmit} className="md:col-span-5 relative">
-            <Search className="w-4 h-4 text-[#A99A90] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#B8ADA0] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="SEARCH ASSET, SPEC (e.g. Cryo, 5-Axis, H100), OR BAY..."
-              className="w-full bg-[#1C1411] text-[#F1E7DE] pl-10 pr-4 py-2.5 rounded-md border border-[#AD7257]/35 text-xs focus:outline-none focus:border-[#D4FF00] font-mono uppercase tracking-wider placeholder:text-[#A99A90]/60 placeholder:normal-case"
+              placeholder="Search by name, spec (H100, 5-Axis, Cleanroom), or bay..."
+              className="w-full bg-[#11100F] text-[#F3EADF] pl-9 pr-3 py-2 rounded-md border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] placeholder:text-[#B8ADA0]/60"
             />
           </form>
 
-          {/* Location Filter */}
-          <div className="md:col-span-2">
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full bg-[#1C1411] text-[#D9C5B4] px-3 py-2.5 rounded-md border border-[#AD7257]/35 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
-            >
-              <option value="all">All Hubs & Campuses</option>
-              <option value="Central Campus">Central Campus</option>
-              <option value="North Research Park">North Research Park</option>
-              <option value="Robotics Valley">Robotics Valley</option>
-              <option value="South Media Center">South Media Center</option>
-            </select>
-          </div>
-
           {/* Status Filter */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-3">
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full bg-[#1C1411] text-[#D9C5B4] px-3 py-2.5 rounded-md border border-[#AD7257]/35 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
+              aria-label="Filter by availability status"
+              className="w-full bg-[#11100F] text-[#F3EADF] px-3 py-2 rounded-md border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] cursor-pointer"
             >
-              <option value="all">All Status Modes</option>
+              <option value="all">All Availability Statuses</option>
               <option value="available">Available Now</option>
-              <option value="in_use">Active In Use</option>
+              <option value="in_use">In Use / Scheduled</option>
             </select>
           </div>
 
-          {/* Sort Filter */}
-          <div className="md:col-span-2">
+          {/* Sort Selection */}
+          <div className="md:col-span-3">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full bg-[#1C1411] text-[#D9C5B4] px-3 py-2.5 rounded-md border border-[#AD7257]/35 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
+              aria-label="Sort resources by criteria"
+              className="w-full bg-[#11100F] text-[#F3EADF] px-3 py-2 rounded-md border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] cursor-pointer"
             >
-              <option value="recommended">Sort: Relevance</option>
-              <option value="price_asc">Rate: Low to High</option>
-              <option value="price_desc">Rate: High to Low</option>
+              <option value="recommended">Sort: Recommended</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="buffer">Shortest Buffer Time</option>
             </select>
           </div>
 
-          {/* Reset Button */}
+          {/* Reset Action */}
           <div className="md:col-span-1 flex justify-end">
             <button
               onClick={handleResetFilters}
-              title="Reset Filters"
-              className="p-2.5 bg-[#1C1411] hover:bg-[#2B1B15] text-[#A99A90] hover:text-[#D4FF00] rounded-md border border-[#AD7257]/35 transition-colors cursor-pointer w-full flex items-center justify-center gap-1 font-mono text-xs"
+              title="Reset all filters"
+              className="p-2 rounded-md bg-[#11100F] hover:bg-[#211E1B] text-[#B8ADA0] hover:text-[#F3EADF] border border-[#38312C] transition-colors cursor-pointer w-full flex items-center justify-center"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span className="md:hidden">Reset</span>
             </button>
           </div>
-
-        </div>
-
-        {/* Directory Query Status Readout */}
-        <div className="pt-3 border-t border-[#AD7257]/20 flex items-center justify-between font-mono text-[11px] text-[#A99A90] uppercase tracking-wider">
-          <span>DIRECTORY PROTOCOL: ACTIVE</span>
-          <span className="text-[#D4FF00] font-bold">
-            SHOWING {resources.length} VERIFIED SPECIMENS
-          </span>
         </div>
       </div>
 
-      {/* 5. SPECIMEN GRID RESULTS */}
+      {/* 5. Resource Listings Grid */}
       {isLoading ? (
-        <div className="py-24 text-center rounded-xl border border-[#AD7257]/30 bg-[#140F0D]">
-          <div className="w-8 h-8 border-2 border-[#D4FF00] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <div className="text-xs font-mono text-[#D4FF00] uppercase tracking-widest font-bold">
-            QUERYING RELATIONAL ASSET DIRECTORY...
+        <div className="py-24 text-center">
+          <div className="w-6 h-6 border-2 border-[#B65E42] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="text-xs font-mono text-[#B8ADA0] uppercase tracking-wider">
+            Loading verified catalog...
           </div>
         </div>
       ) : resources.length === 0 ? (
-        <div className="py-20 text-center bg-[#140F0D] rounded-xl border-2 border-[#AD7257]/30 p-8 max-w-xl mx-auto my-8">
-          <Box className="w-10 h-10 text-[#D95927] mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-[#F1E7DE] mb-2 font-mono uppercase tracking-wide">
-            Zero Matching Specimens Found
-          </h3>
-          <p className="text-xs text-[#D9C5B4] mb-6 leading-relaxed">
-            No assets match the current filter query parameters. Clear criteria or engage the natural language match engine.
+        <div className="py-16 text-center bg-[#191715] rounded-xl border border-[#38312C] p-8 max-w-md mx-auto space-y-3">
+          <AlertCircle className="w-8 h-8 text-[#D69A49] mx-auto" />
+          <h3 className="text-sm font-semibold text-[#F3EADF]">No matching resources found</h3>
+          <p className="text-xs text-[#B8ADA0] leading-relaxed">
+            No equipment or facilities matched your current filter criteria. Try adjusting your query or resetting all filters.
           </p>
-          <div className="flex justify-center gap-3 font-mono text-xs uppercase">
-            <button
-              onClick={handleResetFilters}
-              className="bg-[#241510] hover:bg-[#331D16] text-[#F1E7DE] px-4 py-2.5 rounded-md font-bold cursor-pointer border border-[#AD7257]/40"
-            >
-              Reset Filters
-            </button>
-            <Link
-              href="/match"
-              className="bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-4 py-2.5 rounded-md font-bold cursor-pointer border border-[#D4FF00]"
-            >
-              Launch Match Engine
-            </Link>
-          </div>
+          <button
+            onClick={handleResetFilters}
+            className="inline-flex items-center gap-1.5 bg-[#211E1B] hover:bg-[#B65E42] text-[#F3EADF] hover:text-white px-4 py-2 rounded-md text-xs font-medium border border-[#38312C] transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Filters</span>
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {resources.map((res) => (
             <ResourceCard key={res.id} resource={res} />
           ))}
@@ -306,7 +266,11 @@ function ExploreContent() {
 
 export default function ExplorePage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center font-mono text-xs text-[#A99A90]">Loading marketplace directory...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen py-24 text-center text-xs font-mono text-[#B8ADA0]">
+        Loading Explore Directory...
+      </div>
+    }>
       <ExploreContent />
     </Suspense>
   );

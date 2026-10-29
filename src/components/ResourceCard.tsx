@@ -5,10 +5,7 @@ import {
   MapPin, 
   ShieldCheck, 
   Clock, 
-  ArrowUpRight,
-  CheckCircle2,
-  AlertTriangle,
-  Wrench
+  ArrowUpRight
 } from 'lucide-react';
 import { Resource } from '@/lib/types';
 
@@ -19,111 +16,83 @@ interface ResourceCardProps {
 export function ResourceCard({ resource }: ResourceCardProps) {
   const isAvailable = resource.status === 'available';
   const isInUse = resource.status === 'in_use';
-  const isMaintenance = resource.status === 'maintenance';
 
-  const categoryConfigs: Record<string, { label: string; stripe: string; tagColor: string }> = {
-    equipment: {
-      label: '02 // PHYSICAL ASSET',
-      stripe: 'from-[#7A210A] to-[#B53F1E]',
-      tagColor: 'text-[#D95927]',
-    },
-    space: {
-      label: '01 // CONTROLLED SPACE',
-      stripe: 'from-[#0D2127] to-[#1C3E48]',
-      tagColor: 'text-cyan-400',
-    },
-    digital: {
-      label: '03 // DIGITAL COMPUTE',
-      stripe: 'from-[#1B1E13] to-[#2D331A]',
-      tagColor: 'text-[#D4FF00]',
-    },
+  const categoryLabels: Record<string, { label: string; accent: string }> = {
+    space: { label: 'Property & Spaces', accent: 'text-[#D69A49] border-[#D69A49]/30 bg-[#D69A49]/10' },
+    equipment: { label: 'Physical Assets', accent: 'text-[#B65E42] border-[#B65E42]/30 bg-[#B65E42]/10' },
+    digital: { label: 'Digital & Tech', accent: 'text-[#F3EADF] border-[#38312C] bg-[#211E1B]' },
   };
 
-  const config = categoryConfigs[resource.category] || {
-    label: resource.category.toUpperCase(),
-    stripe: 'from-[#2E1610] to-[#592618]',
-    tagColor: 'text-[#D4FF00]',
-  };
+  const cat = categoryLabels[resource.category] || { label: resource.category, accent: 'text-[#B8ADA0] border-[#38312C] bg-[#211E1B]' };
 
   return (
-    <div className="group rounded-xl overflow-hidden border-2 border-[#AD7257]/35 hover:border-[#D4FF00] bg-[#140F0D] flex flex-col justify-between transition-colors duration-200">
+    <div className="group rounded-xl overflow-hidden border border-[#38312C] hover:border-[#B65E42] bg-[#191715] flex flex-col justify-between transition-all duration-200">
       
-      {/* Solid Top Category Header Stripe */}
-      <div className={`h-1.5 w-full bg-gradient-to-r ${config.stripe}`} />
-
       <div>
-        {/* Image & Status Stamp Header */}
-        <div className="relative h-44 w-full overflow-hidden bg-[#0A0706]">
+        {/* Resource Image Header */}
+        <div className="relative h-44 w-full overflow-hidden bg-[#11100F]">
           <img
             src={resource.image_url}
             alt={resource.title}
-            className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+            className="w-full h-full object-cover opacity-85 group-hover:opacity-95 group-hover:scale-102 transition-all duration-300"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#140F0D] via-transparent to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#191715] via-transparent to-black/40" />
 
-          {/* Top Header Stamps */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between font-mono text-[10px]">
-            <span className="bg-[#0A0706]/90 text-[#F1E7DE] border border-[#AD7257]/40 px-2 py-0.5 rounded-xs font-bold uppercase tracking-wider">
-              {config.label}
+          {/* Category & Status Overlay */}
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between text-xs">
+            <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${cat.accent}`}>
+              {cat.label}
             </span>
 
-            <span className={`px-2 py-0.5 rounded-xs font-bold uppercase tracking-wider border ${
+            <span className={`px-2 py-0.5 rounded text-[11px] font-medium border flex items-center gap-1.5 ${
               isAvailable 
-                ? 'bg-[#15803D] text-white border-emerald-400' 
+                ? 'bg-[#4E7A5D]/15 text-[#6BA87E] border-[#4E7A5D]/30' 
                 : isInUse 
-                ? 'bg-[#B53F1E] text-white border-[#E25822]'
-                : 'bg-neutral-800 text-neutral-300 border-neutral-600'
+                ? 'bg-[#C68A3C]/15 text-[#E0A85C] border-[#C68A3C]/30'
+                : 'bg-[#211E1B] text-[#B8ADA0] border-[#38312C]'
             }`}>
-              {isAvailable ? 'AVAILABLE NOW' : isInUse ? 'IN USE // RESERVED' : 'CALIBRATING'}
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                isAvailable ? 'bg-[#6BA87E]' : isInUse ? 'bg-[#E0A85C]' : 'bg-[#B8ADA0]'
+              }`} />
+              {isAvailable ? 'Available' : isInUse ? 'In Use' : 'Scheduled'}
             </span>
           </div>
 
-          {/* Passport ID Seal */}
-          <div className="absolute bottom-2 left-3 font-mono text-[10px] text-[#E6D7CB] bg-[#140F0D]/95 px-2 py-0.5 rounded-xs border border-[#AD7257]/40 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-[#D4FF00]" />
-            <span>PASSPORT: {resource.passport_id}</span>
+          {/* Subcategory Pill */}
+          <div className="absolute bottom-2 left-3 text-[10px] font-mono text-[#B8ADA0] bg-[#191715]/90 px-2 py-0.5 rounded border border-[#38312C]">
+            {resource.subcategory}
           </div>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 space-y-4">
+        <div className="p-5 space-y-3">
           <div>
-            <div className={`text-[10px] font-mono uppercase tracking-widest font-bold mb-1 ${config.tagColor}`}>
-              {resource.subcategory}
-            </div>
-
-            <h3 className="text-lg font-bold text-[#F1E7DE] group-hover:text-[#D4FF00] transition-colors line-clamp-1 leading-snug">
+            <h3 className="text-base font-semibold text-[#F3EADF] group-hover:text-white transition-colors line-clamp-1">
               {resource.title}
             </h3>
 
-            <p className="text-xs text-[#D9C5B4] mt-2 line-clamp-2 leading-relaxed">
+            <div className="flex items-center gap-1.5 text-xs text-[#B8ADA0] mt-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#B65E42] shrink-0" />
+              <span className="truncate">{resource.building} • {resource.location}</span>
+            </div>
+
+            <p className="text-xs text-[#B8ADA0] mt-2 line-clamp-2 leading-relaxed">
               {resource.description}
             </p>
           </div>
 
-          {/* Concrete Tabular Specification Matrix */}
-          <div className="p-3.5 rounded-lg bg-[#1B1310] border border-[#AD7257]/30 font-mono text-[11px] space-y-2">
-            <div className="flex items-center gap-1.5 text-[#D9C5B4]">
-              <MapPin className="w-3.5 h-3.5 text-[#D95927] shrink-0" />
-              <span className="truncate">{resource.building}, {resource.room} ({resource.location})</span>
+          {/* Specifications & Buffer Matrix */}
+          <div className="pt-3 border-t border-[#38312C]/60 grid grid-cols-2 gap-2 text-[11px] font-mono">
+            <div className="flex items-center gap-1.5 text-[#B8ADA0]">
+              <Clock className="w-3 h-3 text-[#D69A49]" />
+              <span>Buffer: +{resource.turnaround_buffer_mins}m</span>
             </div>
 
-            <div className="flex items-center justify-between pt-1.5 border-t border-[#AD7257]/20">
-              <span className="text-[#A99A90] flex items-center gap-1">
-                <Clock className="w-3 h-3 text-[#AD7257]" />
-                Turnaround Buffer:
-              </span>
-              <span className="text-[#F1E7DE] font-bold">+{resource.turnaround_buffer_mins}m</span>
-            </div>
-
-            <div className="flex items-center justify-between pt-1.5 border-t border-[#AD7257]/20">
-              <span className="text-[#A99A90] flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-[#D4FF00]" />
-                SkillGate Clearance:
-              </span>
-              <span className="text-[#D4FF00] font-bold">
+            <div className="flex items-center gap-1.5 text-[#B8ADA0] justify-end">
+              <ShieldCheck className="w-3 h-3 text-[#4E7A5D]" />
+              <span className="truncate">
                 {resource.required_skills && resource.required_skills.length > 0
-                  ? resource.required_skills[0].name
+                  ? resource.required_skills[0].name.split(' ')[0] + ' Req.'
                   : 'Open Access'}
               </span>
             </div>
@@ -131,21 +100,21 @@ export function ResourceCard({ resource }: ResourceCardProps) {
         </div>
       </div>
 
-      {/* Solid Rate & Booking Bar */}
-      <div className="p-5 pt-3 border-t border-[#AD7257]/20 bg-[#100A08] flex items-center justify-between">
+      {/* Footer Rate & Action */}
+      <div className="p-4 pt-3 border-t border-[#38312C] bg-[#141211] flex items-center justify-between">
         <div>
-          <div className="text-[10px] font-mono uppercase text-[#A99A90] tracking-wider">Hourly Rate</div>
-          <div className="text-lg font-bold text-[#D4FF00] font-mono leading-none mt-0.5">
-            ₹{resource.hourly_rate}
-            <span className="text-xs font-normal text-[#A99A90]"> / hr</span>
+          <div className="text-[10px] font-mono uppercase text-[#B8ADA0] tracking-wider">Hourly Rate</div>
+          <div className="text-base font-bold text-[#F3EADF] font-mono leading-none mt-0.5">
+            ${resource.hourly_rate}
+            <span className="text-xs font-normal text-[#B8ADA0]"> / hr</span>
           </div>
         </div>
 
         <Link
-          href={`/resources/${resource.id}`}
-          className="inline-flex items-center gap-1.5 bg-[#201612] hover:bg-[#D4FF00] text-[#F1E7DE] hover:text-black border border-[#AD7257]/40 hover:border-[#D4FF00] px-4 py-2 rounded-md font-mono text-xs font-bold uppercase tracking-wider transition-all active:translate-y-0.5 cursor-pointer"
+          href={`/resources/${resource.slug || resource.id}`}
+          className="inline-flex items-center gap-1.5 bg-[#211E1B] hover:bg-[#B65E42] text-[#F3EADF] hover:text-white border border-[#38312C] hover:border-[#B65E42] px-3.5 py-1.5 rounded-md text-xs font-medium transition-all active:translate-y-0.5 cursor-pointer"
         >
-          <span>Inspect Slot</span>
+          <span>View Details</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
         </Link>
       </div>
