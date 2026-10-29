@@ -2,39 +2,45 @@
 
 @layer base {
   :root {
-    --bg-dark: #090706;
-    --bg-espresso: #170D0A;
-    --bg-umber: #24110C;
-    --bg-card: #170D0A;
-    --bg-surface: #24110C;
-    --border-subtle: rgba(173, 114, 87, 0.22);
-    --border-strong: rgba(173, 114, 87, 0.45);
-    --border-rust: rgba(87, 37, 26, 0.4);
-    --accent-lime: #D4FF00;
-    --accent-lime-dim: rgba(212, 255, 0, 0.15);
-    --accent-copper: #AD7257;
-    --accent-terracotta: #A94427;
-    --accent-ember: #D96335;
-    --text-primary: #F1E7DE;
-    --text-secondary: #D9C5B4;
-    --text-muted: #A99A90;
+    /* Bloom Botanical Futurism Design System */
+    --bg-dark: #0B1510;               /* Primary deep forest */
+    --bg-forest: #101D15;             /* Secondary deep forest */
+    --bg-surface: #17251B;            /* Primary surface card */
+    --bg-elevated: #203025;           /* Elevated surface */
+    --bg-inset: #0D1812;              /* Inset field background */
 
-    /* Internal Application Theme Tokens (Industrial Technology) */
-    --app-bg: #11100F;
-    --app-surface: #191715;
-    --app-surface-elevated: #211E1B;
-    --app-border: #38312C;
-    --app-border-subtle: #26221E;
-    --app-border-hover: #4E443E;
-    --app-text-primary: #F3EADF;
-    --app-text-muted: #B8ADA0;
-    --app-accent: #B65E42;
-    --app-accent-hover: #C86C4E;
-    --app-accent-secondary: #D69A49;
+    --border-subtle: #344438;         /* Subtle botanical border */
+    --border-hover: #4A5F4F;          /* Active / hover border */
+    --border-accent: rgba(130, 153, 109, 0.4);
+
+    --text-primary: #F1F0E5;          /* Warm ivory main text */
+    --text-secondary: #B7C2B1;        /* Soft sage-grey */
+    --text-muted: #7E8D77;            /* Muted botanical secondary */
+
+    --accent-botanical: #82996D;      /* Primary botanical green */
+    --accent-leaf: #A9BE89;           /* Secondary fresh leaf */
+    --accent-gold: #C7BC91;           /* Pale mineral gold highlight */
+
+    --status-success: #4E7A5D;        /* Natural success green */
+    --status-warning: #C79A49;        /* Muted amber warning */
+    --status-error: #B84A39;          /* Restrained, legible red */
+
+    /* Legacy compatibility semantic tokens pointing to botanical palette */
+    --app-bg: #0B1510;
+    --app-surface: #17251B;
+    --app-surface-elevated: #203025;
+    --app-border: #344438;
+    --app-border-subtle: #243527;
+    --app-border-hover: #4A5F4F;
+    --app-text-primary: #F1F0E5;
+    --app-text-muted: #B7C2B1;
+    --app-accent: #82996D;
+    --app-accent-hover: #96AF7E;
+    --app-accent-secondary: #C7BC91;
     --app-status-success: #4E7A5D;
-    --app-status-warning: #C68A3C;
+    --app-status-warning: #C79A49;
     --app-status-error: #B84A39;
-    --app-accent-lime: #D5E64A;
+    --app-accent-lime: #A9BE89;
   }
 
   body {
@@ -45,56 +51,56 @@
   }
 }
 
-/* Warm technical grid background */
+/* Botanical technical grid background */
 .bg-grid-tech {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(173, 114, 87, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(173, 114, 87, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(130, 153, 109, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(130, 153, 109, 0.05) 1px, transparent 1px);
 }
 
 .bg-dot-tech {
   background-size: 24px 24px;
-  background-image: radial-gradient(rgba(173, 114, 87, 0.12) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(130, 153, 109, 0.12) 1px, transparent 1px);
 }
 
-/* Subtle warm dusk radial glow */
-.bg-warm-radial {
-  background: radial-gradient(circle at 50% 0%, rgba(169, 68, 39, 0.12) 0%, rgba(23, 13, 10, 0.0) 70%);
+/* Deep forest canopy radial glow */
+.bg-canopy-radial {
+  background: radial-gradient(circle at 50% 0%, rgba(130, 153, 109, 0.12) 0%, rgba(11, 21, 16, 0.0) 70%);
 }
 
-/* Custom scrollbar in warm charred umber tones */
+/* Custom scrollbar in deep forest moss tones */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090706;
+  background: #0B1510;
 }
 ::-webkit-scrollbar-thumb {
-  background: #24110C;
-  border: 1px solid rgba(173, 114, 87, 0.2);
+  background: #17251B;
+  border: 1px solid rgba(130, 153, 109, 0.25);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3A1B14;
+  background: #203025;
 }
 
-/* Fine border utilities */
+/* Botanical fine border utilities */
 .border-fine {
-  border: 1px solid rgba(173, 114, 87, 0.22);
+  border: 1px solid #344438;
 }
 
-.border-lime-subtle {
-  border: 1px solid rgba(212, 255, 0, 0.25);
+.border-botanical-subtle {
+  border: 1px solid rgba(130, 153, 109, 0.3);
 }
 
-.glow-lime {
-  box-shadow: 0 0 25px -5px rgba(212, 255, 0, 0.25);
+.glow-botanical {
+  box-shadow: 0 0 25px -5px rgba(130, 153, 109, 0.25);
 }
 
-.glow-warm {
-  box-shadow: 0 0 35px -10px rgba(169, 68, 39, 0.25);
+.glow-gold {
+  box-shadow: 0 0 35px -10px rgba(199, 188, 145, 0.25);
 }
 
 /* Editorial badge styling */

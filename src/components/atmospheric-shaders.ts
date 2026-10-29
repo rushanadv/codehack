@@ -45,8 +45,8 @@ float fbm(vec2 p) {
 `;
 
 // ============================================================================
-// 1. EXPANSIVE WARM DESERT DUSK SKY & HORIZON DOME
-// Dark charcoal-brown zenith transitioning to glowing amber-terracotta horizon
+// 1. EXPANSIVE BOTANICAL FOREST DUSK SKY & HORIZON DOME
+// Dark forest canopy zenith transitioning to filtered sunlight / botanical horizon
 // ============================================================================
 export function createAtmosphericSkyDome(): {
   mesh: THREE.Mesh;
@@ -61,9 +61,9 @@ export function createAtmosphericSkyDome(): {
     depthTest: false,
     uniforms: {
       uTime: { value: 0 },
-      uZenithColor: { value: new THREE.Color(0x0a0504) },     // Deep dark dusk charcoal-brown
-      uMidSkyColor: { value: new THREE.Color(0x1a0d0a) },     // Muted earthy terracotta
-      uHorizonGlow: { value: new THREE.Color(0xa85e3a) },     // Luminous warm amber-peach horizon haze
+      uZenithColor: { value: new THREE.Color(0x040906) },     // Deep dark forest canopy zenith
+      uMidSkyColor: { value: new THREE.Color(0x0b1811) },     // Muted deep forest jade
+      uHorizonGlow: { value: new THREE.Color(0x607856) },     // Filtered sunlight & botanical mist
       uHorizonY: { value: -0.2 },
       uBandThickness: { value: 5.2 },
       uHazeIntensity: { value: 2.1 },
@@ -108,7 +108,7 @@ export function createAtmosphericSkyDome(): {
         // Ground nadir fade
         if (h < uHorizonY - 1.0) {
           float groundFade = clamp((uHorizonY - 1.0 - h) / 10.0, 0.0, 1.0);
-          finalCol = mix(finalCol, vec3(0.06, 0.03, 0.02), groundFade);
+          finalCol = mix(finalCol, vec3(0.03, 0.06, 0.04), groundFade);
         }
 
         gl_FragColor = vec4(finalCol, 1.0);
@@ -123,7 +123,7 @@ export function createAtmosphericSkyDome(): {
 }
 
 // ============================================================================
-// 2. HORIZON MIST BAND (Horizontal Warm Peach-Amber Ribbon)
+// 2. HORIZON MIST BAND (Horizontal Botanical Sage Ribbon)
 // ============================================================================
 export function createHorizonMistBand(): {
   mesh: THREE.Mesh;
@@ -140,7 +140,7 @@ export function createHorizonMistBand(): {
     blending: THREE.NormalBlending,
     uniforms: {
       uTime: { value: 0 },
-      uMistColor: { value: new THREE.Color(0xb26c48) }, // Warm dusty amber-terracotta mist
+      uMistColor: { value: new THREE.Color(0x607856) }, // Botanical sage mist
       uOpacity: { value: 0.82 },
     },
     vertexShader: `
@@ -228,9 +228,9 @@ export function createDistantTerrainRidges(): {
     transparent: true,
     depthWrite: true,
     uniforms: {
-      uBaseColor: { value: new THREE.Color(0x0c0605) },       // Deep desert ridge silhouette
-      uHorizonGlow: { value: new THREE.Color(0xa85e3a) },     // Amber-peach horizon mist
-      uRidgeHighlight: { value: new THREE.Color(0x522718) },  // Warm crest rim highlight
+      uBaseColor: { value: new THREE.Color(0x060e09) },       // Deep forest ridge silhouette
+      uHorizonGlow: { value: new THREE.Color(0x607856) },     // Botanical horizon mist
+      uRidgeHighlight: { value: new THREE.Color(0x233b2a) },  // Subtle moss canopy highlight
     },
     vertexShader: `
       varying vec3 vWorldPos;
@@ -280,8 +280,8 @@ export function createDistantTerrainRidges(): {
 }
 
 // ============================================================================
-// 4. DARK DESERT TERRAIN & SHALLOW REFLECTIVE GROUND PLANE
-// Warm earthy ground reflecting the amber horizon glow
+// 4. DEEP FOREST TERRAIN & SHALLOW REFLECTIVE GROUND POOL
+// Forest floor reflecting the soft botanical canopy glow
 // ============================================================================
 export function createAtmosphericGround(): {
   mesh: THREE.Mesh;
@@ -298,9 +298,9 @@ export function createAtmosphericGround(): {
     uniforms: {
       uTime: { value: 0 },
       uRotorPos: { value: new THREE.Vector2(0, 0) },
-      uDeepGroundColor: { value: new THREE.Color(0x0e0706) },  // Dark desert ground foreground
-      uHorizonGlow: { value: new THREE.Color(0xa85e3a) },      // Warm amber-peach horizon reflection
-      uLimeAccent: { value: new THREE.Color(0xd4ff00) },       // Restrained acid-lime underglow
+      uDeepGroundColor: { value: new THREE.Color(0x060e09) },  // Dark forest ground foreground
+      uHorizonGlow: { value: new THREE.Color(0x607856) },      // Soft botanical horizon reflection
+      uLimeAccent: { value: new THREE.Color(0x82996d) },       // Natural botanical green accent
       uShadowStrength: { value: 0.90 },
     },
     vertexShader: `
@@ -348,13 +348,13 @@ export function createAtmosphericGround(): {
 
         vec3 surfaceCol = mix(uDeepGroundColor, uHorizonGlow * 1.25, clamp(grazing, 0.0, 1.0));
 
-        // Subtle specular reflection of monolith in the ground
+        // Subtle specular reflection of bloom sculpture in the pool
         float monolithReflectX = exp(-pow(vWorldPos.x - uRotorPos.x, 2.0) / 1.6);
         float monolithReflectZ = smoothstep(-0.5, 3.5, vWorldPos.z) * (1.0 - smoothstep(3.5, 8.0, vWorldPos.z));
         float reflection = monolithReflectX * monolithReflectZ * 0.32;
-        surfaceCol += vec3(0.55, 0.25, 0.15) * reflection;
+        surfaceCol += vec3(0.18, 0.32, 0.22) * reflection;
 
-        // Acid-lime underglow bounce directly beneath the base
+        // Botanical green underglow bounce directly beneath the base
         float limeBounce = exp(-shadowDist * 1.6) * 0.28;
         surfaceCol += uLimeAccent * limeBounce;
 
@@ -409,8 +409,8 @@ export function createMultiLayerFogSystem(): FogSystem {
     blending: THREE.NormalBlending,
     uniforms: {
       uTime: { value: 0 },
-      uFogColor: { value: new THREE.Color(0x8a4e32) }, // Warm desert ground mist
-      uOpacity: { value: 0.70 },
+      uFogColor: { value: new THREE.Color(0x324d38) }, // Translucent forest ground mist
+      uOpacity: { value: 0.65 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -465,7 +465,7 @@ export function createMultiLayerFogSystem(): FogSystem {
       blending: THREE.NormalBlending,
       uniforms: {
         uTime: { value: 0 },
-        uFogColor: { value: new THREE.Color(0x9c5938) },
+        uFogColor: { value: new THREE.Color(0x3e5944) },
         uOpacity: { value: midOpacities[idx] },
       },
       vertexShader: `
@@ -515,7 +515,7 @@ export function createMultiLayerFogSystem(): FogSystem {
     blending: THREE.NormalBlending,
     uniforms: {
       uTime: { value: 0 },
-      uFogColor: { value: new THREE.Color(0x7c4228) },
+      uFogColor: { value: new THREE.Color(0x233a29) },
       uOpacity: { value: 0.22 },
     },
     vertexShader: `
@@ -613,7 +613,7 @@ export function createAtmosphericParticles(count = 160): {
     blending: THREE.AdditiveBlending,
     uniforms: {
       uTime: { value: 0 },
-      uColor: { value: new THREE.Color(0xf2b488) },     // Warm amber-gold dust
+      uColor: { value: new THREE.Color(0xc7bc91) },     // Pale mineral gold & pollen motes
     },
     vertexShader: `
       attribute vec3 aSeed;
@@ -630,8 +630,8 @@ export function createAtmosphericParticles(count = 160): {
         float lightProximity = exp(-length(p.xz) * 0.25);
         vAlpha = (0.20 + 0.55 * sin(uTime * 1.2 + aSeed.z * 8.0)) * lightProximity * 0.65;
 
-        // Warm dusk ambient motes (peach, terracotta, amber gold)
-        vColor = mix(vec3(0.95, 0.70, 0.53), vec3(0.85, 0.52, 0.35), aSeed.y);
+        // Botanical spores / pollen ambient motes (pale gold, fresh sage, warm ivory)
+        vColor = mix(vec3(0.78, 0.74, 0.57), vec3(0.55, 0.72, 0.52), aSeed.y);
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         gl_PointSize = (10.0 / -mvPosition.z) * (0.6 + 0.4 * aSeed.x);

@@ -10,9 +10,9 @@ import {
   Terminal, 
   AlertTriangle, 
   CheckCircle2, 
-  RefreshCw,
-  GitCommit,
-  UserCheck
+  RefreshCw, 
+  GitCommit, 
+  UserCheck 
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -61,7 +61,7 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#11100F] py-32 text-center text-xs font-mono text-[#8C827A] uppercase tracking-wider">
+      <div className="min-h-screen bg-[#0B1510] py-32 text-center text-xs font-mono text-[#7E8D77] uppercase tracking-wider">
         Loading Compliance & Verification Ledger...
       </div>
     );
@@ -72,31 +72,31 @@ export default function AdminPage() {
   const auditEvents = data?.auditEvents || [];
 
   return (
-    <div className="min-h-screen bg-[#11100F] text-[#F3EADF] py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0B1510] text-[#F1F0E5] py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* Header */}
-      <div className="pb-6 border-b border-[#2C2723]">
-        <div className="flex items-center gap-2 mb-2 font-mono text-[11px] uppercase tracking-wider text-[#D69A49]">
-          <ShieldCheck className="w-3.5 h-3.5" />
+      <div className="pb-6 border-b border-[#344438]">
+        <div className="flex items-center gap-2 mb-2 font-mono text-[11px] uppercase tracking-wider text-[#82996D]">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#A9BE89]" />
           <span>Operator Safety Verification</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-semibold text-[#F3EADF] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-[#F1F0E5] tracking-tight">
           Credential Compliance & Audit Ledger
         </h1>
-        <p className="text-xs text-[#8C827A] mt-1.5 max-w-2xl leading-relaxed">
+        <p className="text-xs text-[#7E8D77] mt-1.5 max-w-2xl leading-relaxed">
           Oversee laboratory credentials, verify institutional safety certifications, and inspect immutable transaction audit events across the platform.
         </p>
       </div>
 
       {/* Pending Skill Verification Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#2C2723]">
-          <span className="text-[#B8ADA0] font-medium uppercase tracking-wider">
+        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#344438]">
+          <span className="text-[#B7C2B1] font-medium uppercase tracking-wider">
             Pending Credential Verifications ({pendingSkills.length})
           </span>
           <button 
             onClick={fetchAdminData} 
-            className="text-[#8C827A] hover:text-[#F3EADF] flex items-center gap-1.5 transition-colors"
+            className="text-[#7E8D77] hover:text-[#F1F0E5] flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" /> 
             <span>Sync</span>
@@ -104,7 +104,7 @@ export default function AdminPage() {
         </div>
 
         {pendingSkills.length === 0 ? (
-          <div className="p-8 text-center bg-[#191715] rounded-xl border border-[#2C2723] text-[#8C827A] text-xs">
+          <div className="p-8 text-center bg-[#17251B] rounded-xl border border-[#344438] text-[#7E8D77] text-xs">
             Zero pending credential verifications. All applicant qualifications are up to date.
           </div>
         ) : (
@@ -112,29 +112,29 @@ export default function AdminPage() {
             {pendingSkills.map((sk: any) => (
               <div
                 key={sk.id}
-                className="p-5 rounded-xl bg-[#191715] border border-[#2C2723] flex flex-col md:flex-row md:items-center justify-between gap-6"
+                className="p-5 rounded-xl bg-[#17251B] border border-[#344438] flex flex-col md:flex-row md:items-center justify-between gap-6"
               >
                 <div className="space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-medium bg-[#D69A49]/15 text-[#D69A49] border border-[#D69A49]/30">
+                    <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-medium bg-[#C79A49]/20 text-[#C79A49] border border-[#C79A49]/40">
                       PENDING AUDIT
                     </span>
-                    <span className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-[#211E1B] text-[#8C827A] border border-[#2C2723]">
+                    <span className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-[#203025] text-[#7E8D77] border border-[#344438]">
                       {sk.skill_category}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-semibold text-[#F3EADF]">
+                  <h3 className="text-base font-semibold text-[#F1F0E5]">
                     {sk.skill_name}
                   </h3>
 
-                  <div className="text-xs text-[#8C827A] font-mono">
-                    Applicant: <strong className="text-[#F3EADF] font-medium">{sk.user_name}</strong> ({sk.user_email}) • {sk.user_department}
+                  <div className="text-xs text-[#7E8D77] font-mono">
+                    Applicant: <strong className="text-[#F1F0E5] font-medium">{sk.user_name}</strong> ({sk.user_email}) • {sk.user_department}
                   </div>
 
                   {sk.certificate_ref && (
-                    <div className="text-[11px] font-mono text-[#6B6158] pt-0.5">
-                      Certificate Reference: <span className="text-[#D69A49]">{sk.certificate_ref}</span>
+                    <div className="text-[11px] font-mono text-[#7E8D77] pt-0.5">
+                      Certificate Reference: <span className="text-[#C7BC91]">{sk.certificate_ref}</span>
                     </div>
                   )}
                 </div>
@@ -143,7 +143,7 @@ export default function AdminPage() {
                   <button
                     onClick={() => handleVerify(sk.id, 'reject')}
                     disabled={processingId === sk.id}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#211E1B] hover:bg-[#B84A39]/20 text-[#B8ADA0] hover:text-[#B84A39] rounded-lg font-mono text-xs border border-[#38312C] transition-colors"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#203025] hover:bg-[#B84A39]/20 text-[#B7C2B1] hover:text-[#B84A39] rounded-lg font-mono text-xs border border-[#344438] transition-colors cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                     Reject
@@ -152,7 +152,7 @@ export default function AdminPage() {
                   <button
                     onClick={() => handleVerify(sk.id, 'approve')}
                     disabled={processingId === sk.id}
-                    className="flex items-center gap-1.5 px-4 py-1.5 bg-[#B65E42] hover:bg-[#A35238] text-white font-medium rounded-lg font-mono text-xs tracking-wider transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-[#82996D] hover:bg-[#A9BE89] text-[#0B1510] font-semibold rounded-lg font-mono text-xs tracking-wider transition-colors cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5" />
                     Verify Credential
@@ -166,32 +166,32 @@ export default function AdminPage() {
 
       {/* Immutable Audit Log Explorer */}
       <div className="space-y-4 pt-4">
-        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#2C2723]">
-          <span className="text-[#B8ADA0] font-medium uppercase tracking-wider flex items-center gap-2">
-            <Terminal className="w-3.5 h-3.5 text-[#D69A49]" />
+        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#344438]">
+          <span className="text-[#B7C2B1] font-medium uppercase tracking-wider flex items-center gap-2">
+            <Terminal className="w-3.5 h-3.5 text-[#C7BC91]" />
             Platform Immutable Audit Ledger (Recent Events)
           </span>
           <span className="text-[11px] text-[#4E7A5D]">LEDGER SYNCHRONIZED</span>
         </div>
 
-        <div className="bg-[#191715] p-5 rounded-xl border border-[#2C2723] divide-y divide-[#2C2723] font-mono text-xs max-h-96 overflow-y-auto">
+        <div className="bg-[#17251B] p-5 rounded-xl border border-[#344438] divide-y divide-[#344438] font-mono text-xs max-h-96 overflow-y-auto">
           {auditEvents.map((aud: any) => (
             <div key={aud.id} className="py-2.5 flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#F3EADF] font-medium text-[11px]">{aud.action}</span>
-                  <span className="text-[#6B6158] text-[10px]">[{aud.entity_type} • {aud.entity_id}]</span>
+                  <span className="text-[#F1F0E5] font-medium text-[11px]">{aud.action}</span>
+                  <span className="text-[#7E8D77] text-[10px]">[{aud.entity_type} • {aud.entity_id}]</span>
                 </div>
-                <div className="text-[#8C827A] text-[11px] mt-0.5">
-                  Actor: <span className="text-[#B8ADA0]">{aud.actor_name || aud.actor_id}</span>
+                <div className="text-[#7E8D77] text-[11px] mt-0.5">
+                  Actor: <span className="text-[#B7C2B1]">{aud.actor_name || aud.actor_id}</span>
                 </div>
                 {aud.payload && (
-                  <div className="text-[10px] text-[#6B6158] truncate max-w-xl mt-0.5">
+                  <div className="text-[10px] text-[#7E8D77] truncate max-w-xl mt-0.5">
                     {aud.payload}
                   </div>
                 )}
               </div>
-              <span className="text-[#6B6158] text-[10px] shrink-0">
+              <span className="text-[#7E8D77] text-[10px] shrink-0">
                 {new Date(aud.created_at).toLocaleTimeString()}
               </span>
             </div>

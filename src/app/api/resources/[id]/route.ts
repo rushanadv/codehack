@@ -61,8 +61,8 @@ export async function GET(
     const qrCodeDataUrl = await QRCode.toDataURL(qrTargetUrl, {
       margin: 1,
       color: {
-        dark: '#F3EADF', // Warm ivory QR
-        light: '#191715' // Surface dark bg
+        dark: '#F1F0E5', // Warm ivory QR
+        light: '#17251B' // Botanical card surface
       },
       width: 256
     });

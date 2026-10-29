@@ -527,40 +527,40 @@ export default function CinematicHeroExperience() {
       createAtmosphericParticles(180);
     scene.add(dustPoints);
 
-    // E. Reflective Water / Wet Lacquer Ground Plane (Reflects warm monolith glow)
+    // E. Reflective Water / Deep Forest Pool Ground Plane (Reflects botanical sculpture glow)
     const waterGeom = new THREE.PlaneGeometry(42, 42, 1, 1);
     waterGeom.rotateX(-Math.PI / 2);
     const waterMat = new THREE.MeshStandardMaterial({
-      color: 0x140a08,
-      roughness: 0.24,
-      metalness: 0.82,
+      color: 0x07110a,
+      roughness: 0.22,
+      metalness: 0.85,
       depthWrite: false,
     });
     const waterMesh = new THREE.Mesh(waterGeom, waterMat);
     waterMesh.position.set(0, -1.44, 0);
     scene.add(waterMesh);
 
-    // 5. STUDIO DUSK 3-POINT LIGHTING
-    const ambientLight = new THREE.AmbientLight(0x3a1913, 1.9);
+    // 5. STUDIO BOTANICAL 3-POINT LIGHTING
+    const ambientLight = new THREE.AmbientLight(0x0c1912, 1.8);
     scene.add(ambientLight);
 
-    // Warm frontal key light
-    const keyLight = new THREE.DirectionalLight(0xffeedb, 1.6);
+    // Warm ivory sunlight key light
+    const keyLight = new THREE.DirectionalLight(0xfbf7ed, 1.6);
     keyLight.position.set(1.8, 3.8, 5.0);
     scene.add(keyLight);
 
-    // Deep terracotta warm fill light
-    const fillLight = new THREE.DirectionalLight(0xd9653b, 1.5);
+    // Botanical sage fill light
+    const fillLight = new THREE.DirectionalLight(0x5e7857, 1.4);
     fillLight.position.set(-2.8, 2.6, 4.5);
     scene.add(fillLight);
 
-    // Horizon backlight / contouring rim light
-    const horizonRimLight = new THREE.DirectionalLight(0xf4aa8d, 2.2);
+    // Horizon backlight / mineral gold rim light
+    const horizonRimLight = new THREE.DirectionalLight(0xc7bc91, 2.2);
     horizonRimLight.position.set(0.0, 3.6, -4.5);
     scene.add(horizonRimLight);
 
-    // Water highlight point light
-    const waterLight = new THREE.PointLight(0xd9653b, 1.2, 10);
+    // Forest pool highlight point light
+    const waterLight = new THREE.PointLight(0x507357, 1.2, 10);
     waterLight.position.set(0, -1.2, 1.5);
     scene.add(waterLight);
 
@@ -852,7 +852,7 @@ export default function CinematicHeroExperience() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden bg-[#0a0504] select-none touch-none"
+      className="relative w-full h-screen overflow-hidden bg-[#0B1510] select-none touch-none"
     >
       {/* =========================================================================
           FULL-VIEWPORT THREE.JS 3D STAGE
@@ -863,7 +863,7 @@ export default function CinematicHeroExperience() {
       />
 
       {/* Atmospheric Vignette Overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#0a0504_95%)] pointer-events-none opacity-40" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#0B1510_95%)] pointer-events-none opacity-40" />
 
       {/* =========================================================================
           EDGE-ALIGNED MINIMAL HEADER (Architectural Instrument Style)
@@ -872,14 +872,14 @@ export default function CinematicHeroExperience() {
         {/* Top-Left: Minimal Brand & Live Status */}
         <div className="pointer-events-auto flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="w-2.5 h-2.5 bg-[#D4FF00] border border-black group-hover:rotate-45 transition-transform" />
-            <span className="font-sans font-black text-base tracking-tight text-white uppercase">
-              IDLEX<span className="text-[#D4FF00]">.</span>
+            <span className="w-2.5 h-2.5 bg-[#82996D] rounded-xs group-hover:rotate-45 transition-transform" />
+            <span className="font-sans font-bold text-base tracking-tight text-[#F1F0E5] uppercase">
+              IDLEX<span className="text-[#82996D]">.</span>
             </span>
           </Link>
-          <span className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#171311] border border-[#AD7257]/30 text-[10px] font-mono tracking-wider text-[#D9C5B4]">
-            <span className="w-1.5 h-1.5 bg-[#D4FF00]" />
-            NETWORK LIVE · 1,420kw/h IDLE
+          <span className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#17251B] border border-[#344438] text-[10px] font-mono tracking-wider text-[#B7C2B1]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4E7A5D]" />
+            NETWORK LIVE · 1,420kw/h ALLOCATED
           </span>
         </div>
 
@@ -887,25 +887,25 @@ export default function CinematicHeroExperience() {
         <div className="pointer-events-auto flex items-center gap-4 sm:gap-6 text-xs font-mono tracking-widest">
           <Link
             href="/explore"
-            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px] px-2 py-1"
+            className="text-[#B7C2B1] hover:text-[#F1F0E5] transition-colors uppercase text-[11px] px-2 py-1"
           >
             Explore
           </Link>
           <Link
             href="/match"
-            className="hidden sm:inline text-neutral-400 hover:text-white transition-colors uppercase text-[11px] px-2 py-1"
+            className="hidden sm:inline text-[#B7C2B1] hover:text-[#F1F0E5] transition-colors uppercase text-[11px] px-2 py-1"
           >
             Intent Match
           </Link>
           <Link
             href="/overview"
-            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px] px-2 py-1"
+            className="text-[#B7C2B1] hover:text-[#F1F0E5] transition-colors uppercase text-[11px] px-2 py-1"
           >
             Overview
           </Link>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider border border-[#D4FF00] active:translate-y-0.5"
+            className="inline-flex items-center gap-1.5 bg-[#82996D] hover:bg-[#A9BE89] text-[#0B1510] font-mono font-bold px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider border border-[#82996D] active:translate-y-0.5"
           >
             <span>Launch App</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -915,7 +915,7 @@ export default function CinematicHeroExperience() {
 
       {/* =========================================================================
           THE SIGNATURE CYLINDRICAL 3D TITLE CAROUSEL
-          Wraps around the lower base of the monolith, overlapping water reflection.
+          Wraps around the lower base of the sculpture, overlapping pool reflection.
           Active title solid white in center; flanking titles in outlined 3D curve.
           ========================================================================= */}
       <div className="absolute inset-x-0 bottom-20 sm:bottom-24 z-30 pointer-events-none flex flex-col items-center justify-end px-4">
@@ -947,10 +947,10 @@ export default function CinematicHeroExperience() {
                   <div>{dim.titleLine2}</div>
                 </h2>
 
-                {/* Active Subtitle Telemetry Pill (Cleanly Positioned Inside Bounding Box) */}
+                {/* Active Subtitle Telemetry Pill */}
                 <div className="active-dim-badge mt-3 flex items-center justify-center transition-opacity duration-200">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-[#160F0C] border border-[#AD7257]/40 text-[10px] sm:text-[11px] font-mono text-[#D4FF00] shadow-md">
-                    <dim.icon className="w-3.5 h-3.5 text-[#D4FF00]" />
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-[#17251B] border border-[#344438] text-[10px] sm:text-[11px] font-mono text-[#A9BE89] shadow-md">
+                    <dim.icon className="w-3.5 h-3.5 text-[#82996D]" />
                     <span>{dim.telemetry}</span>
                   </div>
                 </div>
@@ -969,8 +969,8 @@ export default function CinematicHeroExperience() {
                 href={`/explore?category=${d.category}`}
                 className={`px-3.5 py-1.5 rounded-md border font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:translate-y-0.5 ${
                   isAct
-                    ? 'bg-[#D4FF00] text-black border-[#D4FF00] shadow-md shadow-[#D4FF00]/15'
-                    : 'bg-[#150F0D]/95 text-[#D9C5B4] hover:text-white border-[#AD7257]/30 hover:border-[#AD7257]/60'
+                    ? 'bg-[#82996D] text-[#0B1510] border-[#82996D] shadow-md shadow-[#82996D]/15'
+                    : 'bg-[#17251B]/95 text-[#B7C2B1] hover:text-[#F1F0E5] border-[#344438] hover:border-[#4A5F4F]'
                 }`}
               >
                 <span>{d.shortName}</span>
@@ -984,11 +984,11 @@ export default function CinematicHeroExperience() {
       {/* =========================================================================
           EDGE-ALIGNED MINIMAL FOOTER TELEMETRY & AUDIO TOGGLE
           ========================================================================= */}
-      <footer className="absolute bottom-5 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none z-40">
+      <footer className="absolute bottom-5 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-[#B7C2B1] pointer-events-none select-none z-40">
         {/* Bottom-Left: Dimension Tracker */}
         <div className="flex items-center gap-2.5">
-          <span className="text-[#D4FF00] font-bold">[{activeDim.num} / 03]</span>
-          <span className="hidden sm:inline text-neutral-300 font-medium">
+          <span className="text-[#82996D] font-bold">[{activeDim.num} / 03]</span>
+          <span className="hidden sm:inline text-[#F1F0E5] font-medium">
             {activeDim.shortName}
           </span>
         </div>
@@ -996,31 +996,31 @@ export default function CinematicHeroExperience() {
         {/* Bottom-Center: Link to Overview & Narrative */}
         <Link
           href="/overview"
-          className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#18110E] hover:bg-[#241712] border border-[#AD7257]/40 text-[#D9C5B4] hover:text-[#D4FF00] transition-all cursor-pointer backdrop-blur-sm"
+          className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#17251B] hover:bg-[#203025] border border-[#344438] text-[#B7C2B1] hover:text-[#A9BE89] transition-all cursor-pointer backdrop-blur-sm"
         >
           <span className="text-[10px] tracking-widest uppercase font-bold">OVERVIEW & NARRATIVE</span>
-          <ChevronDown className="w-3.5 h-3.5 text-[#D4FF00]" />
+          <ChevronDown className="w-3.5 h-3.5 text-[#82996D]" />
         </Link>
 
-        {/* Bottom-Right: Ambient Sound Toggle Button (Speaker wave icon) */}
+        {/* Bottom-Right: Ambient Sound Toggle Button */}
         <div className="pointer-events-auto flex items-center gap-4">
           <button
             onClick={handleToggleAudio}
             type="button"
             aria-label={isAudioPlaying ? 'Mute atmospheric sound' : 'Unmute atmospheric sound'}
-            className="flex items-center gap-2 p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer backdrop-blur-sm group"
+            className="flex items-center gap-2 p-2 rounded-full bg-[#17251B]/80 hover:bg-[#203025] border border-[#344438] text-[#B7C2B1] hover:text-[#F1F0E5] transition-all cursor-pointer backdrop-blur-sm group"
           >
             {isAudioPlaying ? (
               <>
-                <Volume2 className="w-4 h-4 text-[#D4FF00] animate-pulse" />
-                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#D4FF00]">
+                <Volume2 className="w-4 h-4 text-[#82996D] animate-pulse" />
+                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#82996D]">
                   SOUND ON
                 </span>
               </>
             ) : (
               <>
-                <VolumeX className="w-4 h-4 text-neutral-400 group-hover:text-white" />
-                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-neutral-400 group-hover:text-white">
+                <VolumeX className="w-4 h-4 text-[#7E8D77] group-hover:text-[#F1F0E5]" />
+                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#7E8D77] group-hover:text-[#F1F0E5]">
                   SOUND OFF
                 </span>
               </>
@@ -1031,26 +1031,25 @@ export default function CinematicHeroExperience() {
 
       {/* =========================================================================
           INTERACTIVE DIMENSION INSPECTOR VIEW ("Open" Portal State)
-          Inspired by Guillaume Colombel's project detail screen.
           Reveals live database assets, real-time specifications, rates, and direct actions.
           ========================================================================= */}
       {inspectingDimension && (
-        <div className="absolute inset-0 z-50 flex flex-col justify-between bg-[#0a0504]/90 backdrop-blur-xl p-6 sm:p-12 animate-in fade-in duration-300 overflow-y-auto pointer-events-auto">
+        <div className="absolute inset-0 z-50 flex flex-col justify-between bg-[#0B1510]/95 backdrop-blur-xl p-6 sm:p-12 animate-in fade-in duration-300 overflow-y-auto pointer-events-auto">
           {/* Top Header inside Detail View */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-6">
+          <div className="flex items-center justify-between border-b border-[#344438] pb-6">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-mono tracking-widest text-[#D4FF00] uppercase">
+              <span className="text-xs font-mono tracking-widest text-[#82996D] uppercase">
                 [{inspectingDimension.num} / DIMENSION PORTAL]
               </span>
-              <span className="text-neutral-500">·</span>
-              <span className="text-sm font-sans font-bold text-white uppercase tracking-wider">
+              <span className="text-[#7E8D77]">·</span>
+              <span className="text-sm font-sans font-bold text-[#F1F0E5] uppercase tracking-wider">
                 {inspectingDimension.shortName}
               </span>
             </div>
 
             <button
               onClick={() => setInspectingDimension(null)}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#17251B] hover:bg-[#203025] border border-[#344438] text-[#F1F0E5] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
             >
               <span>Close</span>
               <X className="w-4 h-4" />
@@ -1061,13 +1060,13 @@ export default function CinematicHeroExperience() {
           <div className="max-w-6xl mx-auto w-full py-8 my-auto">
             {/* Dimension Editorial Lead */}
             <div className="max-w-3xl mb-8">
-              <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#D4FF00] block mb-2">
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#82996D] block mb-2">
                 {inspectingDimension.tagline}
               </span>
-              <h2 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-white uppercase leading-none mb-4">
+              <h2 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-[#F1F0E5] uppercase leading-none mb-4">
                 {inspectingDimension.titleLine1} {inspectingDimension.titleLine2}
               </h2>
-              <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed">
+              <p className="text-sm sm:text-base text-[#B7C2B1] font-light leading-relaxed">
                 {inspectingDimension.description}
               </p>
             </div>
@@ -1077,41 +1076,41 @@ export default function CinematicHeroExperience() {
               {inspectingDimension.featuredAssets.map((asset) => (
                 <div
                   key={asset.id}
-                  className="rounded-xl bg-[#140F0D] border border-[#AD7257]/35 flex flex-col justify-between relative overflow-hidden group hover:border-[#D4FF00] transition-colors"
+                  className="rounded-xl bg-[#17251B] border border-[#344438] flex flex-col justify-between relative overflow-hidden group hover:border-[#82996D] transition-colors"
                 >
                   {/* Solid Accent Top Stripe */}
-                  <div className="h-1.5 w-full bg-gradient-to-r from-[#D95927] to-[#D4FF00]" />
+                  <div className="h-1.5 w-full bg-gradient-to-r from-[#82996D] to-[#A9BE89]" />
 
                   <div className="p-6">
                     <div className="flex items-center justify-between text-[11px] font-mono mb-3">
-                      <span className="text-[#D4FF00] font-bold px-2 py-0.5 rounded bg-[#D4FF00]/10 border border-[#D4FF00]/30">{asset.tag}</span>
-                      <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                      <span className="text-[#A9BE89] font-bold px-2 py-0.5 rounded bg-[#82996D]/15 border border-[#82996D]/30">{asset.tag}</span>
+                      <span className="flex items-center gap-1.5 text-[#4E7A5D] font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         {asset.status}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-white tracking-tight mb-1 group-hover:text-[#D4FF00] transition-colors">
+                    <h3 className="text-lg font-bold text-[#F1F0E5] tracking-tight mb-1 group-hover:text-[#A9BE89] transition-colors">
                       {asset.title}
                     </h3>
-                    <p className="text-xs font-mono text-[#D9C5B4] mb-4">{asset.location}</p>
+                    <p className="text-xs font-mono text-[#7E8D77] mb-4">{asset.location}</p>
 
-                    <div className="p-3 rounded-lg bg-[#1E1512] border border-[#AD7257]/30 font-mono text-xs text-[#E6D7CB] mb-6">
+                    <div className="p-3 rounded-lg bg-[#0D1812] border border-[#344438] font-mono text-xs text-[#B7C2B1] mb-6">
                       {asset.specs}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between px-6 pb-6 pt-3 border-t border-[#AD7257]/20 bg-[#100B09]">
+                  <div className="flex items-center justify-between px-6 pb-6 pt-3 border-t border-[#344438] bg-[#101D15]">
                     <div>
-                      <div className="text-[10px] font-mono text-[#A99A90] uppercase tracking-wider">
+                      <div className="text-[10px] font-mono text-[#7E8D77] uppercase tracking-wider">
                         Rate Telemetry
                       </div>
-                      <div className="text-base font-bold text-[#D4FF00] font-mono">{asset.rate}</div>
+                      <div className="text-base font-bold text-[#C7BC91] font-mono">{asset.rate}</div>
                     </div>
 
                     <Link
                       href={`/explore?category=${inspectingDimension.category}`}
-                      className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase px-4 py-2 rounded-md transition-all border border-[#D4FF00] active:translate-y-0.5"
+                      className="inline-flex items-center gap-1.5 bg-[#82996D] hover:bg-[#A9BE89] text-[#0B1510] font-mono font-bold text-xs uppercase px-4 py-2 rounded-md transition-all border border-[#82996D] active:translate-y-0.5"
                     >
                       <span>Inquire</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1123,14 +1122,14 @@ export default function CinematicHeroExperience() {
           </div>
 
           {/* Bottom Portal Navigation */}
-          <div className="flex items-center justify-between pt-6 border-t border-white/10 text-xs font-mono">
+          <div className="flex items-center justify-between pt-6 border-t border-[#344438] text-xs font-mono">
             <button
               onClick={() => {
                 const prev = (activeIndexRef.current + 2) % 3;
                 rotateToDimension(prev);
                 setInspectingDimension(DIMENSIONS[prev]);
               }}
-              className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-2 text-[#B7C2B1] hover:text-[#F1F0E5] transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>PREVIOUS DIMENSION</span>
@@ -1138,7 +1137,7 @@ export default function CinematicHeroExperience() {
 
             <Link
               href={`/explore?category=${inspectingDimension.category}`}
-              className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+              className="text-[#F1F0E5] hover:text-[#A9BE89] transition-colors underline underline-offset-4 decoration-[#344438] hover:decoration-[#A9BE89]"
             >
               EXPLORE ALL {inspectingDimension.shortName} IN MARKETPLACE ↗
             </Link>
@@ -1149,7 +1148,7 @@ export default function CinematicHeroExperience() {
                 rotateToDimension(next);
                 setInspectingDimension(DIMENSIONS[next]);
               }}
-              className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-2 text-[#B7C2B1] hover:text-[#F1F0E5] transition-colors cursor-pointer"
             >
               <span>NEXT DIMENSION</span>
               <ArrowRight className="w-4 h-4" />
@@ -1159,20 +1158,19 @@ export default function CinematicHeroExperience() {
       )}
 
       {/* =========================================================================
-          THE ABOUT MANIFESTO OVERLAY (Guillaume Colombel About Page Style)
-          Clean editorial layout, high contrast, institutional specifications.
+          THE ABOUT MANIFESTO OVERLAY
           ========================================================================= */}
       {showAboutModal && (
-        <div className="absolute inset-0 z-50 flex flex-col justify-between bg-[#0a0504]/94 backdrop-blur-xl p-6 sm:p-14 animate-in fade-in duration-300 overflow-y-auto pointer-events-auto">
+        <div className="absolute inset-0 z-50 flex flex-col justify-between bg-[#0B1510]/95 backdrop-blur-xl p-6 sm:p-14 animate-in fade-in duration-300 overflow-y-auto pointer-events-auto">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div className="font-sans font-bold text-base tracking-tight text-white uppercase">
-              IDLEX<span className="text-[#D4FF00]">.</span>
+            <div className="font-sans font-bold text-base tracking-tight text-[#F1F0E5] uppercase">
+              IDLEX<span className="text-[#82996D]">.</span>
             </div>
 
             <button
               onClick={() => setShowAboutModal(false)}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#17251B] hover:bg-[#203025] border border-[#344438] text-[#F1F0E5] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
             >
               <span>Close</span>
               <X className="w-4 h-4" />
@@ -1181,18 +1179,18 @@ export default function CinematicHeroExperience() {
 
           {/* Editorial Manifesto Body */}
           <div className="max-w-3xl mx-auto w-full py-10 my-auto">
-            <h1 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-white leading-tight mb-6">
+            <h1 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-[#F1F0E5] leading-tight mb-6">
               IdleX, the intelligent institutional resource exchange.
             </h1>
 
-            <p className="text-base sm:text-xl text-neutral-300 font-light leading-relaxed mb-6">
+            <p className="text-base sm:text-xl text-[#B7C2B1] font-light leading-relaxed mb-6">
               Across premier universities, national laboratories, and engineering clusters, over
               ₹14.2 billion in specialized capital equipment sits dark after hours. IdleX builds
               the real-time discovery, verified operator credentialing, and transactional integrity
               protocol to turn dormant capacity into breakthrough innovation.
             </p>
 
-            <p className="text-sm text-neutral-400 font-light leading-relaxed mb-10">
+            <p className="text-sm text-[#7E8D77] font-light leading-relaxed mb-10">
               Departmental budgeting has traditionally incentivized hoarding. Without standardized
               condition handovers or automated fallback guarantees, researchers lose months
               waiting for external commercial vendors. IdleX eliminates these opaque administrative
@@ -1200,22 +1198,22 @@ export default function CinematicHeroExperience() {
             </p>
 
             {/* Architecture Metrics Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-6 border-y border-white/10 mb-8 font-mono text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-6 border-y border-[#344438] mb-8 font-mono text-xs">
               <div>
-                <div className="text-2xl font-bold text-[#D4FF00] font-sans">₹14.2B+</div>
-                <div className="text-neutral-400 mt-1">Dormant Capital Monitored</div>
+                <div className="text-2xl font-bold text-[#A9BE89] font-sans">₹14.2B+</div>
+                <div className="text-[#7E8D77] mt-1">Dormant Capital Monitored</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white font-sans">100%</div>
-                <div className="text-neutral-400 mt-1">ACID Atomic Lock Guarantee</div>
+                <div className="text-2xl font-bold text-[#F1F0E5] font-sans">100%</div>
+                <div className="text-[#7E8D77] mt-1">ACID Atomic Lock Guarantee</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-[#D4FF00] font-sans">0 min</div>
-                <div className="text-neutral-400 mt-1">Double Booking Collision</div>
+                <div className="text-2xl font-bold text-[#A9BE89] font-sans">0 min</div>
+                <div className="text-[#7E8D77] mt-1">Double Booking Collision</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white font-sans">42+</div>
-                <div className="text-neutral-400 mt-1">Verified Instruments & Bays</div>
+                <div className="text-2xl font-bold text-[#F1F0E5] font-sans">42+</div>
+                <div className="text-[#7E8D77] mt-1">Verified Instruments & Bays</div>
               </div>
             </div>
 
@@ -1224,28 +1222,28 @@ export default function CinematicHeroExperience() {
               <Link
                 href="/explore"
                 onClick={() => setShowAboutModal(false)}
-                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+                className="text-[#F1F0E5] hover:text-[#A9BE89] transition-colors underline underline-offset-4 decoration-[#344438] hover:decoration-[#A9BE89]"
               >
                 Browse Marketplace
               </Link>
               <Link
                 href="/match"
                 onClick={() => setShowAboutModal(false)}
-                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+                className="text-[#F1F0E5] hover:text-[#A9BE89] transition-colors underline underline-offset-4 decoration-[#344438] hover:decoration-[#A9BE89]"
               >
                 Intent Matching Engine
               </Link>
               <Link
                 href="/incidents"
                 onClick={() => setShowAboutModal(false)}
-                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+                className="text-[#F1F0E5] hover:text-[#A9BE89] transition-colors underline underline-offset-4 decoration-[#344438] hover:decoration-[#A9BE89]"
               >
                 Promise Protection Protocol
               </Link>
               <Link
                 href="/dashboard"
                 onClick={() => setShowAboutModal(false)}
-                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+                className="text-[#F1F0E5] hover:text-[#A9BE89] transition-colors underline underline-offset-4 decoration-[#344438] hover:decoration-[#A9BE89]"
               >
                 Launch App
               </Link>
@@ -1253,7 +1251,7 @@ export default function CinematicHeroExperience() {
           </div>
 
           {/* Footer inside About modal */}
-          <div className="flex items-center justify-between text-xs font-mono text-neutral-500 pt-6 border-t border-white/10">
+          <div className="flex items-center justify-between text-xs font-mono text-[#7E8D77] pt-6 border-t border-[#344438]">
             <span>IDLEX PROTOCOL V2.6</span>
             <span>© 2026 IDLEX INC.</span>
           </div>

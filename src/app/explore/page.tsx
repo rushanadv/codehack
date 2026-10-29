@@ -93,18 +93,18 @@ function ExploreContent() {
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* 1. Page Header */}
-      <div className="pb-6 border-b border-[#38312C] flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="pb-6 border-b border-[#344438] flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#D69A49] uppercase tracking-wider mb-1.5">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#82996D] uppercase tracking-wider mb-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#4E7A5D]" />
             <span>Exchange Directory • Verified Inventory</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#F3EADF] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#F1F0E5] tracking-tight">
             Resource Directory
           </h1>
 
-          <p className="text-xs sm:text-sm text-[#B8ADA0] max-w-2xl mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#B7C2B1] max-w-2xl mt-1 leading-relaxed">
             Reserve verified microfabrication cleanrooms, precision instruments, and high-performance compute allocations with deterministic buffer scheduling.
           </p>
         </div>
@@ -113,7 +113,7 @@ function ExploreContent() {
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/match"
-            className="inline-flex items-center gap-2 bg-[#B65E42] hover:bg-[#C86C4E] text-white text-xs font-medium px-4 py-2 rounded-md transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 bg-[#82996D] hover:bg-[#A9BE89] text-[#0B1510] text-xs font-semibold px-4 py-2 rounded-md transition-colors shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Intent Match Engine</span>
@@ -123,27 +123,27 @@ function ExploreContent() {
 
       {/* 2. Honest Summary Metrics (Derived from Live Database) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
-          <div className="text-[11px] text-[#B8ADA0]">Active Catalog</div>
-          <div className="text-lg font-bold text-[#F3EADF] mt-0.5 font-mono">
+        <div className="p-3.5 rounded-lg bg-[#17251B] border border-[#344438]">
+          <div className="text-[11px] text-[#7E8D77]">Active Catalog</div>
+          <div className="text-lg font-bold text-[#F1F0E5] mt-0.5 font-mono">
             {metrics.total} Listings
           </div>
         </div>
-        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
-          <div className="text-[11px] text-[#B8ADA0]">Available Now</div>
-          <div className="text-lg font-bold text-[#6BA87E] mt-0.5 font-mono">
+        <div className="p-3.5 rounded-lg bg-[#17251B] border border-[#344438]">
+          <div className="text-[11px] text-[#7E8D77]">Available Now</div>
+          <div className="text-lg font-bold text-[#A9BE89] mt-0.5 font-mono">
             {metrics.available} Ready
           </div>
         </div>
-        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
-          <div className="text-[11px] text-[#B8ADA0]">Currently Reserved</div>
-          <div className="text-lg font-bold text-[#E0A85C] mt-0.5 font-mono">
+        <div className="p-3.5 rounded-lg bg-[#17251B] border border-[#344438]">
+          <div className="text-[11px] text-[#7E8D77]">Currently Reserved</div>
+          <div className="text-lg font-bold text-[#C79A49] mt-0.5 font-mono">
             {metrics.inUse} In Session
           </div>
         </div>
-        <div className="p-3.5 rounded-lg bg-[#191715] border border-[#38312C]">
-          <div className="text-[11px] text-[#B8ADA0]">Turnaround Buffer</div>
-          <div className="text-lg font-bold text-[#F3EADF] mt-0.5 font-mono">
+        <div className="p-3.5 rounded-lg bg-[#17251B] border border-[#344438]">
+          <div className="text-[11px] text-[#7E8D77]">Turnaround Buffer</div>
+          <div className="text-lg font-bold text-[#F1F0E5] mt-0.5 font-mono">
             15m – 60m Enforced
           </div>
         </div>
@@ -160,8 +160,8 @@ function ExploreContent() {
               onClick={() => setSelectedCategory(c.id)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-md font-medium whitespace-nowrap transition-colors cursor-pointer border ${
                 isActive
-                  ? 'bg-[#211E1B] text-[#F3EADF] border-[#B65E42]'
-                  : 'bg-[#191715] text-[#B8ADA0] border-[#38312C] hover:text-[#F3EADF] hover:bg-[#211E1B]'
+                  ? 'bg-[#203025] text-[#F1F0E5] border-[#82996D]'
+                  : 'bg-[#17251B] text-[#B7C2B1] border-[#344438] hover:text-[#F1F0E5] hover:bg-[#203025]'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -172,18 +172,18 @@ function ExploreContent() {
       </div>
 
       {/* 4. Filter Toolbar */}
-      <div className="p-4 rounded-lg bg-[#191715] border border-[#38312C] space-y-3">
+      <div className="p-4 rounded-lg bg-[#17251B] border border-[#344438] space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center text-xs">
           
           {/* Search Input */}
           <form onSubmit={handleSearchSubmit} className="md:col-span-5 relative">
-            <Search className="w-4 h-4 text-[#B8ADA0] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#7E8D77] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, spec (H100, 5-Axis, Cleanroom), or bay..."
-              className="w-full bg-[#11100F] text-[#F3EADF] pl-9 pr-3 py-2 rounded-md border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] placeholder:text-[#B8ADA0]/60"
+              className="w-full bg-[#0D1812] text-[#F1F0E5] pl-9 pr-3 py-2 rounded-md border border-[#344438] text-xs focus:outline-none focus:border-[#82996D] placeholder:text-[#7E8D77]"
             />
           </form>
 
@@ -193,7 +193,7 @@ function ExploreContent() {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               aria-label="Filter by availability status"
-              className="w-full bg-[#11100F] text-[#F3EADF] px-3 py-2 rounded-md border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] cursor-pointer"
+              className="w-full bg-[#0D1812] text-[#F1F0E5] px-3 py-2 rounded-md border border-[#344438] text-xs focus:outline-none focus:border-[#82996D] cursor-pointer"
             >
               <option value="all">All Availability Statuses</option>
               <option value="available">Available Now</option>
@@ -207,7 +207,7 @@ function ExploreContent() {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               aria-label="Sort resources by criteria"
-              className="w-full bg-[#11100F] text-[#F3EADF] px-3 py-2 rounded-md border border-[#38312C] text-xs focus:outline-none focus:border-[#B65E42] cursor-pointer"
+              className="w-full bg-[#0D1812] text-[#F1F0E5] px-3 py-2 rounded-md border border-[#344438] text-xs focus:outline-none focus:border-[#82996D] cursor-pointer"
             >
               <option value="recommended">Sort: Recommended</option>
               <option value="price_asc">Price: Low to High</option>
@@ -221,7 +221,7 @@ function ExploreContent() {
             <button
               onClick={handleResetFilters}
               title="Reset all filters"
-              className="p-2 rounded-md bg-[#11100F] hover:bg-[#211E1B] text-[#B8ADA0] hover:text-[#F3EADF] border border-[#38312C] transition-colors cursor-pointer w-full flex items-center justify-center"
+              className="p-2 rounded-md bg-[#0D1812] hover:bg-[#203025] text-[#B7C2B1] hover:text-[#F1F0E5] border border-[#344438] transition-colors cursor-pointer w-full flex items-center justify-center"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -232,21 +232,21 @@ function ExploreContent() {
       {/* 5. Resource Listings Grid */}
       {isLoading ? (
         <div className="py-24 text-center">
-          <div className="w-6 h-6 border-2 border-[#B65E42] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <div className="text-xs font-mono text-[#B8ADA0] uppercase tracking-wider">
+          <div className="w-6 h-6 border-2 border-[#82996D] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="text-xs font-mono text-[#7E8D77] uppercase tracking-wider">
             Loading verified catalog...
           </div>
         </div>
       ) : resources.length === 0 ? (
-        <div className="py-16 text-center bg-[#191715] rounded-xl border border-[#38312C] p-8 max-w-md mx-auto space-y-3">
-          <AlertCircle className="w-8 h-8 text-[#D69A49] mx-auto" />
-          <h3 className="text-sm font-semibold text-[#F3EADF]">No matching resources found</h3>
-          <p className="text-xs text-[#B8ADA0] leading-relaxed">
+        <div className="py-16 text-center bg-[#17251B] rounded-xl border border-[#344438] p-8 max-w-md mx-auto space-y-3">
+          <AlertCircle className="w-8 h-8 text-[#C79A49] mx-auto" />
+          <h3 className="text-sm font-semibold text-[#F1F0E5]">No matching resources found</h3>
+          <p className="text-xs text-[#B7C2B1] leading-relaxed">
             No equipment or facilities matched your current filter criteria. Try adjusting your query or resetting all filters.
           </p>
           <button
             onClick={handleResetFilters}
-            className="inline-flex items-center gap-1.5 bg-[#211E1B] hover:bg-[#B65E42] text-[#F3EADF] hover:text-white px-4 py-2 rounded-md text-xs font-medium border border-[#38312C] transition-colors"
+            className="inline-flex items-center gap-1.5 bg-[#203025] hover:bg-[#82996D] text-[#F1F0E5] hover:text-[#0B1510] px-4 py-2 rounded-md text-xs font-medium border border-[#344438] transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Filters</span>
@@ -267,7 +267,7 @@ function ExploreContent() {
 export default function ExplorePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen py-24 text-center text-xs font-mono text-[#B8ADA0]">
+      <div className="min-h-screen py-24 text-center text-xs font-mono text-[#7E8D77]">
         Loading Explore Directory...
       </div>
     }>

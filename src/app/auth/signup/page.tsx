@@ -34,18 +34,18 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#11100F] text-[#F3EADF] py-16 px-4 flex items-center justify-center">
-      <div className="max-w-md w-full bg-[#191715] border border-[#2C2723] rounded-xl p-8 shadow-2xl space-y-6">
+    <div className="min-h-screen bg-[#0B1510] text-[#F1F0E5] py-16 px-4 flex items-center justify-center">
+      <div className="max-w-md w-full bg-[#17251B] border border-[#344438] rounded-xl p-8 shadow-2xl space-y-6">
         
         {/* Brand */}
         <div className="text-center space-y-2">
-          <div className="w-9 h-9 rounded-lg bg-[#211E1B] border border-[#38312C] flex items-center justify-center mx-auto">
-            <div className="w-3.5 h-3.5 bg-[#B65E42] rounded-sm transform rotate-45" />
+          <div className="w-9 h-9 rounded-lg bg-[#203025] border border-[#344438] flex items-center justify-center mx-auto">
+            <div className="w-3.5 h-3.5 bg-[#82996D] rounded-sm transform rotate-45" />
           </div>
-          <h2 className="text-2xl font-semibold text-[#F3EADF] tracking-tight">
-            Create Idle<span className="text-[#B65E42]">X</span> Account
+          <h2 className="text-2xl font-semibold text-[#F1F0E5] tracking-tight">
+            Create Idle<span className="text-[#82996D]">X</span> Account
           </h2>
-          <p className="text-xs text-[#8C827A] font-mono">
+          <p className="text-xs text-[#7E8D77] font-mono">
             Verified Infrastructure Exchange Registry
           </p>
         </div>
@@ -53,57 +53,57 @@ export default function SignupPage() {
         {/* Signup Form */}
         <form onSubmit={handleSignup} className="space-y-4 text-xs font-mono">
           <div>
-            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Full Name & Title</label>
+            <label className="block text-[#B7C2B1] uppercase text-[10px] mb-1">Full Name & Title</label>
             <div className="relative">
-              <User className="w-4 h-4 text-[#6B6158] absolute left-3 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-[#7E8D77] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Dr. Maya Rao"
-                className="w-full bg-[#151312] text-[#F3EADF] pl-9 pr-3 py-2 rounded-lg border border-[#2C2723] focus:outline-none focus:border-[#B65E42] font-sans text-xs"
+                className="w-full bg-[#101D15] text-[#F1F0E5] pl-9 pr-3 py-2 rounded-lg border border-[#344438] focus:outline-none focus:border-[#82996D] font-sans text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Institutional Email</label>
+            <label className="block text-[#B7C2B1] uppercase text-[10px] mb-1">Institutional Email</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-[#6B6158] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-[#7E8D77] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="maya.rao@synthetic-lab.io"
-                className="w-full bg-[#151312] text-[#F3EADF] pl-9 pr-3 py-2 rounded-lg border border-[#2C2723] focus:outline-none focus:border-[#B65E42] font-sans text-xs"
+                className="w-full bg-[#101D15] text-[#F1F0E5] pl-9 pr-3 py-2 rounded-lg border border-[#344438] focus:outline-none focus:border-[#82996D] font-sans text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Facility / Lab Unit</label>
+            <label className="block text-[#B7C2B1] uppercase text-[10px] mb-1">Facility / Lab Unit</label>
             <div className="relative">
-              <Building className="w-4 h-4 text-[#6B6158] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Building className="w-4 h-4 text-[#7E8D77] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full bg-[#151312] text-[#F3EADF] pl-9 pr-3 py-2 rounded-lg border border-[#2C2723] focus:outline-none focus:border-[#B65E42] font-sans text-xs"
+                className="w-full bg-[#101D15] text-[#F1F0E5] pl-9 pr-3 py-2 rounded-lg border border-[#344438] focus:outline-none focus:border-[#82996D] font-sans text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#8C827A] uppercase text-[10px] mb-1">Account Role</label>
+            <label className="block text-[#B7C2B1] uppercase text-[10px] mb-1">Account Role</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setRole('user')}
                 className={`p-2.5 rounded-lg border text-left transition-colors ${
-                  role === 'user' ? 'bg-[#211E1B] border-[#B65E42] text-[#F3EADF]' : 'bg-[#151312] border-[#2C2723] text-[#8C827A]'
+                  role === 'user' ? 'bg-[#203025] border-[#82996D] text-[#F1F0E5]' : 'bg-[#101D15] border-[#344438] text-[#7E8D77]'
                 }`}
               >
                 <div className="font-semibold text-xs">Researcher</div>
@@ -114,7 +114,7 @@ export default function SignupPage() {
                 type="button"
                 onClick={() => setRole('owner')}
                 className={`p-2.5 rounded-lg border text-left transition-colors ${
-                  role === 'owner' ? 'bg-[#211E1B] border-[#B65E42] text-[#F3EADF]' : 'bg-[#151312] border-[#2C2723] text-[#8C827A]'
+                  role === 'owner' ? 'bg-[#203025] border-[#82996D] text-[#F1F0E5]' : 'bg-[#101D15] border-[#344438] text-[#7E8D77]'
                 }`}
               >
                 <div className="font-semibold text-xs">Facility Owner</div>
@@ -126,15 +126,15 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 bg-[#B65E42] hover:bg-[#A35238] text-white font-medium rounded-lg font-mono text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
+            className="w-full py-2.5 bg-[#82996D] hover:bg-[#94AC7E] text-[#0B1510] font-semibold rounded-lg font-mono text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
           >
             {isLoading ? 'Creating Node...' : 'Register & Launch Workspace'}
           </button>
         </form>
 
-        <div className="text-center text-xs text-[#8C827A] font-mono">
+        <div className="text-center text-xs text-[#7E8D77] font-mono">
           Already registered?{' '}
-          <Link href="/auth/login" className="text-[#D69A49] hover:underline">
+          <Link href="/auth/login" className="text-[#C7BC91] hover:underline">
             Sign In Here
           </Link>
         </div>
