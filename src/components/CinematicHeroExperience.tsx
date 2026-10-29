@@ -599,7 +599,7 @@ export default function CinematicHeroExperience() {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            if (mesh.geometry && !mesh.geometry.attributes.normal) {
+            if (mesh.geometry) {
               mesh.geometry.computeVertexNormals();
             }
 
@@ -748,30 +748,37 @@ export default function CinematicHeroExperience() {
         if (delta > Math.PI) delta -= 2 * Math.PI;
         if (delta < -Math.PI) delta += 2 * Math.PI;
 
-        const isCentered = Math.abs(delta) < 0.24;
+        const absDelta = Math.abs(delta);
+        const isCentered = absDelta < 0.28;
 
         // Cylindrical projection coordinates
         const tx = Math.sin(delta) * radius;
         const tz = (Math.cos(delta) - 1) * 140;
-        const rotY = delta * 30; // degrees
-        const scale = Math.max(0.74, 1.0 + tz / (2 * radius));
-        const opacity = Math.max(0.35, 1.0 - Math.abs(delta) * 0.45);
+        const rotY = delta * 24; // degrees
+        const scale = Math.max(0.82, 1.0 + tz / (2 * radius));
+
+        // Smooth opacity falloff: fully visible when centered, cleanly fading out
+        // before reaching flanking stations to guarantee NO overlapping titles
+        let opacity = 0;
+        if (absDelta < 0.28) {
+          opacity = 1.0;
+        } else if (absDelta < 0.65) {
+          opacity = (0.65 - absDelta) / (0.65 - 0.28);
+        } else {
+          opacity = 0;
+        }
 
         el.style.transform = `translate3d(${tx.toFixed(1)}px, 0px, ${tz.toFixed(1)}px) rotateY(${rotY.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
         el.style.opacity = opacity.toFixed(3);
+        el.style.visibility = opacity > 0.01 ? 'visible' : 'hidden';
+        el.style.pointerEvents = opacity > 0.5 ? 'auto' : 'none';
         el.style.zIndex = isCentered ? '25' : '10';
 
         const h2 = el.querySelector('h2');
         if (h2) {
-          if (isCentered) {
-            h2.style.color = '#ffffff';
-            (h2.style as any).webkitTextStroke = '0px transparent';
-            h2.style.filter = 'drop-shadow(0 16px 36px rgba(0,0,0,0.95))';
-          } else {
-            h2.style.color = 'transparent';
-            (h2.style as any).webkitTextStroke = '1.5px rgba(255, 255, 255, 0.45)';
-            h2.style.filter = 'none';
-          }
+          h2.style.color = '#ffffff';
+          (h2.style as any).webkitTextStroke = '0px transparent';
+          h2.style.filter = 'drop-shadow(0 16px 36px rgba(0,0,0,0.95))';
         }
 
         const badge = el.querySelector('.active-dim-badge');
@@ -927,6 +934,7 @@ export default function CinematicHeroExperience() {
               ref={(el) => {
                 itemRefs.current[idx] = el;
               }}
+              style={{ opacity: idx === 0 ? 1 : 0 }}
               onClick={() => {
                 if (activeIndexRef.current === idx) {
                   router.push(`/explore?category=${dim.category}`);
@@ -938,8 +946,8 @@ export default function CinematicHeroExperience() {
             >
               {/* Monumental 2-Line Condensed Title */}
               <div className="text-center select-none group">
-                <h2 className="font-sans font-black tracking-tighter uppercase leading-[0.84] text-4xl sm:text-6xl md:text-7xl lg:text-8xl transition-colors duration-200">
-                  <div>{dim.titleLine1}</div>
+                <h2 className="font-sans font-black tracking-tight uppercase leading-[0.96] sm:leading-[0.98] text-4xl sm:text-6xl md:text-7xl lg:text-8xl transition-colors duration-200">
+                  <div className="pb-1">{dim.titleLine1}</div>
                   <div>{dim.titleLine2}</div>
                 </h2>
 
