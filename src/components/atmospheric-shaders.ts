@@ -583,7 +583,7 @@ export function createMultiLayerFogSystem(): FogSystem {
 // 6. FLOATING ATMOSPHERIC PARTICULATE DUST MOTES
 // Warm golden-amber dust motes drifting in the dusk air
 // ============================================================================
-export function createAtmosphericParticles(count = 280): {
+export function createAtmosphericParticles(count = 160): {
   points: THREE.Points;
   material: THREE.ShaderMaterial;
   update: (time: number) => void;
@@ -593,9 +593,10 @@ export function createAtmosphericParticles(count = 280): {
   const randomSeeds = new Float32Array(count * 3);
 
   for (let i = 0; i < count; i++) {
-    positions[i * 3 + 0] = (Math.random() - 0.5) * 16.0;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 6.0;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 8.0;
+    positions[i * 3 + 0] = (Math.random() - 0.5) * 14.0;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 5.0;
+    // Keep motes in mid-ground/background (-6.0 to +1.5), well clear of camera at Z=9.6
+    positions[i * 3 + 2] = -6.0 + Math.random() * 7.5;
 
     randomSeeds[i * 3 + 0] = Math.random();
     randomSeeds[i * 3 + 1] = Math.random();
@@ -613,7 +614,6 @@ export function createAtmosphericParticles(count = 280): {
     uniforms: {
       uTime: { value: 0 },
       uColor: { value: new THREE.Color(0xf2b488) },     // Warm amber-gold dust
-      uLimeColor: { value: new THREE.Color(0xd4ff00) },
     },
     vertexShader: `
       attribute vec3 aSeed;
@@ -627,13 +627,14 @@ export function createAtmosphericParticles(count = 280): {
         p.x += cos(uTime * 0.2 + aSeed.y * 6.28) * 0.14;
         p.z += sin(uTime * 0.18 + aSeed.z * 6.28) * 0.10;
 
-        float lightProximity = exp(-length(p.xz) * 0.28);
-        vAlpha = (0.25 + 0.65 * sin(uTime * 1.2 + aSeed.z * 8.0)) * lightProximity * 0.75;
+        float lightProximity = exp(-length(p.xz) * 0.25);
+        vAlpha = (0.20 + 0.55 * sin(uTime * 1.2 + aSeed.z * 8.0)) * lightProximity * 0.65;
 
-        vColor = (p.y < -0.8) ? vec3(0.83, 1.0, 0.0) : vec3(0.95, 0.70, 0.53);
+        // Warm dusk ambient motes (peach, terracotta, amber gold)
+        vColor = mix(vec3(0.95, 0.70, 0.53), vec3(0.85, 0.52, 0.35), aSeed.y);
 
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-        gl_PointSize = (18.0 / -mvPosition.z) * (0.8 + 0.4 * aSeed.x);
+        gl_PointSize = (10.0 / -mvPosition.z) * (0.6 + 0.4 * aSeed.x);
         gl_Position = projectionMatrix * mvPosition;
       }
     `,

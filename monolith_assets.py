@@ -1,9 +1,10 @@
 """
-IdleX Procedural 3D Asset Pipeline
-==================================
+IdleX Procedural 3D Asset Pipeline — Final Sculptural Monolith
+==============================================================
 Procedural generation and offline export of:
-  - public/models/idlex-monolith.glb : Elegant organic sculptural monolith with
-                                       rich terracotta/burnt-orange/rust-red strata.
+  - public/models/idlex-monolith.glb : Deliberately designed, asymmetrical organic monolith
+                                       with controlled lofting profile, sloping crown,
+                                       and rich multi-strata cloud bands.
   - public/models/idlex-terrain.glb  : Vast dark geological landscape with rolling ridges
                                        and atmospheric dusk horizon.
 
@@ -31,81 +32,130 @@ def multi_octave_2d_noise(shape, scales, weights, seed=101):
     return field
 
 
-def build_monolith_mesh(nx=140, ny=244, nz=140):
+def build_monolith_mesh(nx=160, ny=260, nz=160):
     """
-    Constructs an elegant, elongated, organic sculptural monolith.
-    - Continuous single-volume form with broad, flowing contours (NO fused spheres, melted candle,
-      or humanoid waist/neck pinch!).
-    - Subtle monumental S-curved spine gesture.
-    - Asymmetrical, softly sloping crown.
-    - Elongated non-circular cross-section: broad from front/rear, slender and elegant from side.
-    - Smooth, low-frequency geological stone weathering.
+    Constructs an intentionally sculpted, tall organic standing-stone monolith via exact SDF lofting:
+    - Deliberate asymmetrical profile (Neolithic standing stone / menhir / Arp & Moore sculpture).
+    - Asymmetrical sloping crown with geological bevel (slopes ~26 deg naturally from high left peak).
+    - Broad sculptural upper body with a prominent asymmetric left shoulder swell.
+    - Subtly narrowed sculptural transition section (~17% taper, NO humanoid hourglass or vase).
+    - Grounded, substantial lower body and uneven base.
+    - Genuinely irregular depth (Z ~ 73% of X) so rotation visibly transforms the silhouette.
     """
     t0 = time.time()
-    xs = np.linspace(-1.45, 1.45, nx, dtype=np.float32)
-    ys = np.linspace(-0.65, 5.15, ny, dtype=np.float32)
-    zs = np.linspace(-1.45, 1.45, nz, dtype=np.float32)
+    xs = np.linspace(-1.85, 1.85, nx, dtype=np.float32)
+    ys = np.linspace(-1.20, 5.50, ny, dtype=np.float32)
+    zs = np.linspace(-1.85, 1.85, nz, dtype=np.float32)
 
     X = xs[:, None, None]
     Y = ys[None, :, None]
     Z = zs[None, None, :]
 
     y_bot = -0.40
-    y_top = 4.70
+    y_top = 4.30
     hc = np.clip((Y - y_bot) / (y_top - y_bot), 0.0, 1.0)
 
-    # 1. Subtle, monumental S-curved spine gesture (gentle organic lean, no wild distortion)
-    cx = 0.08 * np.sin(hc * np.pi) - 0.04 * np.sin(hc * 2.0 * np.pi)
-    cz = 0.06 * np.cos(hc * np.pi * 0.85)
+    # 1. Monumental standing-stone spine trajectory (architectural contrapposto)
+    cx = -0.14 * np.sin(hc * np.pi) + 0.16 * np.sin(hc * 2.6) * (hc > 0.24)
+    cz = 0.08 * np.cos(hc * np.pi * 0.9) - 0.05 * (hc - 0.45)
 
     dx = X - cx
     dz = Z - cz
 
-    # 2. Non-circular biomorphic cross-section (elliptical slab with organic softness)
-    ang = np.arctan2(dz, dx)
-    ang_mod = (
-        1.0
-        + 0.18 * np.cos(2.0 * ang - 0.35 * hc)      # Broad front vs slender side profile
-        + 0.08 * np.cos(ang + 0.35)                  # Gentle front-to-back organic swell
-        + 0.04 * np.sin(3.0 * ang - 0.75 * hc)       # Subtle biomorphic softness
+    # 2. Gradual orientation twist across height (~24 deg)
+    twist = 0.42 * hc
+    ct = np.cos(twist)
+    st = np.sin(twist)
+    ux = ct * dx + st * dz
+    uz = -st * dx + ct * dz
+
+    # 3. Sculptural Profile Functions:
+    base_w = np.exp(-((hc - 0.02) / 0.16) ** 2)
+    lower_w = np.exp(-((hc - 0.20) / 0.14) ** 2)
+    waist_w = np.exp(-((hc - 0.42) / 0.13) ** 2)
+    shoulder_w = np.exp(-((hc - 0.70) / 0.15) ** 2)
+    crown_w = np.exp(-((hc - 0.92) / 0.14) ** 2)
+
+    # Left flank (ux < 0): Bold sculptural shoulder swell
+    r_left = (
+        0.82
+        + 0.08 * base_w
+        + 0.12 * lower_w
+        - 0.16 * waist_w
+        + 0.32 * shoulder_w
+        - 0.16 * crown_w
     )
 
-    # 3. Continuous vertical profile: grounded base, wide upper-middle expanse, soft tapering summit
-    # NO pinching! Gradual, flowing changes in width throughout height
-    base_flare = 0.12 * np.exp(-((hc - 0.04) / 0.16) ** 2)
-    broad_swell = 0.18 * np.exp(-((hc - 0.60) / 0.28) ** 2)
-    r_profile = (0.70 + base_flare + broad_swell) * ang_mod
+    # Right flank (ux > 0): Taut, chiseled architectural contour
+    r_right = (
+        0.78
+        + 0.08 * base_w
+        + 0.10 * lower_w
+        - 0.14 * waist_w
+        + 0.10 * shoulder_w
+        - 0.22 * crown_w
+    )
 
-    # 4. Asymmetrical, softly sloping crown (one shoulder peaks gently higher, sloping smoothly)
-    crown_slope = -0.24 * dx + 0.12 * dz
+    # Depth Z (depth is ~73% of width for genuine rotational silhouette transformation)
+    rz = (
+        0.56
+        + 0.06 * lower_w
+        - 0.08 * waist_w
+        + 0.10 * shoulder_w
+        - 0.10 * crown_w
+    )
+
+    # Smooth sigmoid blend between left and right flanks based on ux
+    s_blend = 1.0 / (1.0 + np.exp(12.0 * ux))
+    rx = s_blend * r_left + (1.0 - s_blend) * r_right
+
+    # Polar angle in twisted coordinate frame
+    theta = np.arctan2(uz, ux)
+    cos_t = np.cos(theta)
+    sin_t = np.sin(theta)
+    denom = np.sqrt((rz * cos_t) ** 2 + (rx * sin_t) ** 2 + 1e-8)
+    r_target = (rx * rz) / denom
+
+    # Organic subtle faceting (integer multiples of theta -> C-infinity seamless!)
+    ang_mod = (
+        1.0
+        + 0.06 * np.cos(2.0 * theta - 0.3 * hc)
+        + 0.04 * np.sin(3.0 * theta + 0.5)
+        + 0.02 * np.cos(4.0 * theta - 1.0 * hc)
+    )
+    r_target *= ang_mod
+
+    # Horizontal radial distance
+    r_curr = np.sqrt(ux * ux + uz * uz)
+    d_horiz = r_curr - r_target
+
+    # 4. Sloping Crown Top Summit:
+    # High peak on left (ux < 0), slopes down across to right flank (ux > 0) with a bold 26 deg slant
+    crown_slope = -0.48 * ux + 0.16 * uz
     y_eff_top = y_top + crown_slope
 
-    # Smooth organic cap rounding at top and bottom
-    t_cap_top = np.clip((Y - (y_eff_top - 0.80)) / 0.80, 0.0, 1.0)
-    cap_top = np.power(np.maximum(1.0 - t_cap_top * t_cap_top, 0.0), 0.50)
+    # Vertical distance
+    d_top = Y - y_eff_top
+    d_bot = y_bot - Y
+    d_vert = np.maximum(d_top, d_bot)
 
-    t_cap_bot = np.clip(((y_bot + 0.25) - Y) / 0.25, 0.0, 1.0)
-    cap_bot = np.power(np.maximum(1.0 - t_cap_bot * t_cap_bot, 0.0), 0.50)
+    # Exact rounded box / cylinder combination (fillet / bevel)
+    r_fillet = 0.26
+    w_horiz = d_horiz + r_fillet
+    w_vert = d_vert + r_fillet
 
-    r_eff = r_profile * cap_top * cap_bot
-    rad = np.sqrt(dx * dx + dz * dz)
-    d = rad - r_eff
+    outside_dist = np.sqrt(np.maximum(w_horiz, 0.0) ** 2 + np.maximum(w_vert, 0.0) ** 2) - r_fillet
+    inside_dist = np.minimum(np.maximum(w_horiz, w_vert), 0.0) - r_fillet
+    d = outside_dist + inside_dist
 
-    over_top = np.maximum(Y - y_eff_top, 0.0)
-    under_bot = np.maximum(y_bot - Y, 0.0)
-    d = np.where(over_top > 0.0, np.sqrt(np.maximum(d, 0.0) ** 2 + over_top ** 2), d)
-    d = np.where(under_bot > 0.0, np.sqrt(np.maximum(d, 0.0) ** 2 + under_bot ** 2), d)
-
-    # 5. Low-frequency 3D organic stone undulation (smooth, natural geological erosion)
+    # 5. Low-frequency 3D organic displacement (restrained, natural stone weathering)
     rng = np.random.default_rng(20261029)
     raw_noise = rng.standard_normal((nx, ny, nz), dtype=np.float32)
-    smooth_noise = gaussian_filter(raw_noise, sigma=(12, 16, 12), mode="reflect")
+    smooth_noise = gaussian_filter(raw_noise, sigma=(10, 14, 10), mode="reflect")
     std = float(np.std(smooth_noise)) + 1e-8
-    organic_disp = (0.040 / std) * smooth_noise
-
-    cap_fade = np.clip((Y - (y_bot + 0.10)) / 0.25, 0.0, 1.0)
-    d = (d + cap_fade * organic_disp).astype(np.float32)
-    d = gaussian_filter(d, sigma=1.0, mode="nearest")
+    organic_disp = (0.028 / std) * smooth_noise
+    d += organic_disp
+    d = gaussian_filter(d, sigma=0.8, mode="nearest")
 
     spacing = (
         float(xs[1] - xs[0]),
@@ -127,7 +177,7 @@ def build_monolith_mesh(nx=140, ny=244, nz=140):
     norms = np.stack([nx_v, ny_v, nz_v], axis=1).astype(np.float32)
     norms /= np.linalg.norm(norms, axis=1, keepdims=True) + 1e-8
 
-    # Ambient Occlusion (gentle, natural cavity depth)
+    # Restrained Ambient Occlusion
     occ = np.zeros(len(verts), dtype=np.float32)
     weight = 1.0
     for step_dist in [0.06, 0.15, 0.30]:
@@ -137,9 +187,9 @@ def build_monolith_mesh(nx=140, ny=244, nz=140):
         sd = map_coordinates(d, np.vstack([sx, sy, sz]), order=1, mode="nearest")
         occ += weight * np.clip((step_dist - sd) / step_dist, 0.0, 1.0)
         weight *= 0.60
-    ao = np.clip(1.0 - 0.20 * occ, 0.45, 1.0).astype(np.float32)
+    ao = np.clip(1.0 - 0.18 * occ, 0.50, 1.0).astype(np.float32)
 
-    # Curvature (gentle crest detection)
+    # Curvature
     lap_grid = gaussian_filter(d, sigma=3.0, mode="nearest") - d
     curv = np.clip(0.5 - 3.0 * map_coordinates(lap_grid, coords, order=1, mode="nearest"), 0.0, 1.0).astype(np.float32)
 
@@ -166,30 +216,33 @@ def build_monolith_mesh(nx=140, ny=244, nz=140):
         faces = faces[:, [0, 2, 1]]
 
     ao_curv = np.stack([ao, curv], axis=1).astype(np.float32)
+    width = verts[:, 0].max() - verts[:, 0].min()
+    height = verts[:, 1].max() - verts[:, 1].min()
+    depth = verts[:, 2].max() - verts[:, 2].min()
     print(
         f"[Monolith Mesh] {len(verts):,} verts, {len(faces):,} tris in {time.time() - t0:.2f}s | "
-        f"X:[{verts[:,0].min():.2f},{verts[:,0].max():.2f}] "
-        f"Y:[{verts[:,1].min():.2f},{verts[:,1].max():.2f}] "
-        f"Z:[{verts[:,2].min():.2f},{verts[:,2].max():.2f}]"
+        f"X:[{verts[:,0].min():.2f},{verts[:,0].max():.2f}] (width: {width:.2f}) "
+        f"Y:[{verts[:,1].min():.2f},{verts[:,1].max():.2f}] (height: {height:.2f}) "
+        f"Z:[{verts[:,2].min():.2f},{verts[:,2].max():.2f}] (depth: {depth:.2f}) | "
+        f"Depth/Width ratio: {depth/width:.2f}"
     )
     return verts, norms, ao_curv, faces.astype(np.int32)
 
 
 def compute_monolith_colors(verts, norms, ao_curv):
     """
-    Computes a deliberately designed, procedural, cloud-banded surface:
+    Computes a rich procedural, object-space cloud-banded surface:
     Dominant Palette:
-      - Deep rust red:              #78281D
-      - Burnt orange:               #AD472B
-      - Terracotta:                 #CB6947
-    Secondary Highlights:
-      - Dusty peach:                #D99A78
-      - Warm ivory:                 #E8D4B9
-      - Deep reddish-brown shadows: #401812
+      - Deep oxblood:   #6E211B -> [0.431, 0.129, 0.106]
+      - Rust red:       #8F3022 -> [0.561, 0.188, 0.133]
+      - Burnt orange:   #B84C2E -> [0.722, 0.298, 0.180]
+      - Terracotta:     #CB704F -> [0.796, 0.439, 0.310]
+    Contrasting Highlight Bands:
+      - Dusty peach:    #D9A080 -> [0.851, 0.627, 0.502]
+      - Warm ivory:     #E8D4B9 -> [0.910, 0.831, 0.725]
 
-    Broad, irregular, predominantly horizontal bands wrap around the entire object,
-    resembling naturally layered geological strata and atmospheric cloud deposits.
-    Burnt orange, terracotta and rust red form ~75% of the surface.
+    Burnt orange, terracotta, and rust red form ~75% of the surface.
+    Multiple horizontal strata wrap continuously around front, sides, and rear.
     """
     X = verts[:, 0]
     Y = verts[:, 1]
@@ -200,49 +253,62 @@ def compute_monolith_colors(verts, norms, ao_curv):
     y_min, y_max = float(Y.min()), float(Y.max())
     h = np.clip((Y - y_min) / (y_max - y_min + 1e-6), 0.0, 1.0)
 
-    # Precise user color tokens (normalized sRGB)
-    c_deep_shadow  = np.array([0.251, 0.094, 0.071], dtype=np.float32)  # #401812
-    c_rust_red     = np.array([0.471, 0.157, 0.114], dtype=np.float32)  # #78281D
-    c_burnt_orange = np.array([0.678, 0.278, 0.169], dtype=np.float32)  # #AD472B
-    c_terracotta   = np.array([0.796, 0.412, 0.278], dtype=np.float32)  # #CB6947
-    c_dusty_peach  = np.array([0.851, 0.604, 0.471], dtype=np.float32)  # #D99A78
+    c_oxblood      = np.array([0.431, 0.129, 0.106], dtype=np.float32)  # #6E211B
+    c_rust_red     = np.array([0.561, 0.188, 0.133], dtype=np.float32)  # #8F3022
+    c_burnt_orange = np.array([0.722, 0.298, 0.180], dtype=np.float32)  # #B84C2E
+    c_terracotta   = np.array([0.796, 0.439, 0.310], dtype=np.float32)  # #CB704F
+    c_dusty_peach  = np.array([0.851, 0.627, 0.502], dtype=np.float32)  # #D9A080
     c_warm_ivory   = np.array([0.910, 0.831, 0.725], dtype=np.float32)  # #E8D4B9
 
-    # Horizontal cloud-band coordinate warped with low-frequency 3D coordinates
-    twist = np.arctan2(Z, X)
-    warp_low = 0.32 * np.sin(h * 6.8 + 1.2 * X - 0.9 * Z) + 0.18 * np.cos(h * 11.5 - 1.4 * twist + 0.6 * Y)
-    warp_fine = 0.06 * np.sin(h * 20.0 + 2.2 * X + 1.6 * Z) + 0.04 * np.cos(h * 32.0 - 2.8 * X + 1.9 * Z)
-    layer = h * 8.2 + warp_low + warp_fine
+    # 3D multi-frequency domain warping in continuous 3D object space
+    # Continuous (X, Y, Z) sinusoidal warping guarantees C-infinity continuity around all 360°
+    # Absolutely NO seam line or branch cut jump!
+    w1 = 0.42 * np.sin(2.6 * Y + 1.4 * X - 1.1 * Z)
+    w2 = 0.26 * np.cos(4.2 * Y - 1.3 * Z + 0.9 * X)
+    w3 = 0.14 * np.sin(6.8 * Y + 2.4 * X + 1.8 * Z)
+    strata = h * 14.0 + w1 + w2 + w3
 
-    # 1. Base dominant foundation: oscillating between rust-red and rich burnt-orange
-    wave_base = (np.sin(layer * 0.95) * 0.5 + 0.5)[:, None]
-    col = (1.0 - wave_base) * c_rust_red + wave_base * c_burnt_orange
+    # 1. Rich bedrock cycle: Burnt orange, terracotta, and rust red form ~80% of the surface!
+    t_bed = np.sin(strata * 0.9) * 0.5 + 0.5  # 0 to 1
+    # Smooth piecewise interpolation through bedrock strata
+    col = np.zeros((len(verts), 3), dtype=np.float32)
+    m1 = t_bed < 0.35
+    m2 = (t_bed >= 0.35) & (t_bed < 0.70)
+    m3 = t_bed >= 0.70
 
-    # 2. Rich terracotta broad strata (dominant body)
-    wave_terra = (np.cos(layer * 1.40 + 0.4) * 0.5 + 0.5)[:, None]
-    col = (1.0 - wave_terra * 0.58) * col + (wave_terra * 0.58) * c_terracotta
+    f1 = (t_bed[m1] / 0.35)[:, None]
+    col[m1] = (1.0 - f1) * c_oxblood + f1 * c_rust_red
 
-    # 3. Dusty peach horizontal strata (secondary highlight, soft warm layers)
-    peach_dist = np.mod(layer + 1.1, 3.8) - 1.9
-    peach_mask = (np.exp(-(peach_dist / 0.52) ** 2) * 0.52)[:, None]
-    col = (1.0 - peach_mask) * col + peach_mask * c_dusty_peach
+    f2 = ((t_bed[m2] - 0.35) / 0.35)[:, None]
+    col[m2] = (1.0 - f2) * c_rust_red + f2 * c_burnt_orange
 
-    # 4. Signature warm ivory stratum across upper swell (secondary accent near h ~ 0.70 to 0.78)
-    ivory_dist = (h - 0.72 + 0.025 * np.sin(X * 1.8 - Z * 1.2)) / 0.040
-    ivory_mask = (np.exp(-(ivory_dist ** 2)) * 0.65)[:, None]
-    col = (1.0 - ivory_mask) * col + ivory_mask * c_warm_ivory
+    f3 = ((t_bed[m3] - 0.70) / 0.30)[:, None]
+    col[m3] = (1.0 - f3) * c_burnt_orange + f3 * c_terracotta
 
-    # 5. Thinner lower ivory wisp near h ~ 0.34
-    wisp_dist = (h - 0.34 + 0.02 * np.cos(Z * 2.2 + X * 1.0)) / 0.025
-    wisp_mask = (np.exp(-(wisp_dist ** 2)) * 0.42)[:, None]
-    col = (1.0 - wisp_mask) * col + wisp_mask * c_warm_ivory
+    # 2. Contrasting Accent Strata Bands (TIGHT, CRISP, DISTINCT ribbons — true geological banding)
+    # Band 1: Signature upper ivory band across upper shoulder (narrow ribbon at h ~ 0.74)
+    warp_b1 = 0.025 * np.sin(X * 2.2 - Z * 1.5) + 0.015 * np.cos(Y * 3.0)
+    b1 = (np.exp(-(((h - (0.74 + warp_b1)) / 0.018) ** 2)) * 0.88)[:, None]
+    col = (1.0 - b1) * col + b1 * c_warm_ivory
 
-    # 6. Subtle curvature modulation (gentle highlights on crests, no sharp stains)
-    high_curv = np.maximum(curv - 0.53, 0.0)[:, None]
-    col += high_curv * 0.22 * (c_dusty_peach - col)
+    # Band 2: Mid-body ivory/peach double ribbon (narrow ribbons at h ~ 0.52 and 0.47)
+    warp_b2 = 0.020 * np.cos(Z * 2.4 + X * 1.6)
+    b2a = (np.exp(-(((h - (0.52 + warp_b2)) / 0.014) ** 2)) * 0.82)[:, None]
+    b2b = (np.exp(-(((h - (0.47 + warp_b2)) / 0.012) ** 2)) * 0.70)[:, None]
+    col = (1.0 - b2a) * col + b2a * c_warm_ivory
+    col = (1.0 - b2b) * col + b2b * c_dusty_peach
 
-    # 7. Restrained deep shadow in natural recesses
-    col = col * (0.75 + 0.25 * ao)[:, None] + ((1.0 - ao) * 0.15)[:, None] * c_deep_shadow
+    # Band 3: Lower body peach ribbon (narrow ribbon at h ~ 0.26)
+    warp_b3 = 0.018 * np.sin(X * 2.5 + Z * 1.0)
+    b3 = (np.exp(-(((h - (0.26 + warp_b3)) / 0.016) ** 2)) * 0.75)[:, None]
+    col = (1.0 - b3) * col + b3 * c_dusty_peach
+
+    # Band 4: Subtle fine micro-ribbon at h ~ 0.88 (near sloping crown)
+    b_crown = (np.exp(-(((h - 0.88) / 0.012) ** 2)) * 0.65)[:, None]
+    col = (1.0 - b_crown) * col + b_crown * c_dusty_peach
+
+    # 3. Restrained ambient occlusion (warm shadow depth, no pitch black or muddy stains)
+    col *= (0.80 + 0.20 * ao)[:, None]
 
     col = np.clip(col, 0.0, 1.0)
     rgba = (np.column_stack([col, np.ones(len(verts))]) * 255).astype(np.uint8)
