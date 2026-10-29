@@ -177,9 +177,9 @@ export default function CinematicHeroExperience() {
     // 2. Stable Camera Setup (Maintains stable framing so motion clearly comes from the spinning monolith)
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 200);
-    camera.position.set(0, 0.58, 8.4);
-    camera.lookAt(0, 0.38, 0);
+    const camera = new THREE.PerspectiveCamera(33, width / height, 0.1, 200);
+    camera.position.set(0, 0.44, 9.4);
+    camera.lookAt(0, 0.28, 0);
 
     // 3. High-Performance WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -190,7 +190,7 @@ export default function CinematicHeroExperience() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.14;
     holder.appendChild(renderer.domElement);
 
     // 4. ATMOSPHERIC WORLD ENVIRONMENT
@@ -212,50 +212,45 @@ export default function CinematicHeroExperience() {
       createAtmosphericParticles(280);
     scene.add(dustPoints);
 
-    // 5. STUDIO & CINEMATIC DUSK LIGHTING RIG
-    const ambientLight = new THREE.AmbientLight(0x2a140e, 2.4);
+    // 5. STUDIO & CINEMATIC DUSK LIGHTING RIG (Warm desert terracotta illumination, no green tint)
+    const ambientLight = new THREE.AmbientLight(0x381912, 2.5);
     scene.add(ambientLight);
 
     // Key Directional Light (Warm desert sunlight illuminating terracotta strata)
-    const keyLight = new THREE.DirectionalLight(0xffeedb, 3.2);
-    keyLight.position.set(5.5, 7.0, 5.0);
+    const keyLight = new THREE.DirectionalLight(0xffeedb, 2.6);
+    keyLight.position.set(5.0, 6.0, 4.5);
     scene.add(keyLight);
 
     // Fill Light (Deep terracotta bounce)
-    const fillLight = new THREE.DirectionalLight(0x7a3a22, 2.2);
-    fillLight.position.set(-6.0, 3.5, 4.0);
+    const fillLight = new THREE.DirectionalLight(0x8a3820, 2.0);
+    fillLight.position.set(-5.0, 3.0, 3.5);
     scene.add(fillLight);
 
     // Horizon Backlight / Contouring Rim Light (Soft peach rim highlighting sculptural biomorphic silhouette)
-    const horizonRimLight = new THREE.DirectionalLight(0xf2cfb8, 3.4);
-    horizonRimLight.position.set(0.0, 4.5, -6.5);
+    const horizonRimLight = new THREE.DirectionalLight(0xf5cbba, 2.8);
+    horizonRimLight.position.set(0.0, 4.0, -6.0);
     scene.add(horizonRimLight);
-
-    // Acid-Lime Underglow Point Light (Subtle brand bounce at ground level)
-    const limeAccentLight = new THREE.PointLight(0xd4ff00, 1.8, 8.0);
-    limeAccentLight.position.set(0, -2.05, 0.8);
-    scene.add(limeAccentLight);
 
     // 6. ASSET CONTAINERS: MONOLITH & TERRAIN GROUPS
     const monolithGroup = new THREE.Group();
-    monolithGroup.position.set(0, 0.55, 0);
+    monolithGroup.position.set(0, 0.35, 0);
     scene.add(monolithGroup);
 
     const terrainGroup = new THREE.Group();
-    terrainGroup.position.set(0, -2.10, 0);
+    terrainGroup.position.set(0, -1.52, 0);
     scene.add(terrainGroup);
 
     // Soft grounded contact shadow decal directly beneath the monolith
-    const shadowGeom = new THREE.CircleGeometry(1.5, 32);
+    const shadowGeom = new THREE.CircleGeometry(1.4, 32);
     shadowGeom.rotateX(-Math.PI / 2);
     const shadowMat = new THREE.MeshBasicMaterial({
       color: 0x050201,
       transparent: true,
-      opacity: 0.60,
+      opacity: 0.55,
       depthWrite: false,
     });
     const contactShadow = new THREE.Mesh(shadowGeom, shadowMat);
-    contactShadow.position.set(0, -2.08, 0);
+    contactShadow.position.set(0, -1.51, 0);
     scene.add(contactShadow);
 
     // 7. LOAD PROCEDURAL 3D ASSETS VIA GLTFLoader
@@ -273,9 +268,9 @@ export default function CinematicHeroExperience() {
             mesh.receiveShadow = true;
             mesh.material = new THREE.MeshStandardMaterial({
               vertexColors: true,
-              roughness: 0.84,
-              metalness: 0.03,
-              envMapIntensity: 1.1,
+              roughness: 0.88,
+              metalness: 0.02,
+              envMapIntensity: 0.8,
             });
           }
         });
@@ -297,8 +292,8 @@ export default function CinematicHeroExperience() {
             mesh.receiveShadow = true;
             mesh.material = new THREE.MeshStandardMaterial({
               vertexColors: true,
-              roughness: 0.94,
-              metalness: 0.02,
+              roughness: 0.95,
+              metalness: 0.01,
             });
           }
         });
@@ -315,11 +310,11 @@ export default function CinematicHeroExperience() {
       const h = window.innerHeight;
       camera.aspect = w / h;
       if (w < 768) {
-        camera.fov = 38;
-        camera.position.set(0, 0.58, 8.8);
+        camera.fov = 36;
+        camera.position.set(0, 0.44, 9.8);
       } else {
-        camera.fov = 34;
-        camera.position.set(0, 0.58, 8.4);
+        camera.fov = 33;
+        camera.position.set(0, 0.44, 9.4);
       }
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -333,7 +328,7 @@ export default function CinematicHeroExperience() {
 
     let smoothScrollRotY = 0;
     let currentPosX = 0;
-    let currentPosY = 0.55;
+    let currentPosY = 0.35;
 
     // Smooth controlled rotation rate (~24 seconds per full 360° turnaround)
     const continuousSpinSpeed = 0.26; // radians per second
@@ -354,11 +349,11 @@ export default function CinematicHeroExperience() {
       fogSystem.update(elapsedTime, p);
       updateDust(elapsedTime);
 
-      // Target transforms per stage
+      // Target transforms per stage with generous 15-20% breathing room above crown
       const isMobile = window.innerWidth < 1024;
       let targetPosX = 0;
-      let targetPosY = isMobile ? 0.62 : 0.55;
-      let targetScale = isMobile ? 0.84 : 0.96;
+      let targetPosY = isMobile ? 0.38 : 0.35;
+      let targetScale = isMobile ? 0.62 : 0.72;
 
       // Continuous autonomous rotation around vertical axis
       const continuousAngle = elapsedTime * continuousSpinSpeed;
@@ -397,21 +392,18 @@ export default function CinematicHeroExperience() {
       // Stable camera with gentle parallax
       camera.position.x = mouse.x * 0.08;
       camera.position.y = 0.58 + mouse.y * 0.05;
-      camera.lookAt(0, 0.38, 0);
+      camera.lookAt(0, 0.28, 0);
 
       // Stage-specific environmental lighting transitions
       if (p >= 0.74) {
         keyLight.color.setHex(0xffedd8);
         horizonRimLight.color.setHex(0xf4d2be);
-        limeAccentLight.intensity = 3.0;
       } else if (p >= 0.48) {
         keyLight.color.setHex(0xfff0e2);
         horizonRimLight.color.setHex(0xebae94);
-        limeAccentLight.intensity = 2.5;
       } else {
         keyLight.color.setHex(0xffeedb);
         horizonRimLight.color.setHex(0xf2cfb8);
-        limeAccentLight.intensity = 2.8;
       }
 
       renderer.render(scene, camera);
