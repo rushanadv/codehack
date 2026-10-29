@@ -1,8 +1,21 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, ArrowRight, ChevronDown, Sparkles, Building2, Cog, Cpu } from 'lucide-react';
+import { 
+  ArrowUpRight, 
+  ArrowRight, 
+  ChevronDown, 
+  Sparkles, 
+  Building2, 
+  Cog, 
+  Cpu, 
+  X, 
+  ArrowLeft,
+  CheckCircle2,
+  Volume2,
+  VolumeX
+} from 'lucide-react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {
@@ -12,77 +25,257 @@ import {
   createAtmosphericParticles,
 } from './atmospheric-shaders';
 
-interface DimensionChapter {
-  id: string;
-  num: string;
-  name: string;
-  heroKicker: string;
-  headlineLine1: string;
-  headlineLine2: string;
-  copy: string;
-  ctaText: string;
-  ctaHref: string;
-  rotationDeg: number;
-  prevName: string;
-  nextName: string;
+// ============================================================================
+// AMBIENT CINEMATIC AUDIO SYNTHESIZER (Web Audio API)
+// Pure client-side harmonic soundscape — zero external audio assets required.
+// Matches Guillaume Colombel's ambient sound toggle experience.
+// ============================================================================
+class AmbientAudioEngine {
+  private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
+  private oscs: OscillatorNode[] = [];
+  public isPlaying = false;
+
+  public toggle(): boolean {
+    if (this.isPlaying) {
+      this.stop();
+      return false;
+    } else {
+      this.start();
+      return true;
+    }
+  }
+
+  private start() {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      this.ctx = new AudioCtx();
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+
+      const now = this.ctx.currentTime;
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.setValueAtTime(0.0001, now);
+      this.masterGain.gain.exponentialRampToValueAtTime(0.14, now + 1.8);
+
+      // Warm low-pass filter for dusk atmosphere
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(260, now);
+      filter.Q.setValueAtTime(1.8, now);
+
+      this.masterGain.connect(filter);
+      filter.connect(this.ctx.destination);
+
+      // Three harmonic drone frequencies (A1 = 55Hz, A2 = 110.2Hz, E3 = 164.8Hz)
+      const freqs = [55.0, 110.2, 164.8];
+      this.oscs = freqs.map((f, i) => {
+        const osc = this.ctx!.createOscillator();
+        osc.type = i === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(f, now);
+
+        const oscGain = this.ctx!.createGain();
+        oscGain.gain.value = i === 0 ? 0.6 : 0.28;
+
+        osc.connect(oscGain);
+        oscGain.connect(this.masterGain!);
+        osc.start();
+        return osc;
+      });
+
+      this.isPlaying = true;
+    } catch (e) {
+      console.warn('AudioContext error:', e);
+    }
+  }
+
+  private stop() {
+    if (!this.ctx || !this.masterGain) return;
+    try {
+      const now = this.ctx.currentTime;
+      this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+      this.masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+      setTimeout(() => {
+        this.oscs.forEach((o) => {
+          try {
+            o.stop();
+            o.disconnect();
+          } catch (_) {}
+        });
+        this.oscs = [];
+        this.ctx?.close();
+        this.ctx = null;
+        this.masterGain = null;
+        this.isPlaying = false;
+      }, 950);
+    } catch (e) {
+      console.warn('Audio stop error:', e);
+    }
+  }
 }
 
-const CHAPTERS: DimensionChapter[] = [
+// Global audio engine singleton
+let globalAudioEngine: AmbientAudioEngine | null = null;
+function getAudioEngine(): AmbientAudioEngine {
+  if (!globalAudioEngine && typeof window !== 'undefined') {
+    globalAudioEngine = new AmbientAudioEngine();
+  }
+  return globalAudioEngine!;
+}
+
+// ============================================================================
+// IDLEX THREE CORE DIMENSIONS
+// ============================================================================
+export interface DimensionItem {
+  id: string;
+  num: string;
+  category: 'space' | 'equipment' | 'digital';
+  titleLine1: string;
+  titleLine2: string;
+  shortName: string;
+  tagline: string;
+  telemetry: string;
+  description: string;
+  icon: any;
+  featuredAssets: {
+    id: string;
+    title: string;
+    location: string;
+    rate: string;
+    specs: string;
+    status: string;
+    tag: string;
+  }[];
+}
+
+const DIMENSIONS: DimensionItem[] = [
   {
-    id: 'overview',
-    num: '00',
-    name: 'OVERVIEW',
-    heroKicker: 'IDLEX — THE INTELLIGENT RESOURCE EXCHANGE',
-    headlineLine1: 'EVERY RESOURCE.',
-    headlineLine2: 'A NEW POSSIBILITY.',
-    copy: 'Discover the spaces, equipment and technical resources already around you.',
-    ctaText: 'EXPLORE RESOURCES',
-    ctaHref: '/explore',
-    rotationDeg: 0,
-    prevName: '[03] DIGITAL & TECH',
-    nextName: '[01] PROPERTY & SPACES',
-  },
-  {
-    id: 'spaces',
+    id: 'space',
     num: '01',
-    name: 'LAND, PROPERTY & SPACES',
-    heroKicker: '01 / ARCHITECTURAL CAPACITY',
-    headlineLine1: 'SPACE',
-    headlineLine2: 'TO BUILD.',
-    copy: 'Discover land, properties, laboratories, workshops and collaborative spaces.',
-    ctaText: 'BROWSE SPACES & FACILITIES',
-    ctaHref: '/explore?category=space',
-    rotationDeg: 120,
-    prevName: '[00] OVERVIEW',
-    nextName: '[02] PHYSICAL ASSETS',
+    category: 'space',
+    titleLine1: 'PROPERTY',
+    titleLine2: '& SPACES',
+    shortName: 'PROPERTY & SPACES',
+    tagline: '01 / ARCHITECTURAL CAPACITY & CONTROLLED ENVIRONMENTS',
+    telemetry: '14 VERIFIED FACILITIES · ZERO-COLLISION SCHEDULING',
+    description:
+      'ISO Class 4–7 cleanrooms, acoustic anechoic chambers, high-bay robotics arenas, and high-voltage testing bays unlocked across premier institutions.',
+    icon: Building2,
+    featuredAssets: [
+      {
+        id: 'res-cam-bio',
+        title: 'Cambridge Biosafety Level-3 Testing Facility',
+        location: 'West Cambridge Science Park',
+        rate: '£1,200 / day',
+        specs: 'ISO Class 5 · Air Shower Interlock · BSL-3 Certified',
+        status: 'Available Now',
+        tag: 'Pristine Condition',
+      },
+      {
+        id: 'res-mag-bay',
+        title: 'Superconducting Magnetics High-Bay Arena',
+        location: 'Harwell Science Campus',
+        rate: '£2,400 / day',
+        specs: 'Cryogenic 4K Line · 10-Ton Overhead Gantry Crane',
+        status: 'Available Now',
+        tag: 'Operator Gated',
+      },
+      {
+        id: 'res-anechoic',
+        title: 'Bristol Advanced Acoustic Anechoic Chamber',
+        location: 'Bristol Precision Engineering Hub',
+        rate: '£850 / day',
+        specs: 'Cutoff: 20Hz · < 12dBA Floor · Pneumatic Isolation',
+        status: 'Available Tomorrow',
+        tag: 'Instant Lock',
+      },
+    ],
   },
   {
     id: 'equipment',
     num: '02',
-    name: 'PHYSICAL ASSETS',
-    heroKicker: '02 / PRECISION HARDWARE',
-    headlineLine1: 'TOOLS',
-    headlineLine2: 'IN MOTION.',
-    copy: 'Find the equipment, instruments and tools that turn ideas into reality.',
-    ctaText: 'BROWSE PHYSICAL ASSETS',
-    ctaHref: '/explore?category=equipment',
-    rotationDeg: 240,
-    prevName: '[01] PROPERTY & SPACES',
-    nextName: '[03] DIGITAL & TECH',
+    category: 'equipment',
+    titleLine1: 'PHYSICAL',
+    titleLine2: 'ASSETS',
+    shortName: 'PHYSICAL ASSETS',
+    tagline: '02 / PRECISION METROLOGY & HEAVY INDUSTRIAL HARDWARE',
+    telemetry: '42 VERIFIED INSTRUMENTS · DETERMINISTIC SKILLGATE',
+    description:
+      'Field-emission SEMs, 5-axis CNC machining centers, confocal laser scanning microscopes, and supersonic wind tunnel testbenches.',
+    icon: Cog,
+    featuredAssets: [
+      {
+        id: 'res-sem-fib',
+        title: 'FEI Helios NanoLab 600 DualBeam SEM/FIB',
+        location: 'Oxford Physics Department',
+        rate: '£180 / hour',
+        specs: 'Sub-nm 0.9nm resolution · Ga+ Ion Source · EDAX EDS',
+        status: 'Available Now',
+        tag: 'SkillGate Level 3',
+      },
+      {
+        id: 'res-cnc-hermle',
+        title: 'Hermle C400 5-Axis CNC Machining Center',
+        location: 'Imperial College Mechanical Bay',
+        rate: '£140 / hour',
+        specs: '30,000 RPM Spindle · Heidenhain TNC 640 · Renishaw Probe',
+        status: 'SkillGate Required',
+        tag: 'Prerequisite Clear',
+      },
+      {
+        id: 'res-squid-mag',
+        title: 'SQUID Magnetometer & Susceptometer',
+        location: 'Cambridge Cavendish Laboratory',
+        rate: '£320 / hour',
+        specs: '±7 Tesla · 10^-8 emu Sensitivity · 1.8K to 400K Base',
+        status: 'Available Now',
+        tag: 'High Demand',
+      },
+    ],
   },
   {
     id: 'digital',
     num: '03',
-    name: 'DIGITAL & TECH',
-    heroKicker: '03 / COMPUTATIONAL ALLOCATION',
-    headlineLine1: 'ACCESS',
-    headlineLine2: "WHAT'S NEXT.",
-    copy: 'Discover licensed software, authorised APIs and shared technical capabilities.',
-    ctaText: 'EXPLORE DIGITAL & COMPUTE',
-    ctaHref: '/explore?category=digital',
-    rotationDeg: 360,
-    prevName: '[02] PHYSICAL ASSETS',
-    nextName: '[00] OVERVIEW',
+    category: 'digital',
+    titleLine1: 'DIGITAL',
+    titleLine2: '& TECH',
+    shortName: 'DIGITAL & TECH',
+    tagline: '03 / HIGH-PERFORMANCE COMPUTE & QUANTUM SIMULATORS',
+    telemetry: '1,280 TFLOPS CAPACITY · FAIRSHARE SLURM BATCH',
+    description:
+      'Dedicated NVIDIA H100/A100 Slurm cluster partitions, PCIe FPGA emulation testbenches, and isolated confidential compute nodes.',
+    icon: Cpu,
+    featuredAssets: [
+      {
+        id: 'res-h100-node',
+        title: '8x NVIDIA H100 SXM5 Slurm Cluster Partition',
+        location: 'London Science Datacenter',
+        rate: '£48 / hour',
+        specs: '8x H100 80GB · 800 Gb/s NDR InfiniBand · Isolated Enclave',
+        status: 'Available Now',
+        tag: 'FairShare Queued',
+      },
+      {
+        id: 'res-fpga-rig',
+        title: 'AMD Xilinx UltraScale+ U280 PCIe Emulation Rig',
+        location: 'Cambridge Computer Laboratory',
+        rate: '£24 / hour',
+        specs: '8GB HBM2 · Dual 100G QSFP28 · Vivado / Vitis Verified',
+        status: 'Available Now',
+        tag: 'Instant Provision',
+      },
+      {
+        id: 'res-dwave-sim',
+        title: 'D-Wave Quantum Annealing Simulator Node',
+        location: 'Edinburgh Supercomputing Centre',
+        rate: '£65 / hour',
+        specs: '5,000+ Qubits Topology · Ocean SDK · Slurm Batch Gateway',
+        status: 'Available Now',
+        tag: 'Direct API Seat',
+      },
+    ],
   },
 ];
 
@@ -90,68 +283,170 @@ export default function CinematicHeroExperience() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasHolderRef = useRef<HTMLDivElement>(null);
 
-  const [activeChapterIndex, setActiveChapterIndex] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [currentDeg, setCurrentDeg] = useState(0);
+  // Active dimension index: 0, 1, or 2 (updates only on step transitions)
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0);
 
-  const progressRef = useRef(0);
+  // Track item DOM refs for 60/120 FPS high-performance DOM updates
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Carousel angular state (in radians)
+  // Station 0 = 0 rad (Property & Spaces), Station 1 = 2π/3 (Physical Assets), Station 2 = 4π/3 (Digital & Tech)
+  const targetAngleRef = useRef(0);
+  const currentAngleRef = useRef(0);
+
+  // Interactive Inspection Overlay ("Open" state inspired by Guillaume Colombel project detail)
+  const [inspectingDimension, setInspectingDimension] = useState<DimensionItem | null>(null);
+
+  // About Manifesto Modal ("About" state inspired by Guillaume Colombel about page)
+  const [showAboutModal, setShowAboutModal] = useState(false);
+
+  // Audio playing state
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  // Dragging state
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartAngleRef = useRef(0);
+  const dragVelocityRef = useRef(0);
+  const lastDragTimeRef = useRef(0);
+  const lastDragXRef = useRef(0);
+
+  // Three.js Scene References
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const monolithGroupRef = useRef<THREE.Group | null>(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
-  // Pinned hero scroll listener tracking progress across 4 stages
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const totalScrollable = rect.height - windowHeight;
+  // Angular constants
+  const SPACING = (2 * Math.PI) / 3; // 120° in radians
 
-      if (totalScrollable <= 0) return;
-
-      const scrolled = -rect.top;
-      const p = Math.max(0, Math.min(1, scrolled / totalScrollable));
-      progressRef.current = p;
-      setScrollProgress(p);
-
-      // Determine active chapter:
-      // 0.00 - 0.22 -> Chapter 0 (Hero Overview)
-      // 0.22 - 0.48 -> Chapter 1 (Property & Spaces)
-      // 0.48 - 0.74 -> Chapter 2 (Physical Assets)
-      // 0.74 - 1.00 -> Chapter 3 (Digital & Tech)
-      let chapterIdx = 0;
-      if (p >= 0.74) {
-        chapterIdx = 3;
-      } else if (p >= 0.48) {
-        chapterIdx = 2;
-      } else if (p >= 0.22) {
-        chapterIdx = 1;
-      } else {
-        chapterIdx = 0;
-      }
-      setActiveChapterIndex(chapterIdx);
-
-      // Rotation degrees synchronized with scroll sequence (0° -> 120° -> 240° -> 360°)
-      let calculatedDeg = 0;
-      if (p <= 0.22) {
-        calculatedDeg = (p / 0.22) * 15; // Subtle entrance tilt
-      } else if (p <= 0.48) {
-        const factor = (p - 0.22) / (0.48 - 0.22);
-        calculatedDeg = 15 + factor * 105; // Reaches 120°
-      } else if (p <= 0.74) {
-        const factor = (p - 0.48) / (0.74 - 0.48);
-        calculatedDeg = 120 + factor * 120; // Reaches 240°
-      } else {
-        const factor = Math.min(1, (p - 0.74) / (1.00 - 0.74));
-        calculatedDeg = 240 + factor * 120; // Reaches 360°
-      }
-      setCurrentDeg(Math.round(calculatedDeg));
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+  // Helper to normalize angle in [-π, π]
+  const normalizeDelta = useCallback((delta: number) => {
+    let d = delta % (2 * Math.PI);
+    if (d > Math.PI) d -= 2 * Math.PI;
+    if (d < -Math.PI) d += 2 * Math.PI;
+    return d;
   }, []);
 
-  // Pointer parallax listener
+  // Set target angle to rotate directly to dimension k
+  const rotateToDimension = useCallback(
+    (targetIdx: number) => {
+      const cur = targetAngleRef.current;
+      const targetBase = targetIdx * SPACING;
+      const delta = normalizeDelta(targetBase - cur);
+      targetAngleRef.current = cur + delta;
+    },
+    [SPACING, normalizeDelta]
+  );
+
+  // Audio Toggle Handler
+  const handleToggleAudio = () => {
+    const engine = getAudioEngine();
+    const playing = engine.toggle();
+    setIsAudioPlaying(playing);
+  };
+
+  // Keyboard Navigation: Left/Right arrows, Enter/Space, Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (inspectingDimension) {
+          setInspectingDimension(null);
+        } else if (showAboutModal) {
+          setShowAboutModal(false);
+        }
+      } else if (!inspectingDimension && !showAboutModal) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          rotateToDimension((activeIndexRef.current + 1) % 3);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          rotateToDimension((activeIndexRef.current + 2) % 3);
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          setInspectingDimension(DIMENSIONS[activeIndexRef.current]);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [inspectingDimension, showAboutModal, rotateToDimension]);
+
+  // Pointer / Drag Handling for Carousel
+  useEffect(() => {
+    const holder = containerRef.current;
+    if (!holder) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return;
+      if (inspectingDimension || showAboutModal) return;
+
+      isDraggingRef.current = true;
+      dragStartXRef.current = e.clientX;
+      dragStartAngleRef.current = targetAngleRef.current;
+      lastDragXRef.current = e.clientX;
+      lastDragTimeRef.current = performance.now();
+      dragVelocityRef.current = 0;
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDraggingRef.current) return;
+      const dx = e.clientX - dragStartXRef.current;
+      const now = performance.now();
+      const dt = Math.max(1, now - lastDragTimeRef.current);
+      const instantVelocity = (e.clientX - lastDragXRef.current) / dt;
+
+      dragVelocityRef.current = instantVelocity;
+      lastDragXRef.current = e.clientX;
+      lastDragTimeRef.current = now;
+
+      const angleDelta = -(dx / 460) * SPACING;
+      targetAngleRef.current = dragStartAngleRef.current + angleDelta;
+    };
+
+    const onPointerUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+
+      const flickBoost = -dragVelocityRef.current * 0.16;
+      targetAngleRef.current += flickBoost;
+
+      const nearestStation = Math.round(targetAngleRef.current / SPACING) * SPACING;
+      targetAngleRef.current = nearestStation;
+    };
+
+    let wheelTimeout: NodeJS.Timeout | null = null;
+    const onWheel = (e: WheelEvent) => {
+      if (inspectingDimension || showAboutModal) return;
+      const rect = holder.getBoundingClientRect();
+      if (rect.top > 10 || rect.bottom < window.innerHeight - 10) return;
+
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(delta) < 2) return;
+
+      targetAngleRef.current += delta * 0.0018;
+
+      if (wheelTimeout) clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        const nearest = Math.round(targetAngleRef.current / SPACING) * SPACING;
+        targetAngleRef.current = nearest;
+      }, 180);
+    };
+
+    holder.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    holder.addEventListener('wheel', onWheel, { passive: true });
+
+    return () => {
+      holder.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      holder.removeEventListener('wheel', onWheel);
+      if (wheelTimeout) clearTimeout(wheelTimeout);
+    };
+  }, [inspectingDimension, showAboutModal, SPACING]);
+
+  // Pointer parallax listener for camera
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const normX = (e.clientX / window.innerWidth) * 2 - 1;
@@ -164,24 +459,27 @@ export default function CinematicHeroExperience() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Three.js 3D Scene Initialization with Real Procedural Assets from monolith_assets.py
+  // Three.js 3D Scene Initialization
   useEffect(() => {
     const holder = canvasHolderRef.current;
     if (!holder) return;
 
-    // 1. Scene Setup with dusk atmosphere
+    // 1. Scene Setup
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
     scene.background = new THREE.Color(0x0a0504);
     scene.fog = new THREE.FogExp2(0x1a0d0a, 0.016);
 
-    // 2. Stable Camera Setup (Calibrated for complete silhouette visibility & breathing room)
+    // 2. Camera Setup (Monumental low angle looking slightly up, framing full height)
     const width = window.innerWidth;
     const height = window.innerHeight;
+    const isMobile = width < 768;
     const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 200);
-    camera.position.set(0, 0.44, 9.6);
-    camera.lookAt(0, 0.25, 0);
+    camera.position.set(0, 0.38, isMobile ? 9.8 : 9.2);
+    camera.lookAt(0, 0.22, 0);
+    cameraRef.current = camera;
 
-    // 3. High-Performance WebGL Renderer (Tuned exposure so rich terracotta/burnt orange never bleaches)
+    // 3. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: false,
@@ -190,7 +488,7 @@ export default function CinematicHeroExperience() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.02;
+    renderer.toneMappingExposure = 1.05;
     holder.appendChild(renderer.domElement);
 
     // 4. ATMOSPHERIC WORLD ENVIRONMENT
@@ -198,7 +496,7 @@ export default function CinematicHeroExperience() {
     const { mesh: skyDome, material: skyMat } = createAtmosphericSkyDome();
     scene.add(skyDome);
 
-    // B. Horizon Mist Band (Warm Peach-Amber Ribbon across distant horizon)
+    // B. Horizon Mist Band (Warm peach-amber ribbon across distant horizon)
     const { mesh: mistBandMesh, update: updateMistBand, dispose: disposeMistBand } =
       createHorizonMistBand();
     scene.add(mistBandMesh);
@@ -209,54 +507,73 @@ export default function CinematicHeroExperience() {
 
     // D. Floating Atmospheric Particulate Dust Motes
     const { points: dustPoints, update: updateDust, dispose: disposeDust } =
-      createAtmosphericParticles(160);
+      createAtmosphericParticles(180);
     scene.add(dustPoints);
 
-    // 5. BALANCED STUDIO 3-POINT DUSK LIGHTING (Illuminates 360° contours & strata without pale washouts)
-    const ambientLight = new THREE.AmbientLight(0x381912, 1.8);
+    // E. Reflective Water / Wet Lacquer Ground Plane (Reflects warm monolith glow)
+    const waterGeom = new THREE.PlaneGeometry(42, 42, 1, 1);
+    waterGeom.rotateX(-Math.PI / 2);
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: 0x140a08,
+      roughness: 0.24,
+      metalness: 0.82,
+      depthWrite: false,
+    });
+    const waterMesh = new THREE.Mesh(waterGeom, waterMat);
+    waterMesh.position.set(0, -1.44, 0);
+    scene.add(waterMesh);
+
+    // 5. STUDIO DUSK 3-POINT LIGHTING
+    const ambientLight = new THREE.AmbientLight(0x3a1913, 1.9);
     scene.add(ambientLight);
 
-    // Frontal Key Light (Warm golden-amber, illuminates front & right without bleaching)
-    const keyLight = new THREE.DirectionalLight(0xffeedb, 1.5);
+    // Warm frontal key light
+    const keyLight = new THREE.DirectionalLight(0xffeedb, 1.6);
     keyLight.position.set(1.8, 3.8, 5.0);
     scene.add(keyLight);
 
-    // Fill Directional Light (Deep terracotta warm fill illuminating left flank so it stays rich & vibrant)
-    const fillLight = new THREE.DirectionalLight(0xd9653b, 1.4);
+    // Deep terracotta warm fill light
+    const fillLight = new THREE.DirectionalLight(0xd9653b, 1.5);
     fillLight.position.set(-2.8, 2.6, 4.5);
     scene.add(fillLight);
 
-    // Horizon Backlight / Contouring Rim Light (Soft peach rim highlighting sculptural biomorphic silhouette)
-    const horizonRimLight = new THREE.DirectionalLight(0xf2aa8d, 1.9);
+    // Horizon backlight / contouring rim light
+    const horizonRimLight = new THREE.DirectionalLight(0xf4aa8d, 2.2);
     horizonRimLight.position.set(0.0, 3.6, -4.5);
     scene.add(horizonRimLight);
 
-    // 6. ASSET CONTAINERS: MONOLITH & TERRAIN GROUPS
+    // Water highlight point light
+    const waterLight = new THREE.PointLight(0xd9653b, 1.2, 10);
+    waterLight.position.set(0, -1.2, 1.5);
+    scene.add(waterLight);
+
+    // 6. ASSET CONTAINERS: MONOLITH & TERRAIN
     const monolithGroup = new THREE.Group();
-    monolithGroup.position.set(0, 0.35, 0);
+    monolithGroup.position.set(0, 0.28, 0);
     scene.add(monolithGroup);
+    monolithGroupRef.current = monolithGroup;
 
     const terrainGroup = new THREE.Group();
     terrainGroup.position.set(0, -1.45, 0);
     scene.add(terrainGroup);
 
-    // Soft grounded contact shadow decal directly beneath the monolith
-    const shadowGeom = new THREE.CircleGeometry(1.6, 32);
+    // Contact shadow decal directly beneath monolith
+    const shadowGeom = new THREE.CircleGeometry(1.8, 32);
     shadowGeom.rotateX(-Math.PI / 2);
     const shadowMat = new THREE.MeshBasicMaterial({
       color: 0x050201,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.6,
       depthWrite: false,
     });
     const contactShadow = new THREE.Mesh(shadowGeom, shadowMat);
-    contactShadow.position.set(0, -1.44, 0);
+    contactShadow.position.set(0, -1.43, 0);
     scene.add(contactShadow);
 
-    // 7. LOAD PROCEDURAL 3D ASSETS VIA GLTFLoader
+    // 7. LOAD 3D ASSETS VIA GLTFLoader
     const gltfLoader = new GLTFLoader();
 
-    // Load idlex-amber-crystal.glb
+    // Primary: idlex-amber-crystal.glb
     gltfLoader.load(
       '/models/idlex-amber-crystal.glb',
       (gltf) => {
@@ -268,23 +585,22 @@ export default function CinematicHeroExperience() {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            // Compute vertex normals if missing
             if (mesh.geometry && !mesh.geometry.attributes.normal) {
               mesh.geometry.computeVertexNormals();
             }
 
             const meshName = mesh.name || '';
-            const isFront = meshName.includes('Front') || !!(mesh.material as THREE.MeshStandardMaterial)?.map;
+            const isFront =
+              meshName.includes('Front') ||
+              !!(mesh.material as THREE.MeshStandardMaterial)?.map;
 
             if (isFront && mesh.material) {
-              // Preserve the reference texture from the supplied GLB
               const frontMat = mesh.material as THREE.MeshStandardMaterial;
-              frontMat.roughness = 0.40;
+              frontMat.roughness = 0.38;
               frontMat.metalness = 0.02;
               frontMat.side = THREE.DoubleSide;
               frontMat.needsUpdate = true;
             } else if (meshName.includes('Back') || mesh.geometry.attributes.color) {
-              // Faceted back geometry with embedded vertex colors
               mesh.material = new THREE.MeshStandardMaterial({
                 vertexColors: true,
                 roughness: 0.65,
@@ -292,7 +608,6 @@ export default function CinematicHeroExperience() {
                 side: THREE.DoubleSide,
               });
             } else {
-              // Darker side / rim geometry
               mesh.material = new THREE.MeshStandardMaterial({
                 vertexColors: !!mesh.geometry.attributes.color,
                 roughness: 0.75,
@@ -303,7 +618,7 @@ export default function CinematicHeroExperience() {
           }
         });
 
-        // Center the crystal geometry so it rotates cleanly around its central Y axis
+        // Center crystal vertically & laterally
         const bbox = new THREE.Box3().setFromObject(model);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
@@ -311,18 +626,12 @@ export default function CinematicHeroExperience() {
 
         monolithGroup.clear();
         monolithGroup.add(model);
-
-        if (typeof window !== 'undefined') {
-          (window as any).__IDLEX_SCENE__ = scene;
-          (window as any).__MONOLITH_GROUP__ = monolithGroup;
-          (window as any).__CRYSTAL_MODEL__ = model;
-        }
       },
       undefined,
-      (err) => console.error('Error loading idlex-amber-crystal.glb:', err)
+      (err) => console.error('Error loading amber crystal:', err)
     );
 
-    // Load idlex-terrain.glb
+    // Terrain: idlex-terrain.glb
     gltfLoader.load(
       '/models/idlex-terrain.glb',
       (gltf) => {
@@ -342,44 +651,96 @@ export default function CinematicHeroExperience() {
         terrainGroup.add(terrainModel);
       },
       undefined,
-      (err) => console.error('Error loading idlex-terrain.glb:', err)
+      (err) => console.error('Error loading terrain:', err)
     );
 
-    // 8. Responsive Resize Handler
+    // 8. Responsive Resize
     const onResize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
       camera.aspect = w / h;
       if (w < 768) {
         camera.fov = 36;
-        camera.position.set(0, 0.44, 10.0);
+        camera.position.set(0, 0.40, 9.8);
       } else {
         camera.fov = 34;
-        camera.position.set(0, 0.44, 9.6);
+        camera.position.set(0, 0.38, 9.2);
       }
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    onResize();
     window.addEventListener('resize', onResize);
 
-    // 9. Continuous Animation Loop (Synchronized Spin, Scroll Choreography & Camera Stability)
+    // 9. Continuous Animation Loop (Runs at 60/120 FPS smoothly)
     let animId: number;
     const startTime = performance.now();
-
-    let smoothScrollRotY = 0;
-    let currentPosX = 0;
-    let currentPosY = 0.35;
-
-    // Smooth controlled rotation rate (~24 seconds per full 360° turnaround)
-    const continuousSpinSpeed = 0.26; // radians per second
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
       const elapsedTime = (performance.now() - startTime) * 0.001;
-      const p = progressRef.current; // 0.00 to 1.00
 
-      // Subtle mouse parallax (kept modest so camera remains stable)
+      // Smooth damped lerp toward targetAngle
+      const angleLerpFactor = 0.095;
+      currentAngleRef.current +=
+        (targetAngleRef.current - currentAngleRef.current) * angleLerpFactor;
+      const angle = currentAngleRef.current;
+
+      // Determine active dimension index from angle
+      const rawIdx = Math.round(angle / SPACING);
+      const normalizedIdx = ((rawIdx % 3) + 3) % 3;
+      if (normalizedIdx !== activeIndexRef.current) {
+        activeIndexRef.current = normalizedIdx;
+        setActiveIndex(normalizedIdx);
+      }
+
+      // HIGH-PERFORMANCE DIRECT DOM CYLINDRICAL TRANSFORM UPDATES
+      // Updates 3 title stations without triggering 60 FPS React re-renders!
+      const isMob = window.innerWidth < 768;
+      const radius = isMob ? 340 : 460;
+
+      for (let i = 0; i < 3; i++) {
+        const el = itemRefs.current[i];
+        if (!el) continue;
+
+        const dimAngle = i * SPACING;
+        let delta = (dimAngle - angle) % (2 * Math.PI);
+        if (delta > Math.PI) delta -= 2 * Math.PI;
+        if (delta < -Math.PI) delta += 2 * Math.PI;
+
+        const isCentered = Math.abs(delta) < 0.24;
+
+        // Cylindrical projection coordinates
+        const tx = Math.sin(delta) * radius;
+        const tz = (Math.cos(delta) - 1) * 140;
+        const rotY = delta * 30; // degrees
+        const scale = Math.max(0.74, 1.0 + tz / (2 * radius));
+        const opacity = Math.max(0.35, 1.0 - Math.abs(delta) * 0.45);
+
+        el.style.transform = `translate3d(${tx.toFixed(1)}px, 0px, ${tz.toFixed(1)}px) rotateY(${rotY.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+        el.style.opacity = opacity.toFixed(3);
+        el.style.zIndex = isCentered ? '25' : '10';
+
+        const h2 = el.querySelector('h2');
+        if (h2) {
+          if (isCentered) {
+            h2.style.color = '#ffffff';
+            (h2.style as any).webkitTextStroke = '0px transparent';
+            h2.style.filter = 'drop-shadow(0 16px 36px rgba(0,0,0,0.95))';
+          } else {
+            h2.style.color = 'transparent';
+            (h2.style as any).webkitTextStroke = '1.5px rgba(255, 255, 255, 0.45)';
+            h2.style.filter = 'none';
+          }
+        }
+
+        const badge = el.querySelector('.active-dim-badge');
+        if (badge) {
+          (badge as HTMLElement).style.opacity = isCentered ? '1' : '0';
+          (badge as HTMLElement).style.pointerEvents = isCentered ? 'auto' : 'none';
+        }
+      }
+
+      // Subtle mouse parallax
       const mouse = mouseRef.current;
       mouse.x += (mouse.targetX - mouse.x) * 0.04;
       mouse.y += (mouse.targetY - mouse.y) * 0.04;
@@ -387,397 +748,456 @@ export default function CinematicHeroExperience() {
       // Update atmospheric shaders
       skyMat.uniforms.uTime.value = elapsedTime;
       updateMistBand(elapsedTime);
-      fogSystem.update(elapsedTime, p);
+      fogSystem.update(elapsedTime, 0.5);
       updateDust(elapsedTime);
 
-      // Target transforms per stage with generous 18-22% breathing room above crown
-      const isMobile = window.innerWidth < 1024;
-      let targetPosX = 0;
-      let targetPosY = isMobile ? 0.36 : 0.35;
-      let targetScale = isMobile ? 0.58 : 0.70;
+      // Monolith positioning & synchronized rotation
+      // Towering presence: scales to ~0.84 on desktop, ~0.72 on mobile
+      const baseScale = isMob ? 0.72 : 0.84;
+      const floatY = 0.28 + Math.sin(elapsedTime * 0.6) * 0.014;
 
-      // Continuous autonomous rotation around vertical axis (supports precision testing at 0°, 45°, 90°, 180°)
-      const continuousAngle =
-        typeof window !== 'undefined' && (window as any).__PAUSE_SPIN__
-          ? ((window as any).__MANUAL_ROT_Y__ ?? 0)
-          : elapsedTime * continuousSpinSpeed;
+      // Monolith rotation Y is strictly synchronized with carousel angle
+      monolithGroup.rotation.y = -angle;
+      monolithGroup.position.y = floatY;
+      monolithGroup.scale.set(baseScale, baseScale, baseScale);
 
-      // Scroll-driven target rotation (radians): 0 -> 120° -> 240° -> 360°
-      let scrollTargetRotY = 0;
-      if (p <= 0.22) {
-        scrollTargetRotY = 0;
-      } else if (p <= 0.48) {
-        const factor = (p - 0.22) / (0.48 - 0.22);
-        scrollTargetRotY = factor * ((2 * Math.PI) / 3); // 0 to 120°
-      } else if (p <= 0.74) {
-        const factor = (p - 0.48) / (0.74 - 0.48);
-        scrollTargetRotY = ((2 * Math.PI) / 3) + factor * ((2 * Math.PI) / 3); // 120° to 240°
-      } else {
-        const factor = Math.min(1, (p - 0.74) / (1.00 - 0.74));
-        scrollTargetRotY = ((4 * Math.PI) / 3) + factor * ((2 * Math.PI) / 3); // 240° to 360°
-      }
+      // Subtle organic sway & mouse parallax
+      monolithGroup.rotation.x =
+        Math.sin(elapsedTime * 0.4) * 0.01 + mouse.y * 0.012;
+      monolithGroup.rotation.z =
+        Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.012;
 
-      // Damped lerp for responsive, reversible scroll rotation
-      smoothScrollRotY += (scrollTargetRotY - smoothScrollRotY) * 0.08;
-      currentPosX += (targetPosX - currentPosX) * 0.08;
-      currentPosY += (targetPosY - currentPosY) * 0.08;
-
-      // Total rotation: continuous spin + scroll choreography
-      // The monolith itself visibly spins on its vertical axis
-      monolithGroup.rotation.y = -(continuousAngle + smoothScrollRotY);
-      monolithGroup.position.x = currentPosX;
-      monolithGroup.position.y = currentPosY + Math.sin(elapsedTime * 0.7) * 0.015; // Gentle organic float
-      monolithGroup.scale.set(targetScale, targetScale, targetScale);
-
-      // Subtle organic tilt and mouse responsiveness
-      monolithGroup.rotation.x = Math.sin(elapsedTime * 0.4) * 0.012 + 0.02 + mouse.y * 0.015;
-      monolithGroup.rotation.z = Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.015;
-
-      // Stable camera with gentle parallax
+      // Camera positioning with gentle parallax
       camera.position.x = mouse.x * 0.08;
-      camera.position.y = 0.46 + mouse.y * 0.04;
+      camera.position.y = 0.38 + mouse.y * 0.04;
       camera.lookAt(0, 0.22, 0);
-
-      // Stage-specific environmental lighting transitions
-      if (p >= 0.74) {
-        keyLight.color.setHex(0xffcaa0);
-        horizonRimLight.color.setHex(0xf4beaa);
-      } else if (p >= 0.48) {
-        keyLight.color.setHex(0xffcfab);
-        horizonRimLight.color.setHex(0xeea488);
-      } else {
-        keyLight.color.setHex(0xffcaa0);
-        horizonRimLight.color.setHex(0xf2aa8d);
-      }
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // 10. Clean-up WebGL resources on unmount
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', onResize);
 
       skyDome.geometry.dispose();
       skyMat.dispose();
-
       disposeMistBand();
       fogSystem.dispose();
       disposeDust();
-
       shadowGeom.dispose();
       shadowMat.dispose();
+      waterGeom.dispose();
+      waterMat.dispose();
 
       renderer.dispose();
       if (holder.contains(renderer.domElement)) {
         holder.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [SPACING]);
 
-  const scrollToChapter = (index: number) => {
-    if (!containerRef.current) return;
-    const containerTop = containerRef.current.offsetTop;
-    const totalDist = containerRef.current.offsetHeight - window.innerHeight;
-
-    let targetFraction = 0;
-    if (index === 1) targetFraction = 0.35;
-    if (index === 2) targetFraction = 0.61;
-    if (index === 3) targetFraction = 0.88;
-
-    window.scrollTo({
-      top: containerTop + targetFraction * totalDist,
-      behavior: 'smooth',
-    });
+  // Smooth scroll to Section 1 below hero
+  const scrollToNarrative = () => {
+    const nextSec = document.getElementById('narrative-section');
+    if (nextSec) {
+      nextSec.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
-  const currentChapter = CHAPTERS[activeChapterIndex];
+  const activeDim = DIMENSIONS[activeIndex];
 
   return (
-    <div ref={containerRef} className="relative w-full h-[440vh] bg-[#0a0504]">
-      
+    <div
+      ref={containerRef}
+      className="relative w-full h-screen overflow-hidden bg-[#0a0504] select-none touch-none"
+    >
       {/* =========================================================================
-          STICKY FULL-VIEWPORT 3D CANVAS & EDITORIAL CHOREOGRAPHY
+          FULL-VIEWPORT THREE.JS 3D STAGE
           ========================================================================= */}
-      <div className="sticky top-0 w-full h-screen overflow-hidden select-none">
-        
-        {/* =========================================================================
-            EDGE-ALIGNED MINIMALIST PERIMETER NAVIGATION (Quiet, High-Taste Header)
-            ========================================================================= */}
-        <header className="absolute top-0 left-0 right-0 z-50 px-6 sm:px-12 py-7 flex items-center justify-between pointer-events-none select-none">
-          
-          {/* Top-Left: Minimalist Brand */}
-          <div className="pointer-events-auto flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <span className="w-2 h-2 rounded-full bg-[#D4FF00] shadow-[0_0_10px_#D4FF00] group-hover:scale-125 transition-transform" />
-              <span className="font-mono font-black text-sm tracking-widest text-white uppercase">
-                IDLEX<span className="text-[#D4FF00]">.</span>
-              </span>
-              <span className="text-[10px] font-mono text-neutral-400 border border-white/10 px-1.5 py-0.5 rounded tracking-widest">
-                V2.6
-              </span>
-            </Link>
-          </div>
+      <div
+        ref={canvasHolderRef}
+        className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
+      />
 
-          {/* Top-Right: Quiet Navigation & App Launch Link */}
-          <div className="pointer-events-auto flex items-center gap-6 sm:gap-8 text-xs font-mono tracking-widest">
-            <Link
-              href="/explore"
-              className="hidden sm:inline text-neutral-400 hover:text-white transition-colors uppercase text-[11px]"
-            >
-              Explore
-            </Link>
-            <Link
-              href="/match"
-              className="hidden sm:inline text-neutral-400 hover:text-white transition-colors uppercase text-[11px]"
-            >
-              Match
-            </Link>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-bold px-4 py-1.5 rounded-full transition-all text-[11px] uppercase tracking-wider shadow-lg shadow-[#D4FF00]/15"
-            >
-              <span>Launch App</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </header>
+      {/* Atmospheric Vignette Overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#0a0504_95%)] pointer-events-none opacity-40" />
 
-        {/* Fullscreen 3D Three.js WebGL Scene Canvas */}
-        <div ref={canvasHolderRef} className="absolute inset-0 w-full h-full pointer-events-auto" />
-
-        {/* Soft Radial Vignette Overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#0a0504_98%)] pointer-events-none opacity-25" />
-
-        {/* =========================================================================
-            FLANKED ADJACENT CHAPTER LABELS (Angled Outlined Edge Text)
-            ========================================================================= */}
-        {/* Left Edge: Previous Chapter Indicator */}
-        <div className="absolute left-6 sm:left-12 bottom-28 sm:bottom-32 pointer-events-auto hidden md:block select-none z-20">
-          <button
-            onClick={() => scrollToChapter(activeChapterIndex === 0 ? 3 : activeChapterIndex - 1)}
-            className="group flex items-center gap-2 text-left cursor-pointer transition-all duration-300"
-          >
-            <span className="text-[10px] font-mono tracking-widest text-neutral-600 group-hover:text-[#D4FF00] transition-colors">
-              ← PREV
+      {/* =========================================================================
+          EDGE-ALIGNED MINIMAL HEADER (Guillaume Colombel Style)
+          ========================================================================= */}
+      <header className="absolute top-0 left-0 right-0 z-50 px-6 sm:px-12 py-7 flex items-center justify-between pointer-events-none">
+        {/* Top-Left: Minimal Brand & Live Status */}
+        <div className="pointer-events-auto flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <span className="w-2 h-2 rounded-full bg-[#D4FF00] shadow-[0_0_10px_#D4FF00] group-hover:scale-125 transition-transform" />
+            <span className="font-sans font-bold text-base tracking-tight text-white uppercase">
+              IDLEX<span className="text-[#D4FF00]">.</span>
             </span>
-            <span className="text-xs font-mono font-medium tracking-wider text-neutral-500 group-hover:text-white transition-colors">
-              {currentChapter.prevName}
-            </span>
-          </button>
+          </Link>
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono tracking-wider text-neutral-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D4FF00] animate-pulse" />
+            NETWORK LIVE · 1,420kw/h IDLE
+          </span>
         </div>
 
-        {/* Right Edge: Next Chapter Indicator */}
-        <div className="absolute right-6 sm:right-12 bottom-28 sm:bottom-32 pointer-events-auto hidden md:block select-none z-20">
-          <button
-            onClick={() => scrollToChapter(activeChapterIndex === 3 ? 0 : activeChapterIndex + 1)}
-            className="group flex items-center gap-2 text-right cursor-pointer transition-all duration-300 ml-auto"
+        {/* Top-Right: Quiet Navigation Links & About Toggle */}
+        <div className="pointer-events-auto flex items-center gap-5 sm:gap-8 text-xs font-mono tracking-widest">
+          <Link
+            href="/explore"
+            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px]"
           >
-            <span className="text-xs font-mono font-medium tracking-wider text-neutral-500 group-hover:text-white transition-colors">
-              {currentChapter.nextName}
-            </span>
-            <span className="text-[10px] font-mono tracking-widest text-neutral-600 group-hover:text-[#D4FF00] transition-colors">
-              NEXT →
-            </span>
+            Explore
+          </Link>
+          <Link
+            href="/match"
+            className="hidden sm:inline text-neutral-400 hover:text-white transition-colors uppercase text-[11px]"
+          >
+            Intent Match
+          </Link>
+          <button
+            onClick={() => setShowAboutModal(true)}
+            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px] cursor-pointer"
+          >
+            About
           </button>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-sans font-bold px-4 py-1.5 rounded-full transition-all text-[11px] uppercase tracking-wider shadow-lg shadow-[#D4FF00]/15"
+          >
+            <span>Launch App</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
+      </header>
 
-        {/* =========================================================================
-            EDITORIAL TYPOGRAPHY STAGES (Centered in Lower-Middle, Reference Style)
-            ========================================================================= */}
-        
-        {/* STAGE 0: HERO OVERVIEW */}
+      {/* =========================================================================
+          THE SIGNATURE CYLINDRICAL 3D TITLE CAROUSEL
+          Wraps around the lower base of the monolith, overlapping water reflection.
+          Active title solid white in center; flanking titles in outlined 3D curve.
+          ========================================================================= */}
+      <div className="absolute inset-x-0 bottom-16 sm:bottom-20 z-30 pointer-events-none flex flex-col items-center justify-end px-4">
+        {/* The 3D Track Container with CSS Perspective */}
         <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
-            activeChapterIndex === 0
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-8 pointer-events-none'
-          }`}
+          className="relative w-full max-w-5xl h-36 sm:h-44 flex items-center justify-center pointer-events-auto"
+          style={{ perspective: '1100px', transformStyle: 'preserve-3d' }}
         >
-          <div className="max-w-2xl mx-auto flex flex-col items-center">
-            <span className="text-[11px] font-mono tracking-[0.25em] text-[#D4FF00] uppercase block mb-2 drop-shadow">
-              {CHAPTERS[0].heroKicker}
-            </span>
+          {DIMENSIONS.map((dim, idx) => (
+            <div
+              key={dim.id}
+              ref={(el) => {
+                itemRefs.current[idx] = el;
+              }}
+              onClick={() => {
+                if (activeIndexRef.current === idx) {
+                  setInspectingDimension(dim);
+                } else {
+                  rotateToDimension(idx);
+                }
+              }}
+              className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer pointer-events-auto will-change-transform"
+            >
+              {/* Monumental 2-Line Condensed Title */}
+              <div className="text-center select-none group">
+                <h2 className="font-sans font-black tracking-tighter uppercase leading-[0.84] text-4xl sm:text-6xl md:text-7xl lg:text-8xl transition-colors duration-200">
+                  <div>{dim.titleLine1}</div>
+                  <div>{dim.titleLine2}</div>
+                </h2>
 
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
-              <div>EVERY RESOURCE.</div>
-              <div className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-200 to-[#D4FF00]">
-                A NEW POSSIBILITY.
+                {/* Active Subtitle & Click-to-Inspect Hint */}
+                <div className="active-dim-badge mt-3.5 flex flex-col items-center gap-2 transition-opacity duration-200">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-[11px] font-mono text-[#D4FF00] backdrop-blur-md shadow-lg">
+                    <dim.icon className="w-3.5 h-3.5" />
+                    <span>{dim.telemetry}</span>
+                  </div>
+
+                  <div className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-neutral-400 group-hover:text-white transition-colors mt-0.5">
+                    <span>[ CLICK TITLE TO INSPECT ASSETS ]</span>
+                    <ArrowUpRight className="w-3 h-3 text-[#D4FF00]" />
+                  </div>
+                </div>
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* =========================================================================
+          EDGE-ALIGNED MINIMAL FOOTER TELEMETRY & AUDIO TOGGLE
+          ========================================================================= */}
+      <footer className="absolute bottom-6 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none z-40">
+        {/* Bottom-Left: Dimension Tracker */}
+        <div className="flex items-center gap-2.5">
+          <span className="text-[#D4FF00] font-bold">[{activeDim.num} / 03]</span>
+          <span className="hidden sm:inline text-neutral-300 font-medium">
+            {activeDim.shortName}
+          </span>
+        </div>
+
+        {/* Bottom-Center: Smooth Scroll Hint to Narrative */}
+        <button
+          onClick={scrollToNarrative}
+          className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer backdrop-blur-sm"
+        >
+          <span className="text-[10px] tracking-widest uppercase">OVERVIEW & NARRATIVE</span>
+          <ChevronDown className="w-3.5 h-3.5 text-[#D4FF00]" />
+        </button>
+
+        {/* Bottom-Right: Ambient Sound Toggle Button (Speaker wave icon) */}
+        <div className="pointer-events-auto flex items-center gap-4">
+          <button
+            onClick={handleToggleAudio}
+            type="button"
+            aria-label={isAudioPlaying ? 'Mute atmospheric sound' : 'Unmute atmospheric sound'}
+            className="flex items-center gap-2 p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer backdrop-blur-sm group"
+          >
+            {isAudioPlaying ? (
+              <>
+                <Volume2 className="w-4 h-4 text-[#D4FF00] animate-pulse" />
+                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#D4FF00]">
+                  SOUND ON
+                </span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-4 h-4 text-neutral-400 group-hover:text-white" />
+                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-neutral-400 group-hover:text-white">
+                  SOUND OFF
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+      </footer>
+
+      {/* =========================================================================
+          INTERACTIVE DIMENSION INSPECTOR VIEW ("Open" Portal State)
+          Inspired by Guillaume Colombel's project detail screen.
+          Reveals live database assets, real-time specifications, rates, and direct actions.
+          ========================================================================= */}
+      {inspectingDimension && (
+        <div className="absolute inset-0 z-50 flex flex-col justify-between bg-[#0a0504]/90 backdrop-blur-xl p-6 sm:p-12 animate-in fade-in duration-300 overflow-y-auto pointer-events-auto">
+          {/* Top Header inside Detail View */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono tracking-widest text-[#D4FF00] uppercase">
+                [{inspectingDimension.num} / DIMENSION PORTAL]
+              </span>
+              <span className="text-neutral-500">·</span>
+              <span className="text-sm font-sans font-bold text-white uppercase tracking-wider">
+                {inspectingDimension.shortName}
+              </span>
+            </div>
+
+            <button
+              onClick={() => setInspectingDimension(null)}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              <span>Close</span>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Central Portal Showcase: Dimension Narrative & Real Available Assets */}
+          <div className="max-w-6xl mx-auto w-full py-8 my-auto">
+            {/* Dimension Editorial Lead */}
+            <div className="max-w-3xl mb-8">
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#D4FF00] block mb-2">
+                {inspectingDimension.tagline}
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-white uppercase leading-none mb-4">
+                {inspectingDimension.titleLine1} {inspectingDimension.titleLine2}
+              </h2>
+              <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed">
+                {inspectingDimension.description}
+              </p>
+            </div>
+
+            {/* Curated Real Assets Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {inspectingDimension.featuredAssets.map((asset) => (
+                <div
+                  key={asset.id}
+                  className="p-6 rounded-2xl bg-[#170D0A]/90 border border-[#AD7257]/30 flex flex-col justify-between shadow-xl relative overflow-hidden group hover:border-[#D4FF00]/50 transition-all"
+                >
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 mb-3">
+                      <span className="text-[#D4FF00] font-semibold">{asset.tag}</span>
+                      <span className="flex items-center gap-1 text-emerald-400">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {asset.status}
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-white tracking-tight mb-2 group-hover:text-[#D4FF00] transition-colors">
+                      {asset.title}
+                    </h3>
+                    <p className="text-xs font-mono text-neutral-400 mb-4">{asset.location}</p>
+
+                    <div className="p-3 rounded-xl bg-[#24110C] border border-[#AD7257]/20 font-mono text-xs text-neutral-300 mb-6">
+                      {asset.specs}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                    <div>
+                      <div className="text-[10px] font-mono text-neutral-400 uppercase">
+                        Rate Telemetry
+                      </div>
+                      <div className="text-sm font-bold text-[#D4FF00] font-mono">{asset.rate}</div>
+                    </div>
+
+                    <Link
+                      href={`/explore?category=${inspectingDimension.category}`}
+                      className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-sans font-bold text-xs uppercase px-4 py-2 rounded-full transition-all shadow-md shadow-[#D4FF00]/15"
+                    >
+                      <span>Inquire</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Portal Navigation */}
+          <div className="flex items-center justify-between pt-6 border-t border-white/10 text-xs font-mono">
+            <button
+              onClick={() => {
+                const prev = (activeIndexRef.current + 2) % 3;
+                rotateToDimension(prev);
+                setInspectingDimension(DIMENSIONS[prev]);
+              }}
+              className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>PREVIOUS DIMENSION</span>
+            </button>
+
+            <Link
+              href={`/explore?category=${inspectingDimension.category}`}
+              className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+            >
+              EXPLORE ALL {inspectingDimension.shortName} IN MARKETPLACE ↗
+            </Link>
+
+            <button
+              onClick={() => {
+                const next = (activeIndexRef.current + 1) % 3;
+                rotateToDimension(next);
+                setInspectingDimension(DIMENSIONS[next]);
+              }}
+              className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <span>NEXT DIMENSION</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          THE ABOUT MANIFESTO OVERLAY (Guillaume Colombel About Page Style)
+          Clean editorial layout, high contrast, institutional specifications.
+          ========================================================================= */}
+      {showAboutModal && (
+        <div className="absolute inset-0 z-50 flex flex-col justify-between bg-[#0a0504]/94 backdrop-blur-xl p-6 sm:p-14 animate-in fade-in duration-300 overflow-y-auto pointer-events-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="font-sans font-bold text-base tracking-tight text-white uppercase">
+              IDLEX<span className="text-[#D4FF00]">.</span>
+            </div>
+
+            <button
+              onClick={() => setShowAboutModal(false)}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              <span>Close</span>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Editorial Manifesto Body */}
+          <div className="max-w-3xl mx-auto w-full py-10 my-auto">
+            <h1 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-white leading-tight mb-6">
+              IdleX, the intelligent institutional resource exchange.
             </h1>
 
-            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 font-normal leading-relaxed drop-shadow-md mx-auto">
-              {CHAPTERS[0].copy}
+            <p className="text-base sm:text-xl text-neutral-300 font-light leading-relaxed mb-6">
+              Across premier universities, national laboratories, and engineering clusters, over
+              ₹14.2 billion in specialized capital equipment sits dark after hours. IdleX builds
+              the real-time discovery, verified operator credentialing, and transactional integrity
+              protocol to turn dormant capacity into breakthrough innovation.
             </p>
 
-            <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-4 mt-5">
+            <p className="text-sm text-neutral-400 font-light leading-relaxed mb-10">
+              Departmental budgeting has traditionally incentivized hoarding. Without standardized
+              condition handovers or automated fallback guarantees, researchers lose months
+              waiting for external commercial vendors. IdleX eliminates these opaque administrative
+              walls.
+            </p>
+
+            {/* Architecture Metrics Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-6 border-y border-white/10 mb-8 font-mono text-xs">
+              <div>
+                <div className="text-2xl font-bold text-[#D4FF00] font-sans">₹14.2B+</div>
+                <div className="text-neutral-400 mt-1">Dormant Capital Monitored</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-white font-sans">100%</div>
+                <div className="text-neutral-400 mt-1">ACID Atomic Lock Guarantee</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-[#D4FF00] font-sans">0 min</div>
+                <div className="text-neutral-400 mt-1">Double Booking Collision</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-white font-sans">42+</div>
+                <div className="text-neutral-400 mt-1">Verified Instruments & Bays</div>
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div className="flex flex-wrap items-center gap-6 font-mono text-xs">
               <Link
                 href="/explore"
-                className="inline-flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-xl shadow-[#D4FF00]/20"
+                onClick={() => setShowAboutModal(false)}
+                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
               >
-                <span>Explore Resources</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <button
-                onClick={() => scrollToChapter(1)}
-                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-mono text-xs uppercase tracking-wider px-5 py-3 rounded-full border border-white/10 transition-all cursor-pointer backdrop-blur-sm"
-              >
-                <span>Discover Three Dimensions</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#D4FF00]" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* STAGE 1: LAND, PROPERTY & SPACES (120°) */}
-        <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
-            activeChapterIndex === 1
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-8 pointer-events-none'
-          }`}
-        >
-          <div className="max-w-2xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
-              <Building2 className="w-3.5 h-3.5" />
-              <span>01 / ARCHITECTURAL CAPACITY</span>
-            </div>
-            
-            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
-              SPACE TO BUILD.
-            </h2>
-
-            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 leading-relaxed drop-shadow-md mx-auto">
-              {CHAPTERS[1].copy}
-            </p>
-
-            <div className="pointer-events-auto mt-5">
-              <Link
-                href="/explore?category=space"
-                className="inline-flex items-center gap-2.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-lg shadow-[#D4FF00]/15"
-              >
-                <span>Browse Spaces & Facilities</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* STAGE 2: PHYSICAL ASSETS (240°) */}
-        <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
-            activeChapterIndex === 2
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-8 pointer-events-none'
-          }`}
-        >
-          <div className="max-w-2xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-xs font-mono text-white mb-2 backdrop-blur-sm">
-              <Cog className="w-3.5 h-3.5 text-[#D4FF00]" />
-              <span>02 / PRECISION HARDWARE</span>
-            </div>
-            
-            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
-              TOOLS IN MOTION.
-            </h2>
-
-            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 leading-relaxed drop-shadow-md mx-auto">
-              {CHAPTERS[2].copy}
-            </p>
-
-            <div className="pointer-events-auto mt-5">
-              <Link
-                href="/explore?category=equipment"
-                className="inline-flex items-center gap-2.5 bg-white hover:bg-neutral-200 text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-lg"
-              >
-                <span>Browse Physical Assets</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* STAGE 3: DIGITAL & TECH (360°) */}
-        <div
-          className={`absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-16 sm:pb-20 px-6 text-center transition-all duration-700 ease-out ${
-            activeChapterIndex === 3
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-8 pointer-events-none'
-          }`}
-        >
-          <div className="max-w-2xl mx-auto flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-xs font-mono text-[#D4FF00] mb-2 backdrop-blur-sm">
-              <Cpu className="w-3.5 h-3.5" />
-              <span>03 / COMPUTATIONAL ALLOCATION</span>
-            </div>
-            
-            <h2 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white leading-[0.92] drop-shadow-[0_12px_32px_rgba(0,0,0,0.95)]">
-              ACCESS WHAT'S NEXT.
-            </h2>
-
-            <p className="mt-3 max-w-lg text-sm sm:text-base text-neutral-300 leading-relaxed drop-shadow-md mx-auto">
-              {CHAPTERS[3].copy}
-            </p>
-
-            <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-4 mt-5">
-              <Link
-                href="/explore?category=digital"
-                className="inline-flex items-center gap-2.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-xl shadow-[#D4FF00]/20"
-              >
-                <span>Explore Digital & Compute</span>
-                <ArrowRight className="w-4 h-4" />
+                Browse Marketplace
               </Link>
               <Link
                 href="/match"
-                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-mono text-xs uppercase tracking-wider px-5 py-3 rounded-full border border-white/10 transition-all backdrop-blur-sm"
+                onClick={() => setShowAboutModal(false)}
+                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#D4FF00]" />
-                <span>Test Natural Intent Engine</span>
+                Intent Matching Engine
+              </Link>
+              <Link
+                href="/incidents"
+                onClick={() => setShowAboutModal(false)}
+                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+              >
+                Promise Protection Protocol
+              </Link>
+              <Link
+                href="/dashboard"
+                onClick={() => setShowAboutModal(false)}
+                className="text-white hover:text-[#D4FF00] transition-colors underline underline-offset-4 decoration-white/30 hover:decoration-[#D4FF00]"
+              >
+                Launch App
               </Link>
             </div>
           </div>
+
+          {/* Footer inside About modal */}
+          <div className="flex items-center justify-between text-xs font-mono text-neutral-500 pt-6 border-t border-white/10">
+            <span>IDLEX PROTOCOL V2.6</span>
+            <span>© 2026 IDLEX INC.</span>
+          </div>
         </div>
-
-        {/* =========================================================================
-            MINIMAL PERIMETER LABELS & SCROLL PROGRESS
-            ========================================================================= */}
-        <div className="absolute bottom-6 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none z-30">
-          
-          {/* Bottom-Left: Dimension Tracker */}
-          <div className="flex items-center gap-2">
-            <span className="text-[#D4FF00] font-bold">
-              [{currentChapter.num} / 03]
-            </span>
-            <span className="hidden sm:inline text-neutral-300">
-              {currentChapter.name}
-            </span>
-          </div>
-
-          {/* Bottom-Center: Animated Scroll Indicator */}
-          <div className="flex flex-col items-center gap-1.5">
-            <span className="tracking-widest uppercase text-[9px] text-neutral-400">
-              {scrollProgress >= 0.95 ? 'CONTINUE EXPLORING ↓' : 'SCROLL TO EXPLORE'}
-            </span>
-            <div className="w-24 h-[2px] bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#D4FF00] transition-all duration-150"
-                style={{ width: `${Math.round(scrollProgress * 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Bottom-Right: Angular Telemetry */}
-          <div className="flex items-center gap-2 font-mono">
-            <span className="hidden sm:inline text-neutral-400">INDEX:</span>
-            <span className="text-white font-bold">{currentDeg.toFixed(0)}°</span>
-            <span className="text-neutral-400">/ 360°</span>
-          </div>
-
-        </div>
-
-      </div>
+      )}
     </div>
   );
 }

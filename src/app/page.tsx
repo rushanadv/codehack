@@ -128,7 +128,7 @@ export default function HomePage() {
       <CinematicHeroExperience />
 
       {/* 2. SECTION A: THE CORE PARADOX (Asymmetric Magazine Editorial Spread) */}
-      <section className="py-32 px-6 sm:px-12 lg:px-20 border-t border-[#AD7257]/20 bg-[#120A08] relative z-10">
+      <section id="narrative-section" className="py-32 px-6 sm:px-12 lg:px-20 border-t border-[#AD7257]/20 bg-[#120A08] relative z-10">
         <div className="max-w-7xl mx-auto">
           
           <div className="flex items-center gap-2 mb-4 font-mono text-xs uppercase tracking-[0.25em] text-[#D4FF00]">
