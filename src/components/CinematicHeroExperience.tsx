@@ -294,6 +294,9 @@ export default function CinematicHeroExperience() {
   // Station 0 = 0 rad (Property & Spaces), Station 1 = 2π/3 (Physical Assets), Station 2 = 4π/3 (Digital & Tech)
   const targetAngleRef = useRef(0);
   const currentAngleRef = useRef(0);
+  const scrollVelocityRef = useRef(0);
+  const lastInputTimeRef = useRef(0);
+  const isUserScrollingRef = useRef(false);
 
   // Interactive Inspection Overlay ("Open" state inspired by Guillaume Colombel project detail)
   const [inspectingDimension, setInspectingDimension] = useState<DimensionItem | null>(null);
@@ -385,7 +388,9 @@ export default function CinematicHeroExperience() {
       dragStartAngleRef.current = targetAngleRef.current;
       lastDragXRef.current = e.clientX;
       lastDragTimeRef.current = performance.now();
+      lastInputTimeRef.current = performance.now();
       dragVelocityRef.current = 0;
+      scrollVelocityRef.current = 0;
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -398,6 +403,7 @@ export default function CinematicHeroExperience() {
       dragVelocityRef.current = instantVelocity;
       lastDragXRef.current = e.clientX;
       lastDragTimeRef.current = now;
+      lastInputTimeRef.current = now;
 
       const angleDelta = -(dx / 460) * SPACING;
       targetAngleRef.current = dragStartAngleRef.current + angleDelta;
@@ -407,29 +413,34 @@ export default function CinematicHeroExperience() {
       if (!isDraggingRef.current) return;
       isDraggingRef.current = false;
 
-      const flickBoost = -dragVelocityRef.current * 0.16;
-      targetAngleRef.current += flickBoost;
-
-      const nearestStation = Math.round(targetAngleRef.current / SPACING) * SPACING;
-      targetAngleRef.current = nearestStation;
+      // Impart fluid momentum without hard snapping
+      const angularVelocity = -(dragVelocityRef.current / 460) * SPACING * 16.67;
+      scrollVelocityRef.current = Math.max(-0.06, Math.min(0.06, angularVelocity * 0.025));
+      lastInputTimeRef.current = performance.now();
     };
 
-    let wheelTimeout: NodeJS.Timeout | null = null;
+    let wheelIdleTimer: NodeJS.Timeout | null = null;
     const onWheel = (e: WheelEvent) => {
       if (inspectingDimension || showAboutModal) return;
       const rect = holder.getBoundingClientRect();
       if (rect.top > 10 || rect.bottom < window.innerHeight - 10) return;
 
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      if (Math.abs(delta) < 2) return;
+      if (Math.abs(delta) < 1) return;
 
-      targetAngleRef.current += delta * 0.0018;
+      const now = performance.now();
+      lastInputTimeRef.current = now;
+      isUserScrollingRef.current = true;
 
-      if (wheelTimeout) clearTimeout(wheelTimeout);
-      wheelTimeout = setTimeout(() => {
-        const nearest = Math.round(targetAngleRef.current / SPACING) * SPACING;
-        targetAngleRef.current = nearest;
-      }, 180);
+      // Fluid angular delta (supports trackpad, mouse wheel, and reverse scrolling)
+      const angularDelta = delta * 0.0016;
+      targetAngleRef.current += angularDelta;
+      scrollVelocityRef.current = scrollVelocityRef.current * 0.4 + angularDelta * 0.6;
+
+      if (wheelIdleTimer) clearTimeout(wheelIdleTimer);
+      wheelIdleTimer = setTimeout(() => {
+        isUserScrollingRef.current = false;
+      }, 90);
     };
 
     holder.addEventListener('pointerdown', onPointerDown);
@@ -442,7 +453,7 @@ export default function CinematicHeroExperience() {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       holder.removeEventListener('wheel', onWheel);
-      if (wheelTimeout) clearTimeout(wheelTimeout);
+      if (wheelIdleTimer) clearTimeout(wheelIdleTimer);
     };
   }, [inspectingDimension, showAboutModal, SPACING]);
 
@@ -589,31 +600,21 @@ export default function CinematicHeroExperience() {
               mesh.geometry.computeVertexNormals();
             }
 
-            const meshName = mesh.name || '';
-            const isFront =
-              meshName.includes('Front') ||
-              !!(mesh.material as THREE.MeshStandardMaterial)?.map;
-
-            if (isFront && mesh.material) {
-              const frontMat = mesh.material as THREE.MeshStandardMaterial;
-              frontMat.roughness = 0.38;
-              frontMat.metalness = 0.02;
-              frontMat.side = THREE.DoubleSide;
-              frontMat.needsUpdate = true;
-            } else if (meshName.includes('Back') || mesh.geometry.attributes.color) {
-              mesh.material = new THREE.MeshStandardMaterial({
-                vertexColors: true,
-                roughness: 0.65,
-                metalness: 0.06,
-                side: THREE.DoubleSide,
-              });
-            } else {
-              mesh.material = new THREE.MeshStandardMaterial({
-                vertexColors: !!mesh.geometry.attributes.color,
-                roughness: 0.75,
-                metalness: 0.04,
-                side: THREE.DoubleSide,
-              });
+            if (mesh.material) {
+              const mat = mesh.material as THREE.MeshStandardMaterial;
+              if (mat.map) {
+                mat.map.colorSpace = THREE.SRGBColorSpace;
+                mat.map.needsUpdate = true;
+              }
+              if (mat.normalMap) {
+                mat.normalScale.set(1.0, 1.0);
+                mat.normalMap.needsUpdate = true;
+              }
+              mat.roughness = 0.32;
+              mat.metalness = 0.02;
+              mat.envMapIntensity = 1.25;
+              mat.side = THREE.DoubleSide;
+              mat.needsUpdate = true;
             }
           }
         });
@@ -678,6 +679,43 @@ export default function CinematicHeroExperience() {
     const animate = () => {
       animId = requestAnimationFrame(animate);
       const elapsedTime = (performance.now() - startTime) * 0.001;
+
+      // Physics & Soft Magnetic Locking
+      const now = performance.now();
+      const timeSinceInput = now - lastInputTimeRef.current;
+
+      // 1. Momentum coasting (fluid continuation from flick or drag release)
+      if (!isDraggingRef.current && Math.abs(scrollVelocityRef.current) > 0.00005) {
+        targetAngleRef.current += scrollVelocityRef.current;
+        scrollVelocityRef.current *= 0.88; // Viscous fluid friction
+        if (Math.abs(scrollVelocityRef.current) < 0.00005) {
+          scrollVelocityRef.current = 0;
+        }
+      }
+
+      // 2. Soft Velocity-Aware Magnetic Attraction
+      // When scrolling decelerates or pauses, the nearest dimension station gently attracts rotation.
+      // High-speed scrolling carries free momentum through stations without resistance.
+      if (!isDraggingRef.current) {
+        const nearestStation = Math.round(targetAngleRef.current / SPACING) * SPACING;
+        const distToStation = nearestStation - targetAngleRef.current;
+
+        // Velocity damping factor: 0 at high speed, 1 at rest
+        const speed = Math.abs(scrollVelocityRef.current);
+        const speedFactor = Math.max(0, 1.0 - speed / 0.008);
+        
+        // Time ramp: gentle attraction onset after input pauses
+        const timeFactor = isUserScrollingRef.current 
+          ? Math.max(0, (timeSinceInput - 60) / 100) 
+          : Math.min(1.0, timeSinceInput / 80);
+
+        // Gaussian attraction curve (peaks near anchor, tapers gently across spacing)
+        const normalizedDist = Math.abs(distToStation) / (SPACING * 0.5);
+        const distanceFactor = Math.exp(-normalizedDist * normalizedDist * 1.8);
+
+        const magneticForce = 0.055 * speedFactor * Math.min(1.0, timeFactor) * distanceFactor;
+        targetAngleRef.current += distToStation * magneticForce;
+      }
 
       // Smooth damped lerp toward targetAngle
       const angleLerpFactor = 0.095;
