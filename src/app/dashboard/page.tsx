@@ -77,26 +77,26 @@ export default function DashboardPage() {
     <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* Header Profile Banner */}
-      <div className="p-6 rounded-xl bg-[#0D0F14] border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl">
+      <div className="p-6 sm:p-8 rounded-2xl bg-[#170D0A] border border-[#AD7257]/30 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl">
         <div className="flex items-center gap-4">
           <img
             src={currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
             alt={currentUser?.name}
-            className="w-16 h-16 rounded-xl object-cover border-2 border-[#D4FF00]"
+            className="w-16 h-16 rounded-2xl object-cover border-2 border-[#D4FF00]"
           />
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="badge-tech bg-[#D4FF00]/15 text-[#D4FF00] border border-[#D4FF00]/30">
+              <span className="badge-tech bg-[#D4FF00]/15 text-[#D4FF00] border border-[#D4FF00]/30 font-mono">
                 {currentUser?.role.toUpperCase()} CONSOLE
               </span>
-              <span className="text-[10px] font-mono text-neutral-500">
+              <span className="text-[10px] font-mono text-[#A99A90]">
                 ID: {currentUser?.id}
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#F1E7DE] tracking-tight">
               {currentUser?.name}
             </h1>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-[#D9C5B4] font-mono mt-0.5">
               {currentUser?.department} • {currentUser?.institution}
             </p>
           </div>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/explore"
-            className="flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-4 py-2 rounded-lg font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
+            className="flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-5 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
           >
             <PlusCircle className="w-4 h-4" />
             Book Resource
@@ -114,9 +114,9 @@ export default function DashboardPage() {
           {isOwner && (
             <Link
               href="/owner/analytics"
-              className="flex items-center gap-2 bg-[#151921] hover:bg-white/10 text-white px-4 py-2 rounded-lg font-mono text-xs uppercase tracking-wider border border-white/10 transition-colors"
+              className="flex items-center gap-2 bg-[#24110C] hover:bg-[#2F1711] text-[#F1E7DE] px-4 py-2.5 rounded-xl font-mono text-xs uppercase tracking-wider border border-[#AD7257]/30 transition-colors"
             >
-              <BarChart3 className="w-4 h-4 text-cyan-400" />
+              <BarChart3 className="w-4 h-4 text-[#D4FF00]" />
               Idle Insights
             </Link>
           )}
@@ -125,68 +125,68 @@ export default function DashboardPage() {
 
       {/* High-Level Telemetry Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-xl bg-[#0F1217] border border-white/8">
-          <div className="flex items-center justify-between text-neutral-400 mb-2 font-mono text-xs">
+        <div className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 shadow-lg">
+          <div className="flex items-center justify-between text-[#A99A90] mb-2 font-mono text-xs">
             <span>ACTIVE SESSIONS</span>
             <Activity className="w-4 h-4 text-[#D4FF00]" />
           </div>
-          <div className="text-3xl font-extrabold font-mono text-white">
+          <div className="text-3xl font-extrabold font-mono text-[#F1E7DE]">
             {activeBookings.length}
           </div>
-          <div className="text-[11px] text-neutral-500 font-mono mt-1">Under custody</div>
+          <div className="text-[11px] text-[#A99A90] font-mono mt-1">Under custody</div>
         </div>
 
-        <div className="p-5 rounded-xl bg-[#0F1217] border border-white/8">
-          <div className="flex items-center justify-between text-neutral-400 mb-2 font-mono text-xs">
+        <div className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 shadow-lg">
+          <div className="flex items-center justify-between text-[#A99A90] mb-2 font-mono text-xs">
             <span>UPCOMING / QUEUED</span>
-            <CalendarCheck className="w-4 h-4 text-blue-400" />
+            <CalendarCheck className="w-4 h-4 text-[#D96335]" />
           </div>
-          <div className="text-3xl font-extrabold font-mono text-white">
+          <div className="text-3xl font-extrabold font-mono text-[#F1E7DE]">
             {confirmedBookings.length}
           </div>
-          <div className="text-[11px] text-neutral-500 font-mono mt-1">Confirmed reservations</div>
+          <div className="text-[11px] text-[#A99A90] font-mono mt-1">Confirmed reservations</div>
         </div>
 
-        <div className="p-5 rounded-xl bg-[#0F1217] border border-white/8">
-          <div className="flex items-center justify-between text-neutral-400 mb-2 font-mono text-xs">
+        <div className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 shadow-lg">
+          <div className="flex items-center justify-between text-[#A99A90] mb-2 font-mono text-xs">
             <span>APPROVAL QUEUE</span>
-            <Inbox className="w-4 h-4 text-purple-400" />
+            <Inbox className="w-4 h-4 text-[#AD7257]" />
           </div>
-          <div className="text-3xl font-extrabold font-mono text-white">
+          <div className="text-3xl font-extrabold font-mono text-[#F1E7DE]">
             {pendingBookings.length}
           </div>
-          <div className="text-[11px] text-neutral-500 font-mono mt-1">Pending review</div>
+          <div className="text-[11px] text-[#A99A90] font-mono mt-1">Pending review</div>
         </div>
 
-        <div className="p-5 rounded-xl bg-[#0F1217] border border-white/8">
-          <div className="flex items-center justify-between text-neutral-400 mb-2 font-mono text-xs">
+        <div className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 shadow-lg">
+          <div className="flex items-center justify-between text-[#A99A90] mb-2 font-mono text-xs">
             <span>DISRUPTION ALERTS</span>
             <AlertTriangle className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-3xl font-extrabold font-mono text-white">
+          <div className="text-3xl font-extrabold font-mono text-[#F1E7DE]">
             {disruptions.length}
           </div>
-          <div className="text-[11px] text-neutral-500 font-mono mt-1">Promise Protection active</div>
+          <div className="text-[11px] text-[#A99A90] font-mono mt-1">Promise Protection active</div>
         </div>
       </div>
 
       {/* Active Disruption Warnings Banner if any */}
       {disruptions.length > 0 && (
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-5 rounded-2xl bg-[#24110C] border border-[#D96335]/40 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+            <AlertTriangle className="w-5 h-5 text-[#D96335] shrink-0" />
             <div className="text-xs">
-              <span className="font-bold text-white font-mono uppercase">
+              <span className="font-bold text-[#F1E7DE] font-mono uppercase">
                 Active Promise Protection Disruption Logged:
               </span>{' '}
-              <span className="text-neutral-300">
+              <span className="text-[#D9C5B4]">
                 {disruptions[0].delayed_resource_title} (+{disruptions[0].delay_duration_minutes}m delay). Potential cascade under mitigation.
               </span>
             </div>
           </div>
           <Link
             href="/incidents"
-            className="text-xs font-mono font-bold uppercase text-amber-400 hover:underline shrink-0"
+            className="text-xs font-mono font-bold uppercase text-[#D4FF00] hover:underline shrink-0"
           >
             Review Incidents Console →
           </Link>
@@ -198,15 +198,15 @@ export default function DashboardPage() {
         
         {/* Left: Active & Recent Bookings (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-white/10">
-            <span className="text-white font-bold uppercase">Active & Recent Bookings</span>
+          <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#AD7257]/20">
+            <span className="text-[#F1E7DE] font-bold uppercase">Active & Recent Bookings</span>
             <Link href="/bookings" className="text-[#D4FF00] hover:underline">
               View All History →
             </Link>
           </div>
 
           {bookings.length === 0 ? (
-            <div className="p-8 text-center bg-[#0D0F14] rounded-xl border border-white/8 text-neutral-400 text-xs">
+            <div className="p-8 text-center bg-[#170D0A] rounded-2xl border border-[#AD7257]/25 text-[#D9C5B4] text-xs">
               No active reservations found. Explore the marketplace to reserve lab instruments.
             </div>
           ) : (
@@ -214,40 +214,40 @@ export default function DashboardPage() {
               {bookings.slice(0, 5).map((b) => (
                 <div
                   key={b.id}
-                  className="p-5 rounded-xl bg-[#0D0F14] border border-white/8 hover:border-white/15 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-5 sm:p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 hover:border-[#AD7257]/45 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg"
                 >
                   <div className="flex items-start gap-4">
                     <img
                       src={b.resource_image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=100&auto=format&fit=crop&q=80'}
                       alt={b.resource_title}
-                      className="w-16 h-16 rounded-lg object-cover border border-white/10 shrink-0"
+                      className="w-16 h-16 rounded-xl object-cover border border-[#AD7257]/30 shrink-0"
                     />
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="badge-tech bg-white/10 text-neutral-300">
+                        <span className="badge-tech bg-[#24110C] text-[#D9C5B4] border border-[#AD7257]/25 font-mono">
                           {b.resource_passport_id}
                         </span>
-                        <span className={`badge-tech ${
+                        <span className={`badge-tech font-mono ${
                           b.status === 'in_progress' ? 'bg-[#D4FF00]/20 text-[#D4FF00]' :
-                          b.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400' :
+                          b.status === 'confirmed' ? 'bg-[#D96335]/25 text-[#D96335]' :
                           b.status === 'returned' ? 'bg-emerald-500/20 text-emerald-400' :
                           'bg-amber-500/20 text-amber-400'
                         }`}>
                           {b.status.toUpperCase()}
                         </span>
                       </div>
-                      <h4 className="font-bold text-white text-sm">
+                      <h4 className="font-bold text-[#F1E7DE] text-sm">
                         <Link href={`/bookings/${b.id}`} className="hover:text-[#D4FF00] transition-colors">
                           {b.resource_title}
                         </Link>
                       </h4>
-                      <p className="text-xs text-neutral-400 line-clamp-1 mt-0.5">
+                      <p className="text-xs text-[#D9C5B4] line-clamp-1 mt-0.5">
                         {b.purpose}
                       </p>
-                      <div className="text-[11px] font-mono text-neutral-400 mt-2 flex items-center gap-3">
+                      <div className="text-[11px] font-mono text-[#A99A90] mt-2 flex items-center gap-3">
                         <span>Start: {new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         <span>End: {new Date(b.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        <span>Fee: ₹{b.total_cost}</span>
+                        <span className="text-[#F1E7DE]">Fee: ₹{b.total_cost}</span>
                       </div>
                     </div>
                   </div>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                   <div className="shrink-0 flex items-center gap-2 self-end sm:self-auto">
                     <Link
                       href={`/bookings/${b.id}`}
-                      className="px-3.5 py-1.5 bg-[#151921] hover:bg-white/10 text-neutral-200 rounded text-xs font-mono uppercase"
+                      className="px-4 py-2 bg-[#24110C] hover:bg-[#D4FF00] text-[#D9C5B4] hover:text-black border border-[#AD7257]/30 rounded-lg text-xs font-mono uppercase transition-colors"
                     >
                       Lifecycle →
                     </Link>
@@ -268,14 +268,14 @@ export default function DashboardPage() {
 
         {/* Right: Operational Insights / Quick Nav (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="p-6 rounded-xl bg-[#0D0F14] border border-white/10 space-y-4">
-            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-white">
+          <div className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 space-y-4 shadow-xl">
+            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-[#F1E7DE]">
               Institutional Navigation
             </h3>
             <div className="space-y-2 text-xs font-mono">
               <Link
                 href="/incidents"
-                className="p-3 rounded bg-[#12151B] hover:bg-white/5 border border-white/5 flex items-center justify-between text-neutral-300 hover:text-white transition-colors block"
+                className="p-3.5 rounded-xl bg-[#24110C] hover:bg-[#2F1711] border border-[#AD7257]/20 flex items-center justify-between text-[#D9C5B4] hover:text-[#F1E7DE] transition-colors block"
               >
                 <span>Promise Protection Console</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#D4FF00]" />
@@ -283,7 +283,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/waitlist"
-                className="p-3 rounded bg-[#12151B] hover:bg-white/5 border border-white/5 flex items-center justify-between text-neutral-300 hover:text-white transition-colors block"
+                className="p-3.5 rounded-xl bg-[#24110C] hover:bg-[#2F1711] border border-[#AD7257]/20 flex items-center justify-between text-[#D9C5B4] hover:text-[#F1E7DE] transition-colors block"
               >
                 <span>FairShare Waitlist Queues</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#D4FF00]" />
@@ -293,7 +293,7 @@ export default function DashboardPage() {
                 <>
                   <Link
                     href="/owner/resources"
-                    className="p-3 rounded bg-[#12151B] hover:bg-white/5 border border-white/5 flex items-center justify-between text-neutral-300 hover:text-white transition-colors block"
+                    className="p-3.5 rounded-xl bg-[#24110C] hover:bg-[#2F1711] border border-[#AD7257]/20 flex items-center justify-between text-[#D9C5B4] hover:text-[#F1E7DE] transition-colors block"
                   >
                     <span>Owner Inventory Management</span>
                     <ArrowRight className="w-3.5 h-3.5 text-[#D4FF00]" />
@@ -301,7 +301,7 @@ export default function DashboardPage() {
 
                   <Link
                     href="/owner/requests"
-                    className="p-3 rounded bg-[#12151B] hover:bg-white/5 border border-white/5 flex items-center justify-between text-neutral-300 hover:text-white transition-colors block"
+                    className="p-3.5 rounded-xl bg-[#24110C] hover:bg-[#2F1711] border border-[#AD7257]/20 flex items-center justify-between text-[#D9C5B4] hover:text-[#F1E7DE] transition-colors block"
                   >
                     <span>Booking Approval Queue</span>
                     <ArrowRight className="w-3.5 h-3.5 text-[#D4FF00]" />
@@ -309,10 +309,10 @@ export default function DashboardPage() {
 
                   <Link
                     href="/owner/analytics"
-                    className="p-3 rounded bg-[#12151B] hover:bg-white/5 border border-white/5 flex items-center justify-between text-cyan-400 hover:text-cyan-300 transition-colors block"
+                    className="p-3.5 rounded-xl bg-[#24110C] hover:bg-[#2F1711] border border-[#AD7257]/20 flex items-center justify-between text-[#D4FF00] hover:text-[#D4FF00] transition-colors block"
                   >
                     <span>Idle Insights Telemetry</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#D4FF00]" />
                   </Link>
                 </>
               )}
@@ -320,10 +320,10 @@ export default function DashboardPage() {
               {currentUser?.role === 'admin' && (
                 <Link
                   href="/admin"
-                  className="p-3 rounded bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 flex items-center justify-between text-purple-300 transition-colors block"
+                  className="p-3.5 rounded-xl bg-[#24110C] hover:bg-[#2F1711] border border-[#AD7257]/30 flex items-center justify-between text-amber-300 transition-colors block"
                 >
                   <span>Admin Verification & Audit</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
                 </Link>
               )}
             </div>

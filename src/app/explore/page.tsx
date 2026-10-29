@@ -77,17 +77,17 @@ export default function ExplorePage() {
     <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-white/8 gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[#AD7257]/20 gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
             <span>Exchange Directory</span>
             <span>•</span>
             <span>Verified Institutional Assets</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#F1E7DE] tracking-tight">
             Explore Resources
           </h1>
-          <p className="text-sm text-neutral-400 mt-1 max-w-xl">
+          <p className="text-sm text-[#D9C5B4] mt-1 max-w-xl">
             Discover precision research instruments, experimental facilities, and dedicated compute nodes with guaranteed turnaround buffers.
           </p>
         </div>
@@ -95,7 +95,7 @@ export default function ExplorePage() {
         {/* Quick Link to IdleX Match */}
         <Link
           href="/match"
-          className="flex items-center gap-2 bg-[#12151B] hover:bg-[#181D26] text-[#D4FF00] border border-[#D4FF00]/30 hover:border-[#D4FF00] px-4 py-2.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all self-start md:self-auto"
+          className="flex items-center gap-2 bg-[#170D0A] hover:bg-[#24110C] text-[#D4FF00] border border-[#AD7257]/30 hover:border-[#D4FF00] px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider transition-all self-start md:self-auto shadow-sm"
         >
           <Sparkles className="w-3.5 h-3.5" />
           Natural Language Matcher →
@@ -103,17 +103,17 @@ export default function ExplorePage() {
       </div>
 
       {/* Category Pills Bar */}
-      <div className="flex items-center gap-2 py-6 overflow-x-auto border-b border-white/8 no-scrollbar">
+      <div className="flex items-center gap-2 py-6 overflow-x-auto border-b border-[#AD7257]/20 no-scrollbar">
         {categories.map((c) => {
           const Icon = c.icon;
           return (
             <button
               key={c.id}
               onClick={() => setSelectedCategory(c.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-mono whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === c.id
                   ? 'bg-[#D4FF00] text-black font-bold shadow-md shadow-[#D4FF00]/20'
-                  : 'bg-[#12151B] text-neutral-300 hover:text-white border border-white/10'
+                  : 'bg-[#170D0A] text-[#D9C5B4] hover:text-[#F1E7DE] border border-[#AD7257]/25 hover:border-[#AD7257]/50'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -128,13 +128,13 @@ export default function ExplorePage() {
         
         {/* Search Input */}
         <form onSubmit={handleSearchSubmit} className="md:col-span-5 relative">
-          <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#A99A90] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by title, spec (e.g. ULTEM, 8K, SEM), or lab..."
-            className="w-full bg-[#12151B] text-white pl-10 pr-4 py-2 rounded-lg border border-white/10 text-xs focus:outline-none focus:border-[#D4FF00] transition-colors font-sans"
+            className="w-full bg-[#170D0A] text-[#F1E7DE] pl-10 pr-4 py-2.5 rounded-xl border border-[#AD7257]/25 text-xs focus:outline-none focus:border-[#D4FF00] transition-colors font-sans"
           />
         </form>
 
@@ -143,7 +143,7 @@ export default function ExplorePage() {
           <select
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
-            className="w-full bg-[#12151B] text-neutral-300 px-3 py-2 rounded-lg border border-white/10 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
+            className="w-full bg-[#170D0A] text-[#D9C5B4] px-3 py-2.5 rounded-xl border border-[#AD7257]/25 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
           >
             <option value="all">All Campuses</option>
             <option value="Central Campus">Central Campus</option>
@@ -158,7 +158,7 @@ export default function ExplorePage() {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full bg-[#12151B] text-neutral-300 px-3 py-2 rounded-lg border border-white/10 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
+            className="w-full bg-[#170D0A] text-[#D9C5B4] px-3 py-2.5 rounded-xl border border-[#AD7257]/25 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="available">Available Now</option>
@@ -171,7 +171,7 @@ export default function ExplorePage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full bg-[#12151B] text-neutral-300 px-3 py-2 rounded-lg border border-white/10 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
+            className="w-full bg-[#170D0A] text-[#D9C5B4] px-3 py-2.5 rounded-xl border border-[#AD7257]/25 text-xs focus:outline-none focus:border-[#D4FF00] font-mono cursor-pointer"
           >
             <option value="recommended">Sort: Relevance</option>
             <option value="price_asc">Price: Low to High</option>
@@ -184,7 +184,7 @@ export default function ExplorePage() {
           <button
             onClick={handleResetFilters}
             title="Reset Filters"
-            className="p-2 bg-[#12151B] hover:bg-white/10 text-neutral-400 hover:text-white rounded-lg border border-white/10 transition-colors cursor-pointer"
+            className="p-2.5 bg-[#170D0A] hover:bg-[#24110C] text-[#A99A90] hover:text-[#F1E7DE] rounded-xl border border-[#AD7257]/25 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -195,27 +195,27 @@ export default function ExplorePage() {
       {isLoading ? (
         <div className="py-24 text-center">
           <div className="w-8 h-8 border-2 border-[#D4FF00] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-xs font-mono text-neutral-400 uppercase tracking-widest">
+          <div className="text-xs font-mono text-[#A99A90] uppercase tracking-widest">
             Querying Relational Asset Directory...
           </div>
         </div>
       ) : resources.length === 0 ? (
-        <div className="py-20 text-center bg-[#0F1217] rounded-xl border border-white/8 p-8 max-w-xl mx-auto my-8">
-          <Box className="w-10 h-10 text-neutral-500 mx-auto mb-4" />
-          <h3 className="text-base font-bold text-white mb-2">No matching resources found</h3>
-          <p className="text-xs text-neutral-400 mb-6">
+        <div className="py-20 text-center bg-[#170D0A] rounded-2xl border border-[#AD7257]/25 p-8 max-w-xl mx-auto my-8 shadow-xl">
+          <Box className="w-10 h-10 text-[#AD7257] mx-auto mb-4" />
+          <h3 className="text-base font-bold text-[#F1E7DE] mb-2">No matching resources found</h3>
+          <p className="text-xs text-[#D9C5B4] mb-6">
             We couldn't find any resources matching your search and filter parameters. Try clearing your filters or try our natural language matching engine.
           </p>
           <div className="flex justify-center gap-3">
             <button
               onClick={handleResetFilters}
-              className="bg-[#151921] hover:bg-[#1D232F] text-white px-4 py-2 rounded font-mono text-xs uppercase cursor-pointer border border-white/10"
+              className="bg-[#24110C] hover:bg-[#2E1610] text-[#F1E7DE] px-4 py-2 rounded-lg font-mono text-xs uppercase cursor-pointer border border-[#AD7257]/30"
             >
               Reset Filters
             </button>
             <Link
               href="/match"
-              className="bg-[#D4FF00] text-black px-4 py-2 rounded font-mono text-xs font-bold uppercase cursor-pointer"
+              className="bg-[#D4FF00] text-black px-4 py-2 rounded-lg font-mono text-xs font-bold uppercase cursor-pointer"
             >
               Try IdleX Match
             </Link>

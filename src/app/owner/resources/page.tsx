@@ -97,23 +97,23 @@ export default function OwnerResourcesPage() {
     <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto space-y-8">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-white/8 gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[#AD7257]/20 gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
             <Layers className="w-4 h-4" />
             <span>Asset Governance Console</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#F1E7DE] tracking-tight">
             Resource Inventory
           </h1>
-          <p className="text-sm text-neutral-400 mt-1 max-w-xl">
+          <p className="text-sm text-[#D9C5B4] mt-1 max-w-xl">
             Maintain institutional laboratory instruments, configure turnaround buffers, monitor maintenance intervals, and issue Resource Passports.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-4 py-2.5 rounded-lg font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
+          className="flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-5 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
         >
           <Plus className="w-4 h-4" />
           List New Asset
@@ -122,7 +122,7 @@ export default function OwnerResourcesPage() {
 
       {/* Inventory List */}
       {isLoading ? (
-        <div className="py-24 text-center text-xs font-mono text-neutral-400 uppercase tracking-widest">
+        <div className="py-24 text-center text-xs font-mono text-[#A99A90] uppercase tracking-widest">
           Loading Inventory Assets...
         </div>
       ) : (
@@ -130,40 +130,40 @@ export default function OwnerResourcesPage() {
           {resources.map((r) => (
             <div
               key={r.id}
-              className="p-5 rounded-xl bg-[#0D0F14] border border-white/8 hover:border-white/15 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+              className="p-6 rounded-2xl bg-[#170D0A] border border-[#AD7257]/25 hover:border-[#AD7257]/45 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl"
             >
               <div className="flex items-start gap-4">
                 <img
                   src={r.image_url}
                   alt={r.title}
-                  className="w-20 h-20 rounded-lg object-cover border border-white/10 shrink-0"
+                  className="w-20 h-20 rounded-xl object-cover border border-[#AD7257]/30 shrink-0"
                 />
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="badge-tech bg-white/10 text-neutral-300">
+                    <span className="badge-tech bg-[#24110C] text-[#D9C5B4] border border-[#AD7257]/25 font-mono">
                       {r.passport_id}
                     </span>
-                    <span className={`badge-tech ${
+                    <span className={`badge-tech font-mono ${
                       r.status === 'available' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
-                      r.status === 'in_use' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
+                      r.status === 'in_use' ? 'bg-[#D96335]/25 text-[#D96335] border border-[#D96335]/40' :
                       'bg-red-500/20 text-red-400 border border-red-500/40'
                     }`}>
                       {r.status.toUpperCase()}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-bold text-[#F1E7DE]">
                     <Link href={`/resources/${r.id}`} className="hover:text-[#D4FF00] transition-colors">
                       {r.title}
                     </Link>
                   </h3>
 
-                  <div className="text-xs text-neutral-400">
+                  <div className="text-xs text-[#D9C5B4]">
                     {r.building}, {r.room} ({r.location}) • Rate: ₹{r.hourly_rate}/hr
                   </div>
 
-                  <div className="text-[11px] font-mono text-neutral-400 pt-1 flex items-center gap-4">
-                    <span>Turnaround Buffer: <strong className="text-white">+{r.turnaround_buffer_mins}m</strong></span>
+                  <div className="text-[11px] font-mono text-[#A99A90] pt-1 flex items-center gap-4">
+                    <span>Turnaround Buffer: <strong className="text-[#F1E7DE]">+{r.turnaround_buffer_mins}m</strong></span>
                     <span>Condition: <strong className="text-[#D4FF00] uppercase">{r.condition_rating}</strong></span>
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function OwnerResourcesPage() {
               <div className="shrink-0 flex items-center gap-3 self-end md:self-auto">
                 <Link
                   href={`/resources/${r.id}`}
-                  className="px-3.5 py-1.5 bg-[#151921] hover:bg-white/10 text-neutral-200 rounded text-xs font-mono uppercase border border-white/10"
+                  className="px-4 py-2 bg-[#24110C] hover:bg-[#D4FF00] text-[#D9C5B4] hover:text-black border border-[#AD7257]/30 hover:border-[#D4FF00] rounded-xl text-xs font-mono uppercase transition-colors"
                 >
                   View Passport →
                 </Link>
@@ -185,13 +185,13 @@ export default function OwnerResourcesPage() {
       {/* Add Asset Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0F1217] border border-white/15 rounded-xl max-w-xl w-full p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <h3 className="text-sm font-bold font-mono uppercase text-white flex items-center gap-2">
+          <div className="bg-[#170D0A] border border-[#AD7257]/30 rounded-2xl max-w-xl w-full p-6 sm:p-8 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[#AD7257]/20">
+              <h3 className="text-sm font-bold font-mono uppercase text-[#F1E7DE] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#D4FF00]" />
                 Register Institutional Asset
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-neutral-400 hover:text-white">
+              <button onClick={() => setShowAddModal(false)} className="text-[#A99A90] hover:text-[#F1E7DE] cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>

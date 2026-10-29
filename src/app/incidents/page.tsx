@@ -65,22 +65,22 @@ export default function IncidentsPage() {
     <div className="min-h-screen py-10 px-4 lg:px-8 max-w-7xl mx-auto space-y-12">
       
       {/* Header */}
-      <div className="pb-8 border-b border-white/8">
+      <div className="pb-8 border-b border-[#AD7257]/20">
         <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
           <ShieldAlert className="w-4 h-4 text-amber-400" />
           <span>Promise Protection™ Disruption Intelligence Network</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#F1E7DE] tracking-tight">
           Incident Response & Disruption Management
         </h1>
-        <p className="text-sm text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+        <p className="text-sm text-[#D9C5B4] mt-1 max-w-2xl leading-relaxed">
           Autonomous buffer calculations, cascading collision alarms, and real-time alternative resource rerouting to eliminate downstream reservation failure.
         </p>
       </div>
 
       {/* Simulator Section */}
       <div>
-        <div className="text-xs font-mono uppercase tracking-wider text-neutral-400 mb-4 flex items-center gap-2">
+        <div className="text-xs font-mono uppercase tracking-wider text-[#A99A90] mb-4 flex items-center gap-2">
           <Zap className="w-4 h-4 text-[#D4FF00]" />
           <span>Interactive Disruption Simulator (Live ACID State Machine)</span>
         </div>
@@ -89,25 +89,25 @@ export default function IncidentsPage() {
 
       {/* Logged Disruption Incidents from Database */}
       <div className="space-y-6 pt-6">
-        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-white/10">
-          <span className="text-white font-bold uppercase tracking-wider">
+        <div className="flex items-center justify-between font-mono text-xs pb-3 border-b border-[#AD7257]/20">
+          <span className="text-[#F1E7DE] font-bold uppercase tracking-wider">
             Active & Resolved Disruption Records ({disruptions.length})
           </span>
           <button
             onClick={fetchDisruptions}
-            className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-[#A99A90] hover:text-[#F1E7DE] transition-colors cursor-pointer"
           >
-            <RefreshCw className="w-3 h-3" />
+            <RefreshCw className="w-3.5 h-3.5" />
             Refresh Log
           </button>
         </div>
 
         {isLoading ? (
-          <div className="py-16 text-center text-xs font-mono text-neutral-400 uppercase tracking-widest">
+          <div className="py-16 text-center text-xs font-mono text-[#A99A90] uppercase tracking-widest">
             Loading Incident Audit Registry...
           </div>
         ) : disruptions.length === 0 ? (
-          <div className="p-8 text-center bg-[#0D0F14] rounded-xl border border-white/8 text-neutral-400 text-xs">
+          <div className="p-8 text-center bg-[#170D0A] rounded-2xl border border-[#AD7257]/25 text-[#D9C5B4] text-xs shadow-xl">
             No disruption events logged. Trigger a delay above to generate a live incident.
           </div>
         ) : (
@@ -115,46 +115,46 @@ export default function IncidentsPage() {
             {disruptions.map((d) => (
               <div
                 key={d.id}
-                className={`p-6 rounded-xl border transition-all ${
+                className={`p-6 sm:p-7 rounded-2xl border transition-all shadow-xl ${
                   d.resolved_at
-                    ? 'bg-[#0A0C10] border-white/5 opacity-80'
+                    ? 'bg-[#170D0A] border-[#AD7257]/20 opacity-80'
                     : d.risk_level === 'critical'
-                    ? 'bg-red-500/5 border-red-500/30'
-                    : 'bg-amber-500/5 border-amber-500/30'
+                    ? 'bg-[#24110C] border-red-500/40 text-[#F1E7DE]'
+                    : 'bg-[#24110C] border-[#D96335]/40 text-[#F1E7DE]'
                 }`}
               >
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                   
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="badge-tech bg-white/10 text-neutral-300 font-mono">
+                      <span className="badge-tech bg-[#170D0A] text-[#D9C5B4] border border-[#AD7257]/25 font-mono">
                         {d.id}
                       </span>
-                      <span className={`badge-tech ${
+                      <span className={`badge-tech font-mono ${
                         d.risk_level === 'critical' ? 'bg-red-500/20 text-red-400 border border-red-500/40' :
-                        d.risk_level === 'moderate' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
+                        d.risk_level === 'moderate' ? 'bg-[#D96335]/25 text-[#D96335] border border-[#D96335]/40' :
                         'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                       }`}>
                         {d.risk_level.toUpperCase()}
                       </span>
                       {d.resolved_at && (
-                        <span className="badge-tech bg-[#D4FF00]/15 text-[#D4FF00] border border-[#D4FF00]/30">
+                        <span className="badge-tech bg-[#D4FF00]/15 text-[#D4FF00] border border-[#D4FF00]/30 font-mono">
                           RESOLVED
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-base font-bold text-white">
+                    <h3 className="text-base font-bold text-[#F1E7DE]">
                       Delay on {d.delayed_resource_title || 'Target Asset'} (+{d.delay_duration_minutes}m overrun)
                     </h3>
 
-                    <p className="text-xs text-neutral-300 leading-relaxed max-w-2xl font-sans">
+                    <p className="text-xs text-[#D9C5B4] leading-relaxed max-w-2xl font-sans">
                       Turnaround Buffer: {d.buffer_minutes}m. 
                       {d.affected_user_name ? ` Downstream reservation for ${d.affected_user_name} flagged at risk.` : ' No downstream collision.'}
                     </p>
 
                     {d.notes && (
-                      <div className="text-[11px] font-mono text-neutral-400 bg-black/40 p-2.5 rounded border border-white/5">
+                      <div className="text-[11px] font-mono text-[#A99A90] bg-[#170D0A] p-2.5 rounded-lg border border-[#AD7257]/20">
                         Log Notes: {d.notes}
                       </div>
                     )}
@@ -168,7 +168,7 @@ export default function IncidentsPage() {
                   </div>
 
                   <div className="shrink-0 flex flex-col md:items-end justify-between self-stretch">
-                    <div className="text-[11px] font-mono text-neutral-500">
+                    <div className="text-[11px] font-mono text-[#A99A90]">
                       Logged: {new Date(d.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
 
@@ -178,7 +178,7 @@ export default function IncidentsPage() {
                           <button
                             onClick={() => handleResolve(d.id, 'reroute_alternative')}
                             disabled={resolvingId === d.id}
-                            className="px-3.5 py-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black rounded font-mono text-xs font-bold uppercase transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
+                            className="px-4 py-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black rounded-lg font-mono text-xs font-bold uppercase transition-all cursor-pointer shadow-md shadow-[#D4FF00]/15"
                           >
                             {resolvingId === d.id ? 'Executing...' : 'Re-Route Alternative'}
                           </button>
@@ -186,7 +186,7 @@ export default function IncidentsPage() {
                         <button
                           onClick={() => handleResolve(d.id, 'override_buffer')}
                           disabled={resolvingId === d.id}
-                          className="px-3.5 py-1.5 bg-[#151921] hover:bg-white/10 text-neutral-200 rounded font-mono text-xs uppercase border border-white/10 transition-colors cursor-pointer"
+                          className="px-4 py-2 bg-[#170D0A] hover:bg-[#2F1711] text-[#D9C5B4] hover:text-[#F1E7DE] rounded-lg font-mono text-xs uppercase border border-[#AD7257]/30 transition-colors cursor-pointer"
                         >
                           Acknowledge
                         </button>

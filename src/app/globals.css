@@ -2,16 +2,22 @@
 
 @layer base {
   :root {
-    --bg-dark: #07090C;
-    --bg-card: #0F1217;
-    --bg-surface: #151921;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.16);
+    --bg-dark: #090706;
+    --bg-espresso: #170D0A;
+    --bg-umber: #24110C;
+    --bg-card: #170D0A;
+    --bg-surface: #24110C;
+    --border-subtle: rgba(173, 114, 87, 0.22);
+    --border-strong: rgba(173, 114, 87, 0.45);
+    --border-rust: rgba(87, 37, 26, 0.4);
     --accent-lime: #D4FF00;
     --accent-lime-dim: rgba(212, 255, 0, 0.15);
-    --text-primary: #F4F4F0;
-    --text-secondary: #9BA3AF;
-    --text-muted: #646D7D;
+    --accent-copper: #AD7257;
+    --accent-terracotta: #A94427;
+    --accent-ember: #D96335;
+    --text-primary: #F1E7DE;
+    --text-secondary: #D9C5B4;
+    --text-muted: #A99A90;
   }
 
   body {
@@ -22,38 +28,44 @@
   }
 }
 
-/* Custom technical grid background */
+/* Warm technical grid background */
 .bg-grid-tech {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(173, 114, 87, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(173, 114, 87, 0.05) 1px, transparent 1px);
 }
 
 .bg-dot-tech {
   background-size: 24px 24px;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(173, 114, 87, 0.12) 1px, transparent 1px);
 }
 
-/* Custom scrollbar */
+/* Subtle warm dusk radial glow */
+.bg-warm-radial {
+  background: radial-gradient(circle at 50% 0%, rgba(169, 68, 39, 0.12) 0%, rgba(23, 13, 10, 0.0) 70%);
+}
+
+/* Custom scrollbar in warm charred umber tones */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #07090C;
+  background: #090706;
 }
 ::-webkit-scrollbar-thumb {
-  background: #232936;
+  background: #24110C;
+  border: 1px solid rgba(173, 114, 87, 0.2);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3B4457;
+  background: #3A1B14;
 }
 
 /* Fine border utilities */
 .border-fine {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(173, 114, 87, 0.22);
 }
 
 .border-lime-subtle {
@@ -62,6 +74,10 @@
 
 .glow-lime {
   box-shadow: 0 0 25px -5px rgba(212, 255, 0, 0.25);
+}
+
+.glow-warm {
+  box-shadow: 0 0 35px -10px rgba(169, 68, 39, 0.25);
 }
 
 /* Editorial badge styling */
@@ -74,5 +90,5 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.2rem 0.6rem;
-  border-radius: 2px;
+  border-radius: 4px;
 }
