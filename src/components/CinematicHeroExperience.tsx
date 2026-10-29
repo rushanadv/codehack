@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   ArrowUpRight, 
   ArrowRight, 
@@ -280,6 +281,7 @@ const DIMENSIONS: DimensionItem[] = [
 ];
 
 export default function CinematicHeroExperience() {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasHolderRef = useRef<HTMLDivElement>(null);
 
@@ -422,11 +424,10 @@ export default function CinematicHeroExperience() {
     let wheelIdleTimer: NodeJS.Timeout | null = null;
     const onWheel = (e: WheelEvent) => {
       if (inspectingDimension || showAboutModal) return;
-      const rect = holder.getBoundingClientRect();
-      if (rect.top > 10 || rect.bottom < window.innerHeight - 10) return;
+      e.preventDefault();
 
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      if (Math.abs(delta) < 1) return;
+      if (Math.abs(delta) < 0.5) return;
 
       const now = performance.now();
       lastInputTimeRef.current = now;
@@ -446,13 +447,15 @@ export default function CinematicHeroExperience() {
     holder.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
-    holder.addEventListener('wheel', onWheel, { passive: true });
+    holder.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('wheel', onWheel, { passive: false });
 
     return () => {
       holder.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       holder.removeEventListener('wheel', onWheel);
+      window.removeEventListener('wheel', onWheel);
       if (wheelIdleTimer) clearTimeout(wheelIdleTimer);
     };
   }, [inspectingDimension, showAboutModal, SPACING]);
@@ -836,12 +839,9 @@ export default function CinematicHeroExperience() {
     };
   }, [SPACING]);
 
-  // Smooth scroll to Section 1 below hero
+  // Navigate to Overview & Narrative page
   const scrollToNarrative = () => {
-    const nextSec = document.getElementById('narrative-section');
-    if (nextSec) {
-      nextSec.scrollIntoView({ behavior: 'smooth' });
-    }
+    router.push('/overview');
   };
 
   const activeDim = DIMENSIONS[activeIndex];
@@ -863,46 +863,46 @@ export default function CinematicHeroExperience() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#0a0504_95%)] pointer-events-none opacity-40" />
 
       {/* =========================================================================
-          EDGE-ALIGNED MINIMAL HEADER (Guillaume Colombel Style)
+          EDGE-ALIGNED MINIMAL HEADER (Architectural Instrument Style)
           ========================================================================= */}
       <header className="absolute top-0 left-0 right-0 z-50 px-6 sm:px-12 py-7 flex items-center justify-between pointer-events-none">
         {/* Top-Left: Minimal Brand & Live Status */}
         <div className="pointer-events-auto flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="w-2 h-2 rounded-full bg-[#D4FF00] shadow-[0_0_10px_#D4FF00] group-hover:scale-125 transition-transform" />
-            <span className="font-sans font-bold text-base tracking-tight text-white uppercase">
+            <span className="w-2.5 h-2.5 bg-[#D4FF00] border border-black group-hover:rotate-45 transition-transform" />
+            <span className="font-sans font-black text-base tracking-tight text-white uppercase">
               IDLEX<span className="text-[#D4FF00]">.</span>
             </span>
           </Link>
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono tracking-wider text-neutral-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D4FF00] animate-pulse" />
+          <span className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#171311] border border-[#AD7257]/30 text-[10px] font-mono tracking-wider text-[#D9C5B4]">
+            <span className="w-1.5 h-1.5 bg-[#D4FF00]" />
             NETWORK LIVE · 1,420kw/h IDLE
           </span>
         </div>
 
-        {/* Top-Right: Quiet Navigation Links & About Toggle */}
-        <div className="pointer-events-auto flex items-center gap-5 sm:gap-8 text-xs font-mono tracking-widest">
+        {/* Top-Right: Quiet Navigation Links & Overview */}
+        <div className="pointer-events-auto flex items-center gap-4 sm:gap-6 text-xs font-mono tracking-widest">
           <Link
             href="/explore"
-            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px]"
+            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px] px-2 py-1"
           >
             Explore
           </Link>
           <Link
             href="/match"
-            className="hidden sm:inline text-neutral-400 hover:text-white transition-colors uppercase text-[11px]"
+            className="hidden sm:inline text-neutral-400 hover:text-white transition-colors uppercase text-[11px] px-2 py-1"
           >
             Intent Match
           </Link>
-          <button
-            onClick={() => setShowAboutModal(true)}
-            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px] cursor-pointer"
+          <Link
+            href="/overview"
+            className="text-neutral-400 hover:text-white transition-colors uppercase text-[11px] px-2 py-1"
           >
-            About
-          </button>
+            Overview
+          </Link>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-sans font-bold px-4 py-1.5 rounded-full transition-all text-[11px] uppercase tracking-wider shadow-lg shadow-[#D4FF00]/15"
+            className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider border border-[#D4FF00] active:translate-y-0.5"
           >
             <span>Launch App</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -915,10 +915,10 @@ export default function CinematicHeroExperience() {
           Wraps around the lower base of the monolith, overlapping water reflection.
           Active title solid white in center; flanking titles in outlined 3D curve.
           ========================================================================= */}
-      <div className="absolute inset-x-0 bottom-16 sm:bottom-20 z-30 pointer-events-none flex flex-col items-center justify-end px-4">
+      <div className="absolute inset-x-0 bottom-20 sm:bottom-24 z-30 pointer-events-none flex flex-col items-center justify-end px-4">
         {/* The 3D Track Container with CSS Perspective */}
         <div
-          className="relative w-full max-w-5xl h-36 sm:h-44 flex items-center justify-center pointer-events-auto"
+          className="relative w-full max-w-5xl h-44 sm:h-52 flex items-center justify-center pointer-events-auto"
           style={{ perspective: '1100px', transformStyle: 'preserve-3d' }}
         >
           {DIMENSIONS.map((dim, idx) => (
@@ -929,7 +929,7 @@ export default function CinematicHeroExperience() {
               }}
               onClick={() => {
                 if (activeIndexRef.current === idx) {
-                  setInspectingDimension(dim);
+                  router.push(`/explore?category=${dim.category}`);
                 } else {
                   rotateToDimension(idx);
                 }
@@ -943,28 +943,44 @@ export default function CinematicHeroExperience() {
                   <div>{dim.titleLine2}</div>
                 </h2>
 
-                {/* Active Subtitle & Click-to-Inspect Hint */}
-                <div className="active-dim-badge mt-3.5 flex flex-col items-center gap-2 transition-opacity duration-200">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#170D0A]/90 border border-[#AD7257]/30 text-[11px] font-mono text-[#D4FF00] backdrop-blur-md shadow-lg">
-                    <dim.icon className="w-3.5 h-3.5" />
+                {/* Active Subtitle Telemetry Pill (Cleanly Positioned Inside Bounding Box) */}
+                <div className="active-dim-badge mt-3 flex items-center justify-center transition-opacity duration-200">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-[#160F0C] border border-[#AD7257]/40 text-[10px] sm:text-[11px] font-mono text-[#D4FF00] shadow-md">
+                    <dim.icon className="w-3.5 h-3.5 text-[#D4FF00]" />
                     <span>{dim.telemetry}</span>
-                  </div>
-
-                  <div className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-neutral-400 group-hover:text-white transition-colors mt-0.5">
-                    <span>[ CLICK TITLE TO INSPECT ASSETS ]</span>
-                    <ArrowUpRight className="w-3 h-3 text-[#D4FF00]" />
                   </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
+
+        {/* 3 Dedicated Category Launch Buttons (Generous Spacing, Zero Overlap) */}
+        <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3 pointer-events-auto font-mono text-xs z-30">
+          {DIMENSIONS.map((d, i) => {
+            const isAct = activeIndex === i;
+            return (
+              <Link
+                key={d.id}
+                href={`/explore?category=${d.category}`}
+                className={`px-3.5 py-1.5 rounded-md border font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:translate-y-0.5 ${
+                  isAct
+                    ? 'bg-[#D4FF00] text-black border-[#D4FF00] shadow-md shadow-[#D4FF00]/15'
+                    : 'bg-[#150F0D]/95 text-[#D9C5B4] hover:text-white border-[#AD7257]/30 hover:border-[#AD7257]/60'
+                }`}
+              >
+                <span>{d.shortName}</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {/* =========================================================================
           EDGE-ALIGNED MINIMAL FOOTER TELEMETRY & AUDIO TOGGLE
           ========================================================================= */}
-      <footer className="absolute bottom-6 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none z-40">
+      <footer className="absolute bottom-5 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-neutral-400 pointer-events-none select-none z-40">
         {/* Bottom-Left: Dimension Tracker */}
         <div className="flex items-center gap-2.5">
           <span className="text-[#D4FF00] font-bold">[{activeDim.num} / 03]</span>
@@ -973,14 +989,14 @@ export default function CinematicHeroExperience() {
           </span>
         </div>
 
-        {/* Bottom-Center: Smooth Scroll Hint to Narrative */}
-        <button
-          onClick={scrollToNarrative}
-          className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer backdrop-blur-sm"
+        {/* Bottom-Center: Link to Overview & Narrative */}
+        <Link
+          href="/overview"
+          className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#18110E] hover:bg-[#241712] border border-[#AD7257]/40 text-[#D9C5B4] hover:text-[#D4FF00] transition-all cursor-pointer backdrop-blur-sm"
         >
-          <span className="text-[10px] tracking-widest uppercase">OVERVIEW & NARRATIVE</span>
+          <span className="text-[10px] tracking-widest uppercase font-bold">OVERVIEW & NARRATIVE</span>
           <ChevronDown className="w-3.5 h-3.5 text-[#D4FF00]" />
-        </button>
+        </Link>
 
         {/* Bottom-Right: Ambient Sound Toggle Button (Speaker wave icon) */}
         <div className="pointer-events-auto flex items-center gap-4">
@@ -1057,38 +1073,41 @@ export default function CinematicHeroExperience() {
               {inspectingDimension.featuredAssets.map((asset) => (
                 <div
                   key={asset.id}
-                  className="p-6 rounded-2xl bg-[#170D0A]/90 border border-[#AD7257]/30 flex flex-col justify-between shadow-xl relative overflow-hidden group hover:border-[#D4FF00]/50 transition-all"
+                  className="rounded-xl bg-[#140F0D] border border-[#AD7257]/35 flex flex-col justify-between relative overflow-hidden group hover:border-[#D4FF00] transition-colors"
                 >
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 mb-3">
-                      <span className="text-[#D4FF00] font-semibold">{asset.tag}</span>
-                      <span className="flex items-center gap-1 text-emerald-400">
-                        <CheckCircle2 className="w-3 h-3" />
+                  {/* Solid Accent Top Stripe */}
+                  <div className="h-1.5 w-full bg-gradient-to-r from-[#D95927] to-[#D4FF00]" />
+
+                  <div className="p-6">
+                    <div className="flex items-center justify-between text-[11px] font-mono mb-3">
+                      <span className="text-[#D4FF00] font-bold px-2 py-0.5 rounded bg-[#D4FF00]/10 border border-[#D4FF00]/30">{asset.tag}</span>
+                      <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
                         {asset.status}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-white tracking-tight mb-2 group-hover:text-[#D4FF00] transition-colors">
+                    <h3 className="text-lg font-bold text-white tracking-tight mb-1 group-hover:text-[#D4FF00] transition-colors">
                       {asset.title}
                     </h3>
-                    <p className="text-xs font-mono text-neutral-400 mb-4">{asset.location}</p>
+                    <p className="text-xs font-mono text-[#D9C5B4] mb-4">{asset.location}</p>
 
-                    <div className="p-3 rounded-xl bg-[#24110C] border border-[#AD7257]/20 font-mono text-xs text-neutral-300 mb-6">
+                    <div className="p-3 rounded-lg bg-[#1E1512] border border-[#AD7257]/30 font-mono text-xs text-[#E6D7CB] mb-6">
                       {asset.specs}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between px-6 pb-6 pt-3 border-t border-[#AD7257]/20 bg-[#100B09]">
                     <div>
-                      <div className="text-[10px] font-mono text-neutral-400 uppercase">
+                      <div className="text-[10px] font-mono text-[#A99A90] uppercase tracking-wider">
                         Rate Telemetry
                       </div>
-                      <div className="text-sm font-bold text-[#D4FF00] font-mono">{asset.rate}</div>
+                      <div className="text-base font-bold text-[#D4FF00] font-mono">{asset.rate}</div>
                     </div>
 
                     <Link
                       href={`/explore?category=${inspectingDimension.category}`}
-                      className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-sans font-bold text-xs uppercase px-4 py-2 rounded-full transition-all shadow-md shadow-[#D4FF00]/15"
+                      className="inline-flex items-center gap-1.5 bg-[#D4FF00] hover:bg-[#C2EA00] text-black font-mono font-bold text-xs uppercase px-4 py-2 rounded-md transition-all border border-[#D4FF00] active:translate-y-0.5"
                     >
                       <span>Inquire</span>
                       <ArrowRight className="w-3.5 h-3.5" />

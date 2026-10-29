@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/navigation';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -20,41 +19,99 @@ import {
   X
 } from 'lucide-react';
 
+interface CurrentUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  avatar?: string;
+}
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  message?: string;
+  read_status: number;
+  created_at: string;
+  type?: string;
+  booking_id?: string;
+  link?: string;
+}
+
 export function Navbar() {
   const pathname = usePathname();
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const fetchSession = async () => {
-    try {
-      const res = await fetch('/api/auth/current');
-      const data = await res.json();
-      setCurrentUser(data.user);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const fetchNotifications = async () => {
     try {
       const res = await fetch('/api/notifications');
       const data = await res.json();
-      const list = data.notifications || [];
+      const list: NotificationItem[] = data.notifications || [];
       setNotifications(list);
-      setUnreadCount(list.filter((n: any) => n.read_status === 0).length);
+      setUnreadCount(list.filter((n) => n.read_status === 0).length);
     } catch (e) {
       console.error(e);
     }
   };
 
   useEffect(() => {
-    fetchSession();
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000);
-    return () => clearInterval(interval);
+    // Skip all fetching and intervals if on home page (where Navbar is hidden)
+    if (pathname === '/') return;
+
+    let isMounted = true;
+    let lastFetchTime = Date.now();
+
+    const loadData = async () => {
+      try {
+        const [authRes, notifRes] = await Promise.all([
+          fetch('/api/auth/current'),
+          fetch('/api/notifications')
+        ]);
+        if (!isMounted) return;
+
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          setCurrentUser(authData.user);
+        }
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          const list: NotificationItem[] = notifData.notifications || [];
+          setNotifications(list);
+          setUnreadCount(list.filter((n) => n.read_status === 0).length);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    loadData();
+
+    // Re-fetch when user returns to tab, throttled to at most once every 30s
+    const handleFocus = () => {
+      if (Date.now() - lastFetchTime > 30000) {
+        lastFetchTime = Date.now();
+        fetchNotifications();
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+
+    // Gentle background poll: every 60s, and only when tab is visible
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        lastFetchTime = Date.now();
+        fetchNotifications();
+      }
+    }, 60000);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(interval);
+    };
   }, [pathname]);
 
   const markAllRead = async () => {
@@ -213,7 +270,13 @@ export function Navbar() {
           {/* Notifications Dropdown */}
           <div className="relative">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={() => {
+                const nextState = !showNotifications;
+                setShowNotifications(nextState);
+                if (nextState) {
+                  fetchNotifications();
+                }
+              }}
               className="relative p-2 rounded-lg bg-[#1F100B] hover:bg-[#2A150F] text-[#D9C5B4] hover:text-[#F1E7DE] border border-[#AD7257]/25 transition-colors cursor-pointer"
               title="Notifications"
             >

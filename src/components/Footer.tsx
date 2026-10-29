@@ -1,7 +1,14 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Cpu, ShieldCheck, Activity, Terminal } from 'lucide-react';
 
 export function Footer() {
+  const pathname = usePathname();
+
+  if (pathname === '/') return null;
+
   return (
     <footer className="bg-[#0D0706] border-t border-[#AD7257]/20 text-[#A99A90] py-16 px-4 lg:px-8 mt-24">
       <div className="max-w-7xl mx-auto">

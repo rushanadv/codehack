@@ -1,20 +1,9 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DemoBar } from "@/components/DemoBar";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "IdleX — The Intelligent Resource Exchange",
@@ -29,7 +18,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className="h-full antialiased dark"
     >
       <body className="min-h-full flex flex-col bg-[#090706] text-[#F1E7DE] selection:bg-[#D4FF00] selection:text-black">
         <Suspense fallback={<div className="h-8 bg-[#120A08]"></div>}>
