@@ -18,10 +18,11 @@ import {
   TrendingUp,
   AlertTriangle,
   QrCode,
-  Zap
+  Zap,
+  ArrowUpRight
 } from 'lucide-react';
+import CinematicHeroExperience from '@/components/CinematicHeroExperience';
 import { InteractiveDelaySimulator } from '@/components/InteractiveDelaySimulator';
-import RotorCategorySection from '@/components/RotorCategorySection';
 
 export default function HomePage() {
   const [activeStep, setActiveStep] = useState(0);
@@ -65,176 +66,115 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-[#07080A] text-[#F4F4F0] selection:bg-[#D4FF00] selection:text-black">
       
-      {/* 1. HERO SECTION */}
-      <section className="relative pt-24 pb-20 lg:pt-32 lg:pb-32 px-4 lg:px-8 border-b border-white/8 overflow-hidden bg-grid-tech">
-        {/* Ambient Glows (Restrained, subtle) */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#D4FF00]/5 blur-[120px] pointer-events-none rounded-full"></div>
+      {/* 1. CINEMATIC FULL-VIEWPORT 3D ROTOR EXPERIENCE (Inspired by guillaumecolombel.fr) */}
+      <CinematicHeroExperience />
 
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-            
-            {/* Top Micro-Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#12151B] border border-white/10 text-xs font-mono mb-8">
-              <span className="w-2 h-2 rounded-full bg-[#D4FF00] animate-ping"></span>
-              <span className="text-[#D4FF00] font-semibold">IdleX v2.6 Platform</span>
-              <span className="text-neutral-500">•</span>
-              <span className="text-neutral-300">National Research Resource Exchange</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.08] mb-6">
-              Nothing valuable <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-[#F4F4F0] to-[#D4FF00]">
-                should sit idle.
-              </span>
-            </h1>
-
-            {/* Supporting Copy */}
-            <p className="text-base sm:text-lg text-neutral-400 max-w-2xl leading-relaxed mb-10">
-              Discover, share, and coordinate the resources around you. IdleX transforms unused laboratory equipment, experimental spaces, and technical capabilities into collaborative research capital.
-            </p>
-
-            {/* CTA Group */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <Link
-                href="/explore"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-8 py-3.5 rounded-lg font-mono font-bold text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#D4FF00]/15 cursor-pointer"
-              >
-                Explore Resources
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-
-              <Link
-                href="/match"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#12151B] hover:bg-[#181D26] text-white px-8 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider border border-white/10 hover:border-white/25 transition-all cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-[#D4FF00]" />
-                Unlock Idle Capacity
-              </Link>
-            </div>
-
-            {/* Metrics Ticker */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 pt-10 border-t border-white/8 w-full text-left">
-              <div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">₹1.84 Cr</div>
-                <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider mt-1">Capital Mobilized</div>
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-mono text-[#D4FF00]">94.2%</div>
-                <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider mt-1">Buffer Utilization</div>
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-mono text-white">0</div>
-                <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider mt-1">Double Bookings Permitted</div>
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-mono text-cyan-400">100%</div>
-                <div className="text-[11px] font-mono text-neutral-500 uppercase tracking-wider mt-1">SkillGate Enforced</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. THE PROBLEM (Split Editorial Composition) */}
-      <section className="py-24 px-4 lg:px-8 border-b border-white/8 bg-[#090B0E]">
+      {/* 2. CONTINUATION: THE CORE PARADOX (Editorial Split Narrative) */}
+      <section className="py-28 px-6 sm:px-12 lg:px-16 border-t border-b border-white/8 bg-[#090B0E] relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
+          
+          <div className="flex items-center gap-2 mb-3 font-mono text-xs uppercase tracking-[0.2em] text-[#D4FF00]">
             <span>01 / The Core Paradox</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-12">
-            The problem isn't a shortage of resources. <br />
-            <span className="text-neutral-500">It's the inability to coordinate them.</span>
+
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.05] mb-16 max-w-4xl">
+            The problem isn't always a shortage of resources. <br />
+            <span className="text-neutral-500 font-normal">
+              It's the inability to discover, access, and coordinate what already exists.
+            </span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Side A: Idle Capital */}
-            <div className="p-8 rounded-xl bg-[#0F1217] border border-white/8 flex flex-col justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            {/* Side A: Institutional Blindspot */}
+            <div className="p-8 sm:p-10 rounded-2xl bg-[#0F1217] border border-white/8 flex flex-col justify-between">
               <div>
-                <div className="text-xs font-mono uppercase tracking-widest text-red-400 mb-3 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                <div className="text-xs font-mono uppercase tracking-widest text-red-400 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
                   The Institutional Blindspot
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4">
-                  Multi-Crore Equipment Locked in Siloes
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  Multi-Crore Equipment Locked in Departmental Siloes
                 </h3>
-                <p className="text-sm text-neutral-400 leading-relaxed space-y-3">
+                <p className="text-sm text-neutral-400 leading-relaxed">
                   In universities, laboratories, and R&D facilities across the nation, high-precision electron microscopes, industrial 3D printers, cleanrooms, and GPU servers sit completely dark after hours or between disconnected academic schedules.
                 </p>
-                <div className="mt-6 p-4 rounded bg-[#151921] border border-white/5 font-mono text-xs text-neutral-300 space-y-2">
-                  <div className="flex justify-between">
-                    <span>Average Departmental Asset Idle Rate:</span>
-                    <span className="text-red-400 font-bold">68.4%</span>
+                <div className="mt-8 p-5 rounded-xl bg-[#141822] border border-white/5 font-mono text-xs text-neutral-300 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-400">Average Departmental Asset Idle Rate:</span>
+                    <span className="text-red-400 font-bold text-sm">68.4%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Capital Amortization Loss:</span>
-                    <span className="text-neutral-400">High</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-400">Capital Amortization Loss:</span>
+                    <span className="text-neutral-300 font-bold">Severe</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Cross-Lab Visibility:</span>
-                    <span className="text-red-400">Near Zero</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-400">Cross-Institution Visibility:</span>
+                    <span className="text-red-400 font-bold">Near Zero</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Side B: Access Bottleneck */}
-            <div className="p-8 rounded-xl bg-[#0F1217] border border-white/8 flex flex-col justify-between">
+            <div className="p-8 sm:p-10 rounded-2xl bg-[#0F1217] border border-white/8 flex flex-col justify-between">
               <div>
-                <div className="text-xs font-mono uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                  The Researcher's Dilemma
+                <div className="text-xs font-mono uppercase tracking-widest text-amber-400 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                  The Researcher's Bottleneck
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4">
+                <h3 className="text-2xl font-bold text-white mb-4">
                   Breakthrough Research Delayed by Months
                 </h3>
                 <p className="text-sm text-neutral-400 leading-relaxed">
-                  Meanwhile, undergraduate innovators, postgraduate researchers, and startup spin-outs wait 12 weeks for external vendor quotes or abandon promising prototypes entirely because they cannot locate accessible local facilities or prove verified operating credentials.
+                  Meanwhile, undergraduate innovators, postgraduate researchers, and startup spin-outs wait 12 weeks for external vendor quotes or abandon promising prototypes entirely because they cannot locate accessible local facilities or verify operating credentials.
                 </p>
-                <div className="mt-6 p-4 rounded bg-[#151921] border border-white/5 font-mono text-xs text-neutral-300 space-y-2">
-                  <div className="flex justify-between">
-                    <span>Average Prototype Lead Time:</span>
-                    <span className="text-amber-400 font-bold">42 Days</span>
+                <div className="mt-8 p-5 rounded-xl bg-[#141822] border border-white/5 font-mono text-xs text-neutral-300 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-400">Average Prototype Lead Time:</span>
+                    <span className="text-amber-400 font-bold text-sm">42 Days</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Outsourced Fabrication Markup:</span>
-                    <span className="text-neutral-400">350–500%</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-400">Commercial Outsource Markup:</span>
+                    <span className="text-neutral-300 font-bold">350–500%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Safety Prerequisite Checks:</span>
-                    <span className="text-neutral-400">Manual Paper Forms</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-400">Safety Prerequisite Verification:</span>
+                    <span className="text-amber-400 font-bold">Manual Paperwork</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
-      {/* 3. HOW IDLEX WORKS (Interactive Sequence Flow) */}
-      <section className="py-24 px-4 lg:px-8 border-b border-white/8 bg-[#07090C]">
+      {/* 3. HOW IDLEX WORKS: 5-PHASE LIFECYCLE SEQUENCE */}
+      <section className="py-28 px-6 sm:px-12 lg:px-16 border-b border-white/8 bg-[#07090C] relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
+          
+          <div className="flex items-center gap-2 mb-3 font-mono text-xs uppercase tracking-[0.2em] text-[#D4FF00]">
             <span>02 / The Coordination Engine</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+          
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4">
             How IdleX Works: The 5-Phase Lifecycle
           </h2>
-          <p className="text-sm text-neutral-400 max-w-2xl mb-12">
-            A frictionless, verifiable exchange mechanism backed by ACID transactions and cryptographic QR passports.
+          <p className="text-sm sm:text-base text-neutral-400 max-w-2xl mb-12">
+            A frictionless, verifiable exchange mechanism backed by atomic ACID transactions and cryptographic QR passports.
           </p>
 
           {/* Stepper Buttons */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-8">
             {steps.map((st, i) => (
               <button
                 key={i}
                 onClick={() => setActiveStep(i)}
-                className={`p-3 text-left rounded-lg border transition-all cursor-pointer font-mono ${
+                className={`p-3.5 text-left rounded-xl border transition-all cursor-pointer font-mono ${
                   activeStep === i
-                    ? 'bg-[#151921] border-[#D4FF00] text-white shadow-lg'
+                    ? 'bg-[#151921] border-[#D4FF00] text-white shadow-xl'
                     : 'bg-[#0E1117] border-white/5 text-neutral-400 hover:text-white hover:border-white/15'
                 }`}
               >
@@ -245,12 +185,12 @@ export default function HomePage() {
           </div>
 
           {/* Stepper Display Card */}
-          <div className="p-8 rounded-xl bg-[#0F1217] border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <div className="p-8 sm:p-10 rounded-2xl bg-[#0F1217] border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="max-w-xl">
-              <div className="inline-block text-[10px] font-mono uppercase tracking-widest text-[#D4FF00] bg-[#D4FF00]/10 px-2 py-0.5 rounded border border-[#D4FF00]/25 mb-2">
+              <div className="inline-block text-[10px] font-mono uppercase tracking-widest text-[#D4FF00] bg-[#D4FF00]/10 px-2.5 py-0.5 rounded border border-[#D4FF00]/25 mb-3">
                 {steps[activeStep].pill}
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
                 Phase {steps[activeStep].num}: {steps[activeStep].title} — {steps[activeStep].tagline}
               </h3>
               <p className="text-sm text-neutral-300 leading-relaxed">
@@ -261,126 +201,157 @@ export default function HomePage() {
             <div className="shrink-0 flex items-center gap-4">
               <Link
                 href="/explore"
-                className="flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-5 py-2.5 rounded font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                className="flex items-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-6 py-3 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-[#D4FF00]/15 cursor-pointer"
               >
-                Test Live Flow
+                <span>Test Live Flow</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
+
         </div>
       </section>
 
-      {/* 4. THREE RESOURCE CATEGORIES: PROCEDURAL 3D ROTOR */}
-      <RotorCategorySection />
-
-      {/* 5. SIGNATURE FEATURE LIVE DEMO: PROMISE PROTECTION */}
-      <section className="py-24 px-4 lg:px-8 border-b border-white/8 bg-[#07090C]">
+      {/* 4. PROMISE PROTECTION LIVE SIMULATOR */}
+      <section className="py-28 px-6 sm:px-12 lg:px-16 border-b border-white/8 bg-[#090B0E] relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
-              <span>04 / Real-Time Failure Mitigation</span>
+          
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-3 font-mono text-xs uppercase tracking-[0.2em] text-[#D4FF00]">
+              <span>03 / Real-Time Failure Mitigation</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
               Promise Protection™ Live Disruption Simulator
             </h2>
-            <p className="text-sm text-neutral-400 max-w-2xl mt-2">
-              Unlike static mockups, IdleX runs real business logic and transaction updates. Trigger a delay below to observe buffer clearance, cascading alert dispatches, and automated equivalent rerouting.
+            <p className="text-sm sm:text-base text-neutral-400 max-w-2xl leading-relaxed">
+              IdleX executes real backend state transitions and atomic conflict management. Trigger an unexpected equipment delay below to observe dynamic turnaround buffers, cascading notification dispatches, and automated equivalent alternative matching.
             </p>
           </div>
 
           {/* Interactive Component Embedded Directly */}
           <InteractiveDelaySimulator />
+
         </div>
       </section>
 
-      {/* 6. PLATFORM SIGNATURE CAPABILITIES (Passports, SkillGate, FairShare) */}
-      <section className="py-24 px-4 lg:px-8 border-b border-white/8 bg-[#090B0E]">
+      {/* 5. ARCHITECTURAL PILLARS (Resource Passport, SkillGate, FairShare) */}
+      <section className="py-28 px-6 sm:px-12 lg:px-16 border-b border-white/8 bg-[#07090C] relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-widest text-[#D4FF00]">
-            <span>05 / Architectural Pillars</span>
+          
+          <div className="flex items-center gap-2 mb-3 font-mono text-xs uppercase tracking-[0.2em] text-[#D4FF00]">
+            <span>04 / Architectural Pillars</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-12">
+          
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-14">
             Engineered for Zero Operational Fragility
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
             {/* Pillar 1: Resource Passport */}
-            <div className="p-6 rounded-xl bg-[#0F1217] border border-white/8 space-y-4">
-              <div className="w-10 h-10 rounded bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00]">
-                <QrCode className="w-5 h-5" />
+            <div className="p-8 rounded-2xl bg-[#0F1217] border border-white/8 flex flex-col justify-between hover:border-[#D4FF00]/40 transition-all group">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00] mb-6 group-hover:scale-110 transition-transform">
+                  <QrCode className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Resource Passport</h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mb-6">
+                  Persistent cryptographic identity with scannable QR code resolving to asset maintenance logs, checkout condition checklists, and verified custody history.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Resource Passport</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Persistent cryptographic identity with scannable QR code resolving to asset maintenance logs, checkout condition checklists, and verified custody history.
-              </p>
-              <div className="font-mono text-[10px] text-neutral-400 pt-2 border-t border-white/5">
-                STATUS: IMMUTABLE AUDIT TRAIL
+              <div className="font-mono text-[10px] text-neutral-400 pt-4 border-t border-white/5 flex items-center justify-between">
+                <span>AUDIT TRAIL</span>
+                <span className="text-[#D4FF00]">IMMUTABLE QR RECORD</span>
               </div>
             </div>
 
             {/* Pillar 2: SkillGate */}
-            <div className="p-6 rounded-xl bg-[#0F1217] border border-white/8 space-y-4">
-              <div className="w-10 h-10 rounded bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00]">
-                <ShieldCheck className="w-5 h-5" />
+            <div className="p-8 rounded-2xl bg-[#0F1217] border border-white/8 flex flex-col justify-between hover:border-[#D4FF00]/40 transition-all group">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00] mb-6 group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">SkillGate Safety</h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mb-6">
+                  Mandatory qualification gatekeeper. Restricted laser, chemical, or cleanroom assets reject reservations on the server unless verified training records exist.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">SkillGate Safety</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Mandatory qualification gatekeeper. Restricted laser, chemical, or cleanroom assets reject reservations on the server unless verified training records exist.
-              </p>
-              <div className="font-mono text-[10px] text-neutral-400 pt-2 border-t border-white/5">
-                STATUS: SERVER-SIDE AUTHORIZATION
+              <div className="font-mono text-[10px] text-neutral-400 pt-4 border-t border-white/5 flex items-center justify-between">
+                <span>AUTHORIZATION</span>
+                <span className="text-[#D4FF00]">SERVER-SIDE ENFORCED</span>
               </div>
             </div>
 
             {/* Pillar 3: FairShare */}
-            <div className="p-6 rounded-xl bg-[#0F1217] border border-white/8 space-y-4">
-              <div className="w-10 h-10 rounded bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00]">
-                <TrendingUp className="w-5 h-5" />
+            <div className="p-8 rounded-2xl bg-[#0F1217] border border-white/8 flex flex-col justify-between hover:border-[#D4FF00]/40 transition-all group">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-[#151921] border border-white/10 flex items-center justify-center text-[#D4FF00] mb-6 group-hover:scale-110 transition-transform">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">FairShare Queuing</h3>
+                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed mb-6">
+                  Deterministic allocation scoring when resources are congested. Prevents hoarding, accounts for thesis deadlines, and provides clear waitlist visibility.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">FairShare Queuing</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Deterministic allocation scoring when resources are congested. Prevents hoarding, accounts for thesis deadlines, and provides clear waitlist visibility.
-              </p>
-              <div className="font-mono text-[10px] text-neutral-400 pt-2 border-t border-white/5">
-                STATUS: EXPLAINABLE ALLOCATION
+              <div className="font-mono text-[10px] text-neutral-400 pt-4 border-t border-white/5 flex items-center justify-between">
+                <span>SCHEDULER</span>
+                <span className="text-[#D4FF00]">NON-MONOPOLIZING</span>
               </div>
             </div>
+
           </div>
+
         </div>
       </section>
 
-      {/* 7. FINAL CALL TO ACTION */}
-      <section className="py-24 px-4 lg:px-8 bg-gradient-to-b from-[#090B0E] to-[#050608] text-center relative overflow-hidden">
-        <div className="max-w-4xl mx-auto relative z-10 space-y-6">
-          <div className="inline-block text-[10px] font-mono uppercase tracking-widest text-[#D4FF00] bg-[#D4FF00]/10 px-3 py-1 rounded-full border border-[#D4FF00]/25">
-            Ready for Institutional Deployment
+      {/* 6. EDITORIAL CLOSING HERO CALL TO ACTION */}
+      <section className="py-32 px-6 sm:px-12 lg:px-16 bg-gradient-to-b from-[#07090C] to-[#040507] text-center relative overflow-hidden z-10">
+        <div className="max-w-4xl mx-auto relative z-10 space-y-8">
+          
+          <div className="inline-block text-[10px] font-mono uppercase tracking-[0.25em] text-[#D4FF00] bg-[#D4FF00]/10 px-4 py-1 rounded-full border border-[#D4FF00]/25">
+            IDLEX ARCHITECTURE • PRODUCTION READY
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Transform idle capacity into your next breakthrough.
+          
+          <h2 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[0.95]">
+            Nothing valuable <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-300 to-[#D4FF00]">
+              should sit idle.
+            </span>
           </h2>
-          <p className="text-sm sm:text-base text-neutral-400 max-w-xl mx-auto leading-relaxed">
-            Experience the full live platform across user booking, owner inventory management, and administrative safety verification.
+          
+          <p className="text-base sm:text-lg text-neutral-400 max-w-xl mx-auto leading-relaxed">
+            Experience the complete live platform across user booking, owner inventory telemetry, and automated promise protection.
           </p>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/explore"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-8 py-3.5 rounded-lg font-mono font-bold text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#D4FF00]/20 cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#D4FF00] hover:bg-[#C2EA00] text-black px-8 py-4 rounded-full font-mono font-bold text-xs uppercase tracking-wider transition-all shadow-2xl shadow-[#D4FF00]/25 cursor-pointer"
             >
-              Explore Marketplace Now
+              <span>Explore Marketplace</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
-              href="/dashboard"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#151921] hover:bg-[#1D232F] text-white px-8 py-3.5 rounded-lg font-mono text-sm uppercase tracking-wider border border-white/10 hover:border-white/25 transition-all cursor-pointer"
+              href="/match"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#12151B] hover:bg-[#1A202A] text-white px-8 py-4 rounded-full font-mono text-xs uppercase tracking-wider border border-white/10 hover:border-white/25 transition-all cursor-pointer"
             >
-              Open Mission Control
+              <Sparkles className="w-4 h-4 text-[#D4FF00]" />
+              <span>Launch Match Engine</span>
+            </Link>
+
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-transparent hover:bg-white/5 text-neutral-300 hover:text-white px-6 py-4 rounded-full font-mono text-xs uppercase tracking-wider transition-all cursor-pointer"
+            >
+              <span>Open Dashboard</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
+
         </div>
       </section>
+
     </div>
   );
 }

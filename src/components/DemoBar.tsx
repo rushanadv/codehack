@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Shield, UserCheck, RefreshCw, Sparkles, ChevronDown } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function DemoBar() {
+  const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [isResetting, setIsResetting] = useState(false);
@@ -61,6 +62,8 @@ export function DemoBar() {
       }
     }
   };
+
+  if (pathname === '/') return null;
 
   return (
     <div className="bg-[#090B0E] border-b border-white/10 text-xs py-1.5 px-4 sticky top-0 z-50 flex items-center justify-between text-neutral-300">

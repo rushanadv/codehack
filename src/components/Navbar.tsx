@@ -73,6 +73,8 @@ export function Navbar() {
   const isOwner = currentUser?.role === 'owner' || currentUser?.role === 'admin';
   const isAdmin = currentUser?.role === 'admin';
 
+  if (pathname === '/') return null;
+
   return (
     <nav className="bg-[#07090C]/90 backdrop-blur-md border-b border-white/8 sticky top-[33px] z-40 px-4 lg:px-8 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
