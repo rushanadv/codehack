@@ -34,7 +34,7 @@ export default function PromiseProtectionSection() {
             </h2>
             
             <p className="text-sm sm:text-base text-[#D9C5B4] max-w-2xl leading-relaxed">
-              IdleX executes real backend state transitions and atomic conflict management. Trigger an unexpected equipment delay below to observe dynamic turnaround buffers, cascading notification dispatches, and automated equivalent alternative matching.
+              Slotly executes real backend state transitions and atomic conflict management. Trigger an unexpected equipment delay below to observe dynamic turnaround buffers, cascading notification dispatches, and automated equivalent alternative matching.
             </p>
           </motion.div>
 

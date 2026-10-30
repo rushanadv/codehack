@@ -75,7 +75,7 @@ export function createBooking(params: CreateBookingParams): BookingResult {
         success: false,
         conflict: true,
         conflictingBookingId: conflicting.id,
-        error: `Booking Conflict: The requested slot overlaps with confirmed reservation [${new Date(conflicting.start_time).toLocaleTimeString()} - ${new Date(conflicting.end_time).toLocaleTimeString()}]. Consider joining the FairShare waitlist or exploring IdleX Match alternatives.`
+        error: `Booking Conflict: The requested slot overlaps with confirmed reservation [${new Date(conflicting.start_time).toLocaleTimeString()} - ${new Date(conflicting.end_time).toLocaleTimeString()}]. Consider joining the FairShare waitlist or exploring Slotly Match alternatives.`
       };
     }
 

@@ -190,7 +190,7 @@ export default function CoreParadoxSection() {
 
               <div className="mt-6 pt-4 border-t border-[#F7F4EE]/20 font-mono text-[11px] text-[#F7F4EE]/70 flex items-center justify-between">
                 <span>RECOVERY PROTOCOL</span>
-                <span className="font-bold text-white">IDLEX ACTIVE</span>
+                <span className="font-bold text-white">SLOTLY ACTIVE</span>
               </div>
             </motion.div>
           </div>
@@ -205,7 +205,7 @@ export default function CoreParadoxSection() {
 
           <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#241712] border border-[#AD7257]/50 text-xs text-[#D4FF00]">
             <ArrowRightLeft className="w-3.5 h-3.5 text-[#D4FF00]" />
-            <span className="font-bold tracking-wider">IDLEX EQUILIBRIUM ENGINE</span>
+            <span className="font-bold tracking-wider">SLOTLY EQUILIBRIUM ENGINE</span>
           </div>
 
           <div className="flex items-center gap-2.5">

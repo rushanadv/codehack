@@ -67,7 +67,7 @@ export default function IncidentsPage() {
       <div className="pb-6 border-b border-[#344438]">
         <div className="flex items-center gap-2 text-xs font-mono text-[#82996D] uppercase tracking-wider mb-1.5">
           <ShieldAlert className="w-3.5 h-3.5 text-[#A9BE89]" />
-          <span>Promise Protection Network • Operational Fault Tolerance</span>
+          <span>Slotly Promise Protection • Operational Fault Tolerance</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-[#F1F0E5] tracking-tight">
           Incident Response & Disruption Management

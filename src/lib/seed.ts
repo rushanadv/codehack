@@ -62,11 +62,11 @@ export function seedDatabase() {
 
   insertUser.run(
     'user-admin-raman',
-    'dean.raman@idlex-demo.internal',
+    'dean.raman@slotly-demo.internal',
     'Dean S. Raman',
     'admin',
     'Platform Operations & Governance',
-    'IdleX Exchange Authority (Fictional)',
+    'Slotly Exchange Authority (Fictional)',
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
     new Date(Date.now() - 200 * 86400000).toISOString()
   );
@@ -310,7 +310,7 @@ export function seedDatabase() {
     'good',
     'SN-H5X-3012',
     'IXP-CNC5-006',
-    'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80',
     new Date(Date.now() - 65 * 86400000).toISOString()
   );
 

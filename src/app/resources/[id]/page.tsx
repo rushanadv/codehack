@@ -274,7 +274,7 @@ function ResourceDetailContent() {
                   </div>
                   <div className="font-semibold text-[#F1F0E5] text-xs sm:text-sm">{resource.owner_name}</div>
                   <div className="text-xs text-[#B7C2B1] mt-0.5">{resource.building}</div>
-                  <div className="text-[11px] text-[#7E8D77] mt-0.5">{resource.owner_institution || 'IdleX Verified Facility (Demo)'}</div>
+                  <div className="text-[11px] text-[#7E8D77] mt-0.5">{resource.owner_institution || 'Slotly Verified Facility (Demo)'}</div>
                 </div>
 
                 <div className="p-5 rounded-xl bg-[#17251B] border border-[#344438]">

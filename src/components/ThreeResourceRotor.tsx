@@ -286,7 +286,7 @@ export default function ThreeResourceRotor({
       <div
         ref={containerRef}
         className="w-full h-full min-h-[380px] sm:min-h-[460px] lg:min-h-[520px]"
-        title="Click and drag to rotate the IdleX 3-Sided Resource Rotor"
+        title="Click and drag to rotate the Slotly 3-Sided Resource Rotor"
       />
       {/* Interactive Drag Hint Pill */}
       <div

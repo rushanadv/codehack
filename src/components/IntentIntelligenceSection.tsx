@@ -167,7 +167,7 @@ export default function IntentIntelligenceSection() {
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-black text-[#F1E7DE] tracking-tight">
-              IdleX Match™ Engine Excerpt
+              Slotly Match™ Engine Excerpt
             </h2>
             <p className="text-sm sm:text-base text-[#D9C5B4] max-w-2xl mt-2 leading-relaxed">
               Skip multi-tiered rigid dropdown forms. Express real research intent in plain language and let deterministic multi-factor vectors calculate optimum allocation.

@@ -43,7 +43,7 @@ const CATEGORIES: CategoryData[] = [
     motifTitle: 'Architectural Stepped Skyline',
     motifSubtitle: 'Central portal arch with vertical spire and stepped modernist wings',
     description:
-      'High-containment cleanrooms, autonomous robotics arenas, and RF-shielded chambers sitting dark outside academic hours. IdleX coordinates multi-institution access protocols, safety inductions, and physical keycard handoffs without multi-crore capital building costs.',
+      'High-containment cleanrooms, autonomous robotics arenas, and RF-shielded chambers sitting dark outside academic hours. Slotly coordinates multi-institution access protocols, safety inductions, and physical keycard handoffs without multi-crore capital building costs.',
     color: '#D4FF00',
     icon: Building2,
     specs: [
@@ -91,7 +91,7 @@ const CATEGORIES: CategoryData[] = [
     motifTitle: 'Processor & Circuit Traces',
     motifSubtitle: 'Chamfered IC package, silicon die, lateral lead pads, and 45° diagonal data buses',
     description:
-      'High-performance compute partitions, specialized EDA simulation toolchains, and proprietary physics solver seats. IdleX coordinates compliant workload dispatch during off-peak windows without exposing raw credentials or violating vendor software licenses.',
+      'High-performance compute partitions, specialized EDA simulation toolchains, and proprietary physics solver seats. Slotly coordinates compliant workload dispatch during off-peak windows without exposing raw credentials or violating vendor software licenses.',
     color: '#D4FF00',
     icon: Cpu,
     specs: [

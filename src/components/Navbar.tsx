@@ -176,7 +176,7 @@ export function Navbar() {
           <NextLink href="/" className="flex items-center gap-2.5 group">
             <span className="w-2.5 h-2.5 bg-[#82996D] rounded-xs group-hover:bg-[#A9BE89] transition-colors" />
             <span className="font-sans font-bold text-sm tracking-tight text-[#F1F0E5] uppercase">
-              IDLEX<span className="text-[#82996D]">.</span>
+              SLOTLY<span className="text-[#82996D]">.</span>
             </span>
           </NextLink>
 

@@ -45,7 +45,7 @@ export default function LoginPage() {
             <div className="w-3.5 h-3.5 bg-[#82996D] rounded-sm transform rotate-45" />
           </div>
           <h2 className="text-2xl font-semibold text-[#F1F0E5] tracking-tight">
-            Sign in to Idle<span className="text-[#82996D]">X</span>
+            Sign in to Slotly
           </h2>
           <p className="text-xs text-[#7E8D77] font-mono">
             High-Integrity Infrastructure Exchange

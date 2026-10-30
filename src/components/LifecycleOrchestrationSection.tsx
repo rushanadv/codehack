@@ -48,7 +48,7 @@ const STEPS: Step[] = [
   {
     num: '02',
     title: 'Match',
-    tagline: 'IdleX Intent Engine',
+    tagline: 'Slotly Intent Engine',
     desc: 'Express natural language research requirements. Semantic vectors weigh budget, proximity, and hard SkillGate safety clearances.',
     pill: 'Deterministic Gating',
     mechanism: 'Multi-factor scoring algorithm balancing geographical distance, operator clearances, and machine turnaround readiness.',
@@ -128,7 +128,7 @@ export default function LifecycleOrchestrationSection() {
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-black text-[#F1E7DE] tracking-tight mb-3">
-              How IdleX Works: The 5-Phase Lifecycle
+              How Slotly Works: The 5-Phase Lifecycle
             </h2>
             <p className="text-sm sm:text-base text-[#D9C5B4] max-w-2xl leading-relaxed">
               A verifiable, atomic resource exchange sequence designed to eliminate double-bookings, protect expensive equipment from uncertified operators, and settle usage transparently.

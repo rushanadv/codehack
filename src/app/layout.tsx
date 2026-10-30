@@ -6,8 +6,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "IdleX — Bloom: A Living Resource Exchange",
-  description: "Nature, sculpted through technology. High-integrity shared access to precision facilities, advanced hardware, and accelerated compute.",
+  title: "Slotly — Bloom: A Living Resource Exchange",
+  description: "Nature, sculpted through technology. High-integrity shared access to precision facilities, advanced hardware, and accelerated compute with Slotly.",
 };
 
 export default function RootLayout({

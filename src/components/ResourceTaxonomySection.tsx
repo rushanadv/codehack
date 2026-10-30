@@ -30,7 +30,7 @@ const CATEGORIES: CategoryItem[] = [
     tagline: 'Controlled Environments & Cleanrooms',
     count: '42 Facilities Active',
     description:
-      'High-containment cleanrooms, autonomous robotics arenas, and RF-shielded chambers sitting dark outside academic hours. IdleX coordinates multi-institution access protocols, safety inductions, and physical keycard handoffs.',
+      'High-containment cleanrooms, autonomous robotics arenas, and RF-shielded chambers sitting dark outside academic hours. Slotly coordinates multi-institution access protocols, safety inductions, and physical keycard handoffs.',
     link: '/explore?category=space',
     icon: Building2,
     accentColor: '#D4FF00',
@@ -51,7 +51,7 @@ const CATEGORIES: CategoryItem[] = [
     tagline: 'High-Precision Fabrication & Analysis',
     count: '184 Verified Instruments',
     description:
-      'Confocal laser scanning microscopes, 5-axis CNC machining centers, and cryogenic transmission electron microscopes (Cryo-TEM). IdleX establishes verified operator credentialing, custody handovers, and atomic damage escrow protection.',
+      'Confocal laser scanning microscopes, 5-axis CNC machining centers, and cryogenic transmission electron microscopes (Cryo-TEM). Slotly establishes verified operator credentialing, custody handovers, and atomic damage escrow protection.',
     link: '/explore?category=equipment',
     icon: Cog,
     accentColor: '#D95927',
@@ -72,7 +72,7 @@ const CATEGORIES: CategoryItem[] = [
     tagline: 'On-Demand GPU Workstations & Emulators',
     count: '1,280 TFLOPs Capacity',
     description:
-      'Specialized 8x H100 GPU clusters, FPGA hardware-in-the-loop emulation rigs, and dedicated quantum circuit simulators idling between grant runs. IdleX deploys sandboxed SSH ingress, telemetry logging, and fair-share queue allocation.',
+      'Specialized 8x H100 GPU clusters, FPGA hardware-in-the-loop emulation rigs, and dedicated quantum circuit simulators idling between grant runs. Slotly deploys sandboxed SSH ingress, telemetry logging, and fair-share queue allocation.',
     link: '/explore?category=compute',
     icon: Cpu,
     accentColor: '#D4FF00',
@@ -114,11 +114,11 @@ export default function ResourceTaxonomySection() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1A120E] border border-[#AD7257]/40 rounded-sm font-mono text-xs uppercase tracking-[0.2em] text-[#D4FF00] mb-4">
               <span className="w-2 h-2 bg-[#D4FF00]" />
-              <span>02 / The IdleX Taxonomy</span>
+              <span>02 / The Slotly Taxonomy</span>
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-black text-[#F1E7DE] tracking-tight mb-3">
-              The IdleX Resource Universe
+              The Slotly Resource Universe
             </h2>
             <p className="text-sm sm:text-base text-[#D9C5B4] max-w-2xl leading-relaxed">
               Three critical asset classifications. Every instrument, chamber, and GPU rig is mapped with concrete specifications, safety inductives, and verified rate telemetry.
