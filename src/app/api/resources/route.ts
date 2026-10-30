@@ -55,7 +55,24 @@ export async function GET(request: Request) {
 
   const rows = db.prepare(query).all(...params) as any[];
 
-  // Attach required skills
+  // Batch-fetch all required skills in 1 query to prevent N+1 query overhead
+  const allSkills = db.prepare(`
+    SELECT rs.resource_id, s.id, s.name, s.category, rs.is_mandatory
+    FROM resource_skills rs
+    JOIN skills s ON rs.skill_id = s.id
+  `).all() as any[];
+
+  const skillsByResource = new Map<string, any[]>();
+  for (const sk of allSkills) {
+    const list = skillsByResource.get(sk.resource_id);
+    if (list) {
+      list.push(sk);
+    } else {
+      skillsByResource.set(sk.resource_id, [sk]);
+    }
+  }
+
+  // Attach required skills with O(1) hash map lookup
   const resources = rows.map(r => {
     let specs = {};
     try {
@@ -64,17 +81,10 @@ export async function GET(request: Request) {
       specs = {};
     }
 
-    const requiredSkills = db.prepare(`
-      SELECT s.id, s.name, s.category, rs.is_mandatory
-      FROM resource_skills rs
-      JOIN skills s ON rs.skill_id = s.id
-      WHERE rs.resource_id = ?
-    `).all(r.id);
-
     return {
       ...r,
       specifications: specs,
-      required_skills: requiredSkills
+      required_skills: skillsByResource.get(r.id) || []
     };
   });
 

@@ -26,7 +26,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
   const cat = categoryLabels[resource.category] || { label: resource.category, accent: 'text-[#B7C2B1] border-[#344438] bg-[#203025]' };
 
   return (
-    <div className="group rounded-xl overflow-hidden border border-[#344438] hover:border-[#82996D] bg-[#17251B] flex flex-col justify-between transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-[#82996D]/5">
+    <div className="group rounded-xl overflow-hidden card-float bg-[#17251B] flex flex-col justify-between">
       
       <div>
         {/* Resource Image Header */}
