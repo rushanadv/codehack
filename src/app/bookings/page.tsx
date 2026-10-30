@@ -17,7 +17,7 @@ import { Booking } from '@/lib/types';
 export default function BookingsListPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'in_progress' | 'confirmed' | 'returned'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'upcoming' | 'in_progress' | 'completed' | 'cancelled'>('all');
 
   const fetchBookings = async () => {
     setIsLoading(true);
@@ -38,7 +38,12 @@ export default function BookingsListPage() {
 
   const filtered = bookings.filter(b => {
     if (filter === 'all') return true;
-    return b.status === filter;
+    if (filter === 'pending') return b.status === 'pending';
+    if (filter === 'upcoming') return b.status === 'confirmed';
+    if (filter === 'in_progress') return b.status === 'in_progress' || b.status === 'delayed';
+    if (filter === 'completed') return b.status === 'returned';
+    if (filter === 'cancelled') return b.status === 'cancelled';
+    return true;
   });
 
   return (
@@ -59,18 +64,25 @@ export default function BookingsListPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 text-xs">
-          {(['all', 'in_progress', 'confirmed', 'returned'] as const).map((st) => (
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          {[
+            { id: 'all', label: 'All' },
+            { id: 'pending', label: 'Pending' },
+            { id: 'upcoming', label: 'Upcoming' },
+            { id: 'in_progress', label: 'In Progress' },
+            { id: 'completed', label: 'Completed' },
+            { id: 'cancelled', label: 'Cancelled' },
+          ].map((tab) => (
             <button
-              key={st}
-              onClick={() => setFilter(st)}
+              key={tab.id}
+              onClick={() => setFilter(tab.id as any)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium uppercase transition-colors cursor-pointer border ${
-                filter === st
+                filter === tab.id
                   ? 'bg-[#203025] text-[#F1F0E5] border-[#82996D]'
                   : 'bg-[#17251B] text-[#B7C2B1] border-[#344438] hover:text-[#F1F0E5] hover:bg-[#203025]'
               }`}
             >
-              {st.replace('_', ' ')}
+              {tab.label}
             </button>
           ))}
         </div>

@@ -1,0 +1,16 @@
+{
+  "name": "Slotly — Living Resource Exchange",
+  "short_name": "Slotly",
+  "description": "Nature, sculpted through technology. High-integrity shared access to precision facilities, advanced hardware, and accelerated compute.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1510",
+  "theme_color": "#101D15",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

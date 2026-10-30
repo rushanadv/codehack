@@ -600,7 +600,7 @@ export default function CinematicHeroExperience() {
     let innerGlowMat: THREE.MeshStandardMaterial | null = null;
 
     gltfLoader.load(
-      '/models/bloom_ultra.glb',
+      '/models/slotly_bloom.glb',
       (gltf) => {
         const model = gltf.scene;
 
@@ -620,25 +620,38 @@ export default function CinematicHeroExperience() {
               // remain visible from any angle during full 360-degree rotation.
               mat.side = THREE.DoubleSide;
 
-              if (mat.name === 'Bloom_Glass_Petals') {
+              const matName = mat.name || '';
+              if (matName === 'Bloom_Translucent_Ivory_Petal' || matName === 'Bloom_Glass_Petals') {
                 mat.transparent = true;
                 mat.depthWrite = true;
-                mat.roughness = 0.20;
-                mat.envMapIntensity = 1.15;
-              } else if (mat.name === 'Bloom_Inner_Glow') {
-                mat.emissiveIntensity = 3.8;
+                mat.roughness = 0.22;
+                mat.transmission = 0.52;
+                mat.ior = 1.44;
+                mat.thickness = 0.05;
+                mat.envMapIntensity = 1.25;
+              } else if (matName === 'Bloom_Warm_Ivory_Core' || matName === 'Bloom_Inner_Glow') {
+                mat.emissiveIntensity = 3.6;
                 innerGlowMat = mat as unknown as THREE.MeshStandardMaterial;
-              } else if (mat.name === 'Bloom_White_Blossom') {
+              } else if (matName === 'Bloom_Forest_Moss_Lichen' || matName === 'Bloom_Moss_Lichen') {
+                mat.roughness = 0.90;
+                mat.envMapIntensity = 0.7;
+              } else if (matName === 'Bloom_Deep_Botanical_Structure' || matName === 'Bloom_Moss_Deep') {
+                mat.roughness = 0.94;
+                mat.envMapIntensity = 0.6;
+              } else if (matName === 'Bloom_Botanical_Filaments') {
+                mat.roughness = 0.68;
+                mat.envMapIntensity = 0.85;
+              } else if (matName === 'Bloom_Petal_Vein_Highlight') {
+                mat.roughness = 0.45;
+                mat.envMapIntensity = 1.1;
+              } else if (matName.startsWith('Bloom_Moss') || matName.startsWith('Bloom_Lichen')) {
+                mat.roughness = 0.92;
+                mat.envMapIntensity = 0.65;
+              } else if (matName === 'Bloom_White_Blossom') {
                 mat.transparent = true;
                 mat.depthWrite = true;
                 mat.roughness = 0.32;
                 mat.envMapIntensity = 1.0;
-              } else if (mat.name === 'Bloom_Moss_Lichen') {
-                mat.roughness = 0.88;
-                mat.envMapIntensity = 0.7;
-              } else if (mat.name === 'Bloom_Moss_Deep') {
-                mat.roughness = 0.94;
-                mat.envMapIntensity = 0.6;
               }
             }
           }
@@ -666,7 +679,7 @@ export default function CinematicHeroExperience() {
         monolithGroup.add(pivot);
       },
       undefined,
-      (err) => console.error('Error loading Bloom Ultra GLB:', err)
+      (err) => console.error('Error loading Slotly Bloom GLB:', err)
     );
 
     // Terrain: idlex-terrain.glb
