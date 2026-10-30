@@ -26,6 +26,7 @@ import {
   createMultiLayerFogSystem,
   createAtmosphericParticles,
 } from './atmospheric-shaders';
+import { createOrganicMonolithMaterial } from './organic-monolith-material';
 
 // ============================================================================
 // AMBIENT CINEMATIC AUDIO SYNTHESIZER (Web Audio API)
@@ -323,6 +324,7 @@ export default function CinematicHeroExperience() {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const monolithGroupRef = useRef<THREE.Group | null>(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+  const artefactMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
 
   // Angular constants
   const SPACING = (2 * Math.PI) / 3; // 120° in radians
@@ -595,12 +597,13 @@ export default function CinematicHeroExperience() {
     contactShadow.position.set(0, -1.43, 0);
     scene.add(contactShadow);
 
-    // 7. LOAD 3D BLOOM ARTEFACT VIA GLTFLoader
+    // 7. LOAD 3D HERO ARTEFACT VIA GLTFLoader (Restored Egg-Shaped Ovoid Model)
     const gltfLoader = new GLTFLoader();
-    let innerGlowMat: THREE.MeshStandardMaterial | null = null;
+    const eggShaderMat = createOrganicMonolithMaterial();
+    artefactMaterialRef.current = eggShaderMat;
 
     gltfLoader.load(
-      '/models/slotly_bloom.glb',
+      '/models/slotly_egg_artefact.glb',
       (gltf) => {
         const model = gltf.scene;
 
@@ -610,49 +613,11 @@ export default function CinematicHeroExperience() {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
+            // Apply custom futuristic amber glass volumetric shader
+            mesh.material = eggShaderMat;
+
             if (mesh.geometry) {
               mesh.geometry.computeVertexNormals();
-            }
-
-            const mat = mesh.material as THREE.MeshPhysicalMaterial;
-            if (mat) {
-              // Ensure double-sided rendering so all petal sheets and lichen facets
-              // remain visible from any angle during full 360-degree rotation.
-              mat.side = THREE.DoubleSide;
-
-              const matName = mat.name || '';
-              if (matName === 'Bloom_Translucent_Ivory_Petal' || matName === 'Bloom_Glass_Petals') {
-                mat.transparent = true;
-                mat.depthWrite = true;
-                mat.roughness = 0.22;
-                mat.transmission = 0.52;
-                mat.ior = 1.44;
-                mat.thickness = 0.05;
-                mat.envMapIntensity = 1.25;
-              } else if (matName === 'Bloom_Warm_Ivory_Core' || matName === 'Bloom_Inner_Glow') {
-                mat.emissiveIntensity = 3.6;
-                innerGlowMat = mat as unknown as THREE.MeshStandardMaterial;
-              } else if (matName === 'Bloom_Forest_Moss_Lichen' || matName === 'Bloom_Moss_Lichen') {
-                mat.roughness = 0.90;
-                mat.envMapIntensity = 0.7;
-              } else if (matName === 'Bloom_Deep_Botanical_Structure' || matName === 'Bloom_Moss_Deep') {
-                mat.roughness = 0.94;
-                mat.envMapIntensity = 0.6;
-              } else if (matName === 'Bloom_Botanical_Filaments') {
-                mat.roughness = 0.68;
-                mat.envMapIntensity = 0.85;
-              } else if (matName === 'Bloom_Petal_Vein_Highlight') {
-                mat.roughness = 0.45;
-                mat.envMapIntensity = 1.1;
-              } else if (matName.startsWith('Bloom_Moss') || matName.startsWith('Bloom_Lichen')) {
-                mat.roughness = 0.92;
-                mat.envMapIntensity = 0.65;
-              } else if (matName === 'Bloom_White_Blossom') {
-                mat.transparent = true;
-                mat.depthWrite = true;
-                mat.roughness = 0.32;
-                mat.envMapIntensity = 1.0;
-              }
             }
           }
         });
@@ -679,7 +644,7 @@ export default function CinematicHeroExperience() {
         monolithGroup.add(pivot);
       },
       undefined,
-      (err) => console.error('Error loading Slotly Bloom GLB:', err)
+      (err) => console.error('Error loading Slotly Hero GLB:', err)
     );
 
     // Terrain: idlex-terrain.glb
@@ -846,9 +811,9 @@ export default function CinematicHeroExperience() {
       fogSystem.update(elapsedTime, 0.5);
       updateDust(elapsedTime);
 
-      // Living organic pulse on illuminated inner glow core
-      if (innerGlowMat) {
-        innerGlowMat.emissiveIntensity = 3.6 + 0.45 * Math.sin(elapsedTime * 1.6);
+      // Dynamic flow on amber glass volumetric artefact
+      if (artefactMaterialRef.current) {
+        artefactMaterialRef.current.uniforms.uTime.value = elapsedTime;
       }
 
       // Monolith positioning & synchronized rotation

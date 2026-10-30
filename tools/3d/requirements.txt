@@ -3,3 +3,4 @@ scipy>=1.10.0
 Pillow>=9.5.0
 trimesh>=3.22.0
 scikit-image>=0.21.0
+

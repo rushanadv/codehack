@@ -14,3 +14,4 @@ python tools/3d/generate_slotly_bloom.py --output-dir ./slotly_bloom_output
 ```
 
 > **Note:** This generator is an offline generation utility and does not execute during browser runtime or Next.js builds. The production application directly loads `public/models/slotly_bloom.glb`.
+
