@@ -26,7 +26,6 @@ import {
   createMultiLayerFogSystem,
   createAtmosphericParticles,
 } from './atmospheric-shaders';
-import { createOrganicMonolithMaterial } from './organic-monolith-material';
 
 // ============================================================================
 // AMBIENT CINEMATIC AUDIO SYNTHESIZER (Web Audio API)
@@ -323,7 +322,6 @@ export default function CinematicHeroExperience() {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const monolithGroupRef = useRef<THREE.Group | null>(null);
-  const artefactMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
   // Angular constants
@@ -834,11 +832,6 @@ export default function CinematicHeroExperience() {
       updateMistBand(elapsedTime);
       fogSystem.update(elapsedTime, 0.5);
       updateDust(elapsedTime);
-      if (artefactMaterialRef.current) {
-        artefactMaterialRef.current.uniforms.uTime.value = elapsedTime;
-        artefactMaterialRef.current.uniforms.uLightDirection.value.copy(keyLight.position).normalize();
-        artefactMaterialRef.current.uniforms.uBackLightDirection.value.copy(horizonRimLight.position).normalize();
-      }
 
       // Living organic pulse on illuminated inner glow core
       if (innerGlowMat) {
