@@ -325,6 +325,7 @@ export default function CinematicHeroExperience() {
   const monolithGroupRef = useRef<THREE.Group | null>(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
   const artefactMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const bloomMaterialsRef = useRef<THREE.MeshPhysicalMaterial[]>([]);
 
   // Angular constants
   const SPACING = (2 * Math.PI) / 3; // 120° in radians
@@ -487,6 +488,15 @@ export default function CinematicHeroExperience() {
     scene.background = new THREE.Color(0x0a0504);
     scene.fog = new THREE.FogExp2(0x1a0d0a, 0.016);
 
+    // Testing hook for precise 360-degree angle inspection
+    if (typeof window !== 'undefined') {
+      (window as any).__slotlyHeroSetAngle = (rad: number, freezeMs = 2000) => {
+        targetAngleRef.current = rad;
+        currentAngleRef.current = rad;
+        lastInputTimeRef.current = performance.now() + freezeMs;
+      };
+    }
+
     // 2. Camera Setup (Monumental low angle looking slightly up, framing full height)
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -597,13 +607,12 @@ export default function CinematicHeroExperience() {
     contactShadow.position.set(0, -1.43, 0);
     scene.add(contactShadow);
 
-    // 7. LOAD 3D HERO ARTEFACT VIA GLTFLoader (Restored Egg-Shaped Ovoid Model)
+    // 7. LOAD 3D HERO ARTEFACT VIA GLTFLoader (Bloom Concept 04 Sculpture)
     const gltfLoader = new GLTFLoader();
-    const eggShaderMat = createOrganicMonolithMaterial();
-    artefactMaterialRef.current = eggShaderMat;
+    const alabasterMaterials: THREE.MeshPhysicalMaterial[] = [];
 
     gltfLoader.load(
-      '/models/slotly_egg_artefact.glb',
+      '/models/slotly-bloom-concept04.glb',
       (gltf) => {
         const model = gltf.scene;
 
@@ -613,14 +622,38 @@ export default function CinematicHeroExperience() {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            // Apply custom futuristic amber glass volumetric shader
-            mesh.material = eggShaderMat;
-
             if (mesh.geometry) {
               mesh.geometry.computeVertexNormals();
             }
+
+            const mat = mesh.material as THREE.MeshPhysicalMaterial;
+            if (mat) {
+              // Ensure double-sided rendering so all sculpted curves remain visible from any angle
+              mat.side = THREE.DoubleSide;
+
+              const matName = mat.name || '';
+              if (matName === 'Bloom_Alabaster_Petal') {
+                // Translucent soft ivory alabaster petals with volume transmission & clearcoat
+                mat.depthWrite = true;
+                mat.transparent = false; // Physical transmission handles volume refraction
+                mat.envMapIntensity = 1.15;
+                alabasterMaterials.push(mat);
+              } else if (matName === 'Bloom_Botanical_Moss') {
+                // Organic moss core preserving vertex color variations and velvety matte finish
+                mat.vertexColors = true;
+                mat.roughness = 0.90;
+                mat.metalness = 0.01;
+                mat.envMapIntensity = 0.75;
+              } else if (matName === 'Bloom_White_Blossom') {
+                // Delicate white bell blossoms preserving transmission & subtle glow
+                mat.depthWrite = true;
+                mat.envMapIntensity = 1.0;
+              }
+            }
           }
         });
+
+        bloomMaterialsRef.current = alabasterMaterials;
 
         // Compute true bounding box and center
         const bbox = new THREE.Box3().setFromObject(model);
@@ -644,7 +677,7 @@ export default function CinematicHeroExperience() {
         monolithGroup.add(pivot);
       },
       undefined,
-      (err) => console.error('Error loading Slotly Hero GLB:', err)
+      (err) => console.error('Error loading Slotly Bloom Concept 04 GLB:', err)
     );
 
     // Terrain: idlex-terrain.glb
@@ -811,9 +844,17 @@ export default function CinematicHeroExperience() {
       fogSystem.update(elapsedTime, 0.5);
       updateDust(elapsedTime);
 
-      // Dynamic flow on amber glass volumetric artefact
+      // Dynamic flow on amber glass volumetric artefact (if active)
       if (artefactMaterialRef.current) {
         artefactMaterialRef.current.uniforms.uTime.value = elapsedTime;
+      }
+
+      // Organic living breathing glow on Bloom petals
+      if (bloomMaterialsRef.current.length > 0) {
+        const pulse = 0.85 + 0.08 * Math.sin(elapsedTime * 1.5);
+        for (const m of bloomMaterialsRef.current) {
+          m.emissiveIntensity = pulse;
+        }
       }
 
       // Monolith positioning & synchronized rotation

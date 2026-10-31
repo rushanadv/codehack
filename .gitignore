@@ -51,3 +51,4 @@ __pycache__/
 *.pyc
 .agent
 data/idlex.db
+public/models/bloom_concept04 (2).glb
