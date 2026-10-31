@@ -485,8 +485,8 @@ export default function CinematicHeroExperience() {
     // 1. Scene Setup
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(0x0a0504);
-    scene.fog = new THREE.FogExp2(0x1a0d0a, 0.016);
+    scene.background = new THREE.Color(0x0b1510);
+    scene.fog = new THREE.FogExp2(0x0b1510, 0.016);
 
     // Testing hook for precise 360-degree angle inspection
     if (typeof window !== 'undefined') {
@@ -497,13 +497,13 @@ export default function CinematicHeroExperience() {
       };
     }
 
-    // 2. Camera Setup (Monumental low angle looking slightly up, framing full height)
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const isMobile = width < 768;
-    const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 200);
-    camera.position.set(0, 0.38, isMobile ? 9.8 : 9.2);
-    camera.lookAt(0, 0.22, 0);
+    // 2. Camera Setup (Frames the Bloom sculpture prominently with zero distortion)
+    const width = holder.clientWidth || window.innerWidth;
+    const height = holder.clientHeight || Math.round(window.innerHeight * 0.55);
+    const isMobile = window.innerWidth < 768;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 36 : 32, width / height, 0.1, 200);
+    camera.position.set(0, 0.08, isMobile ? 8.6 : 7.6);
+    camera.lookAt(0, 0.04, 0);
     cameraRef.current = camera;
 
     // 3. WebGL Renderer
@@ -557,7 +557,7 @@ export default function CinematicHeroExperience() {
       depthWrite: false,
     });
     const waterMesh = new THREE.Mesh(waterGeom, waterMat);
-    waterMesh.position.set(0, -1.44, 0);
+    waterMesh.position.set(0, -1.98, 0);
     scene.add(waterMesh);
 
     // 5. STUDIO BOTANICAL 3-POINT LIGHTING
@@ -565,46 +565,46 @@ export default function CinematicHeroExperience() {
     scene.add(ambientLight);
 
     // Warm ivory sunlight key light
-    const keyLight = new THREE.DirectionalLight(0xfbf7ed, 1.6);
-    keyLight.position.set(1.8, 3.8, 5.0);
+    const keyLight = new THREE.DirectionalLight(0xfbf7ed, 1.7);
+    keyLight.position.set(2.4, 4.2, 5.5);
     scene.add(keyLight);
 
     // Botanical sage fill light
     const fillLight = new THREE.DirectionalLight(0x5e7857, 1.4);
-    fillLight.position.set(-2.8, 2.6, 4.5);
+    fillLight.position.set(-3.2, 3.0, 4.8);
     scene.add(fillLight);
 
     // Horizon backlight / mineral gold rim light
-    const horizonRimLight = new THREE.DirectionalLight(0xc7bc91, 2.2);
-    horizonRimLight.position.set(0.0, 3.6, -4.5);
+    const horizonRimLight = new THREE.DirectionalLight(0xc7bc91, 2.4);
+    horizonRimLight.position.set(0.0, 4.0, -5.0);
     scene.add(horizonRimLight);
 
     // Forest pool highlight point light
     const waterLight = new THREE.PointLight(0x507357, 1.2, 10);
-    waterLight.position.set(0, -1.2, 1.5);
+    waterLight.position.set(0, -1.7, 1.5);
     scene.add(waterLight);
 
     // 6. ASSET CONTAINERS: MONOLITH & TERRAIN
     const monolithGroup = new THREE.Group();
-    monolithGroup.position.set(0, 0.28, 0);
+    monolithGroup.position.set(0, 0.06, 0);
     scene.add(monolithGroup);
     monolithGroupRef.current = monolithGroup;
 
     const terrainGroup = new THREE.Group();
-    terrainGroup.position.set(0, -1.45, 0);
+    terrainGroup.position.set(0, -2.0, 0);
     scene.add(terrainGroup);
 
     // Contact shadow decal directly beneath monolith
     const shadowGeom = new THREE.CircleGeometry(1.8, 32);
     shadowGeom.rotateX(-Math.PI / 2);
     const shadowMat = new THREE.MeshBasicMaterial({
-      color: 0x050201,
+      color: 0x030805,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.35,
       depthWrite: false,
     });
     const contactShadow = new THREE.Mesh(shadowGeom, shadowMat);
-    contactShadow.position.set(0, -1.43, 0);
+    contactShadow.position.set(0, -1.97, 0);
     scene.add(contactShadow);
 
     // 7. LOAD 3D HERO ARTEFACT VIA GLTFLoader (Bloom Concept 04 Sculpture)
@@ -667,11 +667,11 @@ export default function CinematicHeroExperience() {
         model.position.set(-center.x, -center.y, -center.z);
         pivot.add(model);
 
-        // Target height in scene units: approx 3.25 for optimal hero framing
-        const targetHeight = 3.25;
+        // Target height in scene units: approx 3.85 for commanding hero presence without clipping
+        const targetHeight = 3.85;
         const scale = targetHeight / Math.max(size.y, 0.001);
         pivot.scale.setScalar(scale);
-        pivot.position.set(0, 0.06, 0);
+        pivot.position.set(0, 0.22, 0);
 
         monolithGroup.clear();
         monolithGroup.add(pivot);
@@ -698,27 +698,51 @@ export default function CinematicHeroExperience() {
         });
         terrainGroup.clear();
         terrainGroup.add(terrainModel);
+        terrainGroup.position.set(0, -2.0, 0);
+        terrainModel.scale.set(1.5, 1.5, 1.5);
       },
       undefined,
       (err) => console.error('Error loading terrain:', err)
     );
 
-    // 8. Responsive Resize
+    // 8. Responsive Resize with ResizeObserver
     const onResize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      if (!holder) return;
+      const w = holder.clientWidth || window.innerWidth;
+      const h = holder.clientHeight || Math.round(window.innerHeight * 0.58);
       camera.aspect = w / h;
-      if (w < 768) {
+      const isMob = window.innerWidth < 768;
+      if (isMob) {
         camera.fov = 36;
-        camera.position.set(0, 0.40, 9.8);
+        camera.position.set(0, 0.08, 8.6);
       } else {
-        camera.fov = 34;
-        camera.position.set(0, 0.38, 9.2);
+        camera.fov = 32;
+        camera.position.set(0, 0.08, 7.6);
       }
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width: w, height: h } = entry.contentRect;
+        if (w > 0 && h > 0) {
+          camera.aspect = w / h;
+          const isMob = w < 768;
+          if (isMob) {
+            camera.fov = 36;
+            camera.position.set(0, 0.08, 8.6);
+          } else {
+            camera.fov = 32;
+            camera.position.set(0, 0.08, 7.6);
+          }
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h, false);
+        }
+      }
+    });
+    resizeObserver.observe(holder);
 
     // 9. Continuous Animation Loop (Runs at 60/120 FPS smoothly)
     let animId: number;
@@ -782,7 +806,7 @@ export default function CinematicHeroExperience() {
       // HIGH-PERFORMANCE DIRECT DOM CYLINDRICAL TRANSFORM UPDATES
       // Updates 3 title stations without triggering 60 FPS React re-renders!
       const isMob = window.innerWidth < 768;
-      const radius = isMob ? 340 : 460;
+      const radius = isMob ? 260 : 380;
 
       for (let i = 0; i < 3; i++) {
         const el = itemRefs.current[i];
@@ -798,9 +822,9 @@ export default function CinematicHeroExperience() {
 
         // Cylindrical projection coordinates
         const tx = Math.sin(delta) * radius;
-        const tz = (Math.cos(delta) - 1) * 140;
-        const rotY = delta * 24; // degrees
-        const scale = Math.max(0.82, 1.0 + tz / (2 * radius));
+        const tz = (Math.cos(delta) - 1) * 80;
+        const rotY = delta * 18; // degrees
+        const scale = Math.max(0.85, 1.0 + tz / (2 * radius));
 
         // Smooth opacity falloff: fully visible when centered, cleanly fading out
         // before reaching flanking stations to guarantee NO overlapping titles
@@ -823,13 +847,7 @@ export default function CinematicHeroExperience() {
         if (h2) {
           h2.style.color = '#ffffff';
           (h2.style as any).webkitTextStroke = '0px transparent';
-          h2.style.filter = 'drop-shadow(0 16px 36px rgba(0,0,0,0.95))';
-        }
-
-        const badge = el.querySelector('.active-dim-badge');
-        if (badge) {
-          (badge as HTMLElement).style.opacity = isCentered ? '1' : '0';
-          (badge as HTMLElement).style.pointerEvents = isCentered ? 'auto' : 'none';
+          h2.style.filter = 'drop-shadow(0 12px 28px rgba(0,0,0,0.85))';
         }
       }
 
@@ -858,25 +876,25 @@ export default function CinematicHeroExperience() {
       }
 
       // Monolith positioning & synchronized rotation
-      // Towering presence: scales to ~0.84 on desktop, ~0.72 on mobile
-      const baseScale = isMob ? 0.72 : 0.84;
-      const floatY = 0.28 + Math.sin(elapsedTime * 0.6) * 0.014;
+      // Prominent screen presence: scales to 1.0 on desktop, 0.88 on mobile
+      const baseScale = isMob ? 0.88 : 1.0;
+      const floatY = 0.08 + Math.sin(elapsedTime * 0.6) * 0.012;
 
       // Monolith rotation Y is strictly synchronized with carousel angle
       monolithGroup.rotation.y = -angle;
-      monolithGroup.position.y = floatY;
+      monolithGroup.position.set(0, floatY, 0);
       monolithGroup.scale.set(baseScale, baseScale, baseScale);
 
       // Subtle organic sway & mouse parallax
       monolithGroup.rotation.x =
-        Math.sin(elapsedTime * 0.4) * 0.01 + mouse.y * 0.012;
+        Math.sin(elapsedTime * 0.4) * 0.008 + mouse.y * 0.012;
       monolithGroup.rotation.z =
-        Math.cos(elapsedTime * 0.35) * 0.008 - mouse.x * 0.012;
+        Math.cos(elapsedTime * 0.35) * 0.006 - mouse.x * 0.012;
 
       // Camera positioning with gentle parallax
-      camera.position.x = mouse.x * 0.08;
-      camera.position.y = 0.38 + mouse.y * 0.04;
-      camera.lookAt(0, 0.22, 0);
+      camera.position.x = mouse.x * 0.05;
+      camera.position.y = 0.12 + mouse.y * 0.02;
+      camera.lookAt(0, 0.16, 0);
 
       renderer.render(scene, camera);
     };
@@ -886,6 +904,7 @@ export default function CinematicHeroExperience() {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', onResize);
+      resizeObserver.disconnect();
 
       skyDome.geometry.dispose();
       skyMat.dispose();
@@ -914,25 +933,14 @@ export default function CinematicHeroExperience() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden bg-[#0B1510] select-none touch-none"
+      className="relative w-full h-screen overflow-hidden bg-[#0B1510] flex flex-col justify-between select-none touch-none"
     >
-      {/* =========================================================================
-          FULL-VIEWPORT THREE.JS 3D STAGE
-          ========================================================================= */}
-      <div
-        ref={canvasHolderRef}
-        className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
-      />
-
-      {/* Atmospheric Vignette Overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#0B1510_95%)] pointer-events-none opacity-40" />
-
       {/* =========================================================================
           EDGE-ALIGNED MINIMAL HEADER (Architectural Instrument Style)
           ========================================================================= */}
-      <header className="absolute top-0 left-0 right-0 z-50 px-6 sm:px-12 py-7 flex items-center justify-between pointer-events-none">
+      <header className="flex-none z-50 px-6 sm:px-12 py-5 sm:py-6 flex items-center justify-between pointer-events-auto">
         {/* Top-Left: Minimal Brand & Live Status */}
-        <div className="pointer-events-auto flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
             <span className="w-2.5 h-2.5 bg-[#82996D] rounded-xs group-hover:rotate-45 transition-transform" />
             <span className="font-sans font-bold text-base tracking-tight text-[#F1F0E5] uppercase">
@@ -946,7 +954,7 @@ export default function CinematicHeroExperience() {
         </div>
 
         {/* Top-Right: Quiet Navigation Links & Overview */}
-        <div className="pointer-events-auto flex items-center gap-4 sm:gap-6 text-xs font-mono tracking-widest">
+        <div className="flex items-center gap-3 sm:gap-6 text-xs font-mono tracking-widest">
           <Link
             href="/explore"
             className="text-[#B7C2B1] hover:text-[#F1F0E5] transition-colors uppercase text-[11px] px-2 py-1"
@@ -967,7 +975,7 @@ export default function CinematicHeroExperience() {
           </Link>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 bg-[#82996D] hover:bg-[#A9BE89] text-[#0B1510] font-mono font-bold px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider border border-[#82996D] active:translate-y-0.5"
+            className="inline-flex items-center gap-1.5 bg-[#82996D] hover:bg-[#A9BE89] text-[#0B1510] font-mono font-bold px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-md transition-all text-[11px] uppercase tracking-wider border border-[#82996D] active:translate-y-0.5"
           >
             <span>Launch App</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -976,14 +984,28 @@ export default function CinematicHeroExperience() {
       </header>
 
       {/* =========================================================================
-          THE SIGNATURE CYLINDRICAL 3D TITLE CAROUSEL
-          Wraps around the lower base of the sculpture, overlapping pool reflection.
-          Active title solid white in center; flanking titles in outlined 3D curve.
+          TOP REGION — 3D BLOOM SCULPTURE VIEWPORT
+          Dedicated container for Three.js canvas; unclipped, center-staged, zero overlapping text.
           ========================================================================= */}
-      <div className="absolute inset-x-0 bottom-20 sm:bottom-24 z-30 pointer-events-none flex flex-col items-center justify-end px-4">
-        {/* The 3D Track Container with CSS Perspective */}
+      <div className="flex-1 w-full relative min-h-[280px] sm:min-h-[360px] overflow-hidden flex items-center justify-center pointer-events-auto">
         <div
-          className="relative w-full max-w-5xl h-44 sm:h-52 flex items-center justify-center pointer-events-auto"
+          ref={canvasHolderRef}
+          className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
+        />
+        {/* Atmospheric Vignette Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,#0B1510_96%)] pointer-events-none opacity-40" />
+        {/* Seamless bottom fade blending 3D terrain into typography section */}
+        <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 bg-gradient-to-t from-[#0B1510] via-[#0B1510]/75 to-transparent pointer-events-none" />
+      </div>
+
+      {/* =========================================================================
+          MIDDLE REGION — ACTIVE CATEGORY TITLE CAROUSEL
+          Positioned strictly below the 3D Bloom model with reserved vertical height.
+          Smooth 3D perspective carousel with high-contrast, prominent typography.
+          ========================================================================= */}
+      <div className="flex-none w-full max-w-5xl mx-auto px-4 z-30 pt-1 sm:pt-2">
+        <div
+          className="relative w-full h-14 sm:h-18 md:h-20 flex items-center justify-center pointer-events-auto"
           style={{ perspective: '1100px', transformStyle: 'preserve-3d' }}
         >
           {DIMENSIONS.map((dim, idx) => (
@@ -1000,29 +1022,31 @@ export default function CinematicHeroExperience() {
                   rotateToDimension(idx);
                 }
               }}
-              className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer pointer-events-auto will-change-transform"
+              className="absolute inset-0 flex items-center justify-center cursor-pointer pointer-events-auto will-change-transform"
             >
-              {/* Monumental 2-Line Condensed Title */}
-              <div className="text-center select-none group">
-                <h2 className="font-sans font-black tracking-tight uppercase leading-[0.96] sm:leading-[0.98] text-4xl sm:text-6xl md:text-7xl lg:text-8xl transition-colors duration-200">
-                  <div className="pb-1">{dim.titleLine1}</div>
-                  <div>{dim.titleLine2}</div>
-                </h2>
-
-                {/* Active Subtitle Telemetry Pill */}
-                <div className="active-dim-badge mt-3 flex items-center justify-center transition-opacity duration-200">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-[#17251B] border border-[#344438] text-[10px] sm:text-[11px] font-mono text-[#A9BE89] shadow-md">
-                    <dim.icon className="w-3.5 h-3.5 text-[#82996D]" />
-                    <span>{dim.telemetry}</span>
-                  </div>
-                </div>
-              </div>
+              <h2 className="font-sans font-black tracking-tight text-[#F1F0E5] text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase leading-none text-center whitespace-nowrap select-none group-hover:text-[#A9BE89] transition-colors">
+                {dim.shortName}
+              </h2>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* =========================================================================
+          LOWER REGION — CATEGORY DETAILS, PILLS & FOOTER UTILITY BAR
+          Telemetry metadata, 3 category launch buttons, and edge-aligned bottom bar.
+          ========================================================================= */}
+      <div className="flex-none w-full z-30 pb-4 sm:pb-6 px-4 sm:px-12 flex flex-col items-center gap-2.5 sm:gap-3.5">
+        {/* Active Dimension Telemetry Pill */}
+        <div className="flex items-center justify-center pointer-events-auto">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#17251B]/95 border border-[#344438] text-[10px] sm:text-[11px] font-mono text-[#A9BE89] shadow-sm backdrop-blur-xs">
+            <activeDim.icon className="w-3.5 h-3.5 text-[#82996D]" />
+            <span>{activeDim.telemetry}</span>
+          </div>
+        </div>
 
         {/* 3 Dedicated Category Launch Buttons (Generous Spacing, Zero Overlap) */}
-        <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3 pointer-events-auto font-mono text-xs z-30">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pointer-events-auto font-mono text-xs z-30">
           {DIMENSIONS.map((d, i) => {
             const isAct = activeIndex === i;
             return (
@@ -1035,7 +1059,7 @@ export default function CinematicHeroExperience() {
                     rotateToDimension(i);
                   }
                 }}
-                className={`px-3.5 py-1.5 rounded-md border font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:translate-y-0.5 ${
+                className={`px-3 sm:px-4 py-1.5 rounded-md border font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:translate-y-0.5 text-[11px] sm:text-xs ${
                   isAct
                     ? 'bg-[#82996D] text-[#0B1510] border-[#82996D] shadow-md shadow-[#82996D]/15'
                     : 'bg-[#17251B]/95 text-[#B7C2B1] hover:text-[#F1F0E5] border-[#344438] hover:border-[#4A5F4F]'
@@ -1047,55 +1071,53 @@ export default function CinematicHeroExperience() {
             );
           })}
         </div>
-      </div>
 
-      {/* =========================================================================
-          EDGE-ALIGNED MINIMAL FOOTER TELEMETRY & AUDIO TOGGLE
-          ========================================================================= */}
-      <footer className="absolute bottom-5 left-6 sm:left-12 right-6 sm:right-12 flex items-center justify-between text-[11px] font-mono text-[#B7C2B1] pointer-events-none select-none z-40">
-        {/* Bottom-Left: Dimension Tracker */}
-        <div className="flex items-center gap-2.5">
-          <span className="text-[#82996D] font-bold">[{activeDim.num} / 03]</span>
-          <span className="hidden sm:inline text-[#F1F0E5] font-medium">
-            {activeDim.shortName}
-          </span>
-        </div>
+        {/* Edge-aligned bottom utility bar */}
+        <footer className="w-full flex items-center justify-between text-[11px] font-mono text-[#B7C2B1] select-none pt-1">
+          {/* Bottom-Left: Dimension Tracker */}
+          <div className="flex items-center gap-2.5">
+            <span className="text-[#82996D] font-bold">[{activeDim.num} / 03]</span>
+            <span className="hidden sm:inline text-[#F1F0E5] font-medium">
+              {activeDim.shortName}
+            </span>
+          </div>
 
-        {/* Bottom-Center: Link to Overview & Narrative */}
-        <Link
-          href="/overview"
-          className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#17251B] hover:bg-[#203025] border border-[#344438] text-[#B7C2B1] hover:text-[#A9BE89] transition-all cursor-pointer backdrop-blur-sm"
-        >
-          <span className="text-[10px] tracking-widest uppercase font-bold">OVERVIEW & NARRATIVE</span>
-          <ChevronDown className="w-3.5 h-3.5 text-[#82996D]" />
-        </Link>
-
-        {/* Bottom-Right: Ambient Sound Toggle Button */}
-        <div className="pointer-events-auto flex items-center gap-4">
-          <button
-            onClick={handleToggleAudio}
-            type="button"
-            aria-label={isAudioPlaying ? 'Mute atmospheric sound' : 'Unmute atmospheric sound'}
-            className="flex items-center gap-2 p-2 rounded-full bg-[#17251B]/80 hover:bg-[#203025] border border-[#344438] text-[#B7C2B1] hover:text-[#F1F0E5] transition-all cursor-pointer backdrop-blur-sm group"
+          {/* Bottom-Center: Link to Overview & Narrative */}
+          <Link
+            href="/overview"
+            className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#17251B] hover:bg-[#203025] border border-[#344438] text-[#B7C2B1] hover:text-[#A9BE89] transition-all cursor-pointer backdrop-blur-sm"
           >
-            {isAudioPlaying ? (
-              <>
-                <Volume2 className="w-4 h-4 text-[#82996D] animate-pulse" />
-                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#82996D]">
-                  SOUND ON
-                </span>
-              </>
-            ) : (
-              <>
-                <VolumeX className="w-4 h-4 text-[#7E8D77] group-hover:text-[#F1F0E5]" />
-                <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#7E8D77] group-hover:text-[#F1F0E5]">
-                  SOUND OFF
-                </span>
-              </>
-            )}
-          </button>
-        </div>
-      </footer>
+            <span className="text-[10px] tracking-widest uppercase font-bold">OVERVIEW & NARRATIVE</span>
+            <ChevronDown className="w-3.5 h-3.5 text-[#82996D]" />
+          </Link>
+
+          {/* Bottom-Right: Ambient Sound Toggle Button */}
+          <div className="pointer-events-auto flex items-center gap-4">
+            <button
+              onClick={handleToggleAudio}
+              type="button"
+              aria-label={isAudioPlaying ? 'Mute atmospheric sound' : 'Unmute atmospheric sound'}
+              className="flex items-center gap-2 p-2 rounded-full bg-[#17251B]/80 hover:bg-[#203025] border border-[#344438] text-[#B7C2B1] hover:text-[#F1F0E5] transition-all cursor-pointer backdrop-blur-sm group"
+            >
+              {isAudioPlaying ? (
+                <>
+                  <Volume2 className="w-4 h-4 text-[#82996D] animate-pulse" />
+                  <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#82996D]">
+                    SOUND ON
+                  </span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="w-4 h-4 text-[#7E8D77] group-hover:text-[#F1F0E5]" />
+                  <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-[#7E8D77] group-hover:text-[#F1F0E5]">
+                    SOUND OFF
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
+        </footer>
+      </div>
 
       {/* =========================================================================
           INTERACTIVE DIMENSION INSPECTOR VIEW ("Open" Portal State)
