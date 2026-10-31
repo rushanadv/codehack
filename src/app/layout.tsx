@@ -26,8 +26,22 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IdleX — Bloom: A Living Resource Exchange",
-  description: "Nature, sculpted through technology. High-integrity shared access to precision facilities, advanced hardware, and accelerated compute.",
+  title: "Slotly — Bloom: A Living Resource Exchange",
+  description: "Nature, sculpted through technology. High-integrity shared access to precision facilities, advanced hardware, and accelerated compute with Slotly.",
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "Slotly — Bloom: A Living Resource Exchange",
+    description: "Nature, sculpted through technology. High-integrity shared access to precision facilities, advanced hardware, and accelerated compute with Slotly.",
+    url: "https://codehack-self.vercel.app/",
+    siteName: "Slotly",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Slotly — Bloom: A Living Resource Exchange",
+    description: "Nature, sculpted through technology. High-integrity shared access to precision facilities, advanced hardware, and accelerated compute with Slotly.",
+  },
 };
 
 export default function RootLayout({

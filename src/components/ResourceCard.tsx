@@ -26,7 +26,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
   const cat = categoryLabels[resource.category] || { label: resource.category, accent: 'text-[#B7C2B1] border-[#344438] bg-[#203025]' };
 
   return (
-    <div className="group rounded-xl overflow-hidden border border-[#344438] hover:border-[#82996D] bg-[#17251B] flex flex-col justify-between transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-[#82996D]/5">
+    <div className="group rounded-xl overflow-hidden card-float bg-[#17251B] flex flex-col justify-between">
       
       <div>
         {/* Resource Image Header */}
@@ -34,6 +34,10 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           <img
             src={resource.image_url}
             alt={resource.title}
+            onError={(e) => {
+              // Graceful high-integrity fallback to reliable technical laboratory photography
+              (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80';
+            }}
             className="w-full h-full object-cover opacity-85 group-hover:opacity-95 group-hover:scale-102 transition-all duration-300"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#17251B] via-transparent to-black/40" />

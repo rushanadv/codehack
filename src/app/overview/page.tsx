@@ -124,7 +124,7 @@ export default function OverviewPage() {
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#203025] border border-[#344438] text-[11px] font-mono text-[#C7BC91]">
             <Activity className="w-3 h-3" />
-            <span>IDLEX SYSTEM ARCHITECTURE</span>
+            <span>SLOTLY SYSTEM ARCHITECTURE</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#F1F0E5] tracking-tight leading-tight">
@@ -132,7 +132,7 @@ export default function OverviewPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-[#B7C2B1] leading-relaxed max-w-3xl font-light">
-            IdleX coordinates shared access to high-value physical infrastructure, controlled research environments, and high-performance computing clusters. By eliminating scheduling friction, enforcing verified operator passports, and guaranteeing delivery through automated failover cascades, specialized assets operate at peak utilization without operational risk.
+            Slotly coordinates shared access to high-value physical infrastructure, controlled research environments, and high-performance computing clusters. By eliminating scheduling friction, enforcing verified operator passports, and guaranteeing delivery through automated failover cascades, specialized assets operate at peak utilization without operational risk.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 font-mono text-xs">
@@ -245,7 +245,7 @@ export default function OverviewPage() {
               {openSection === 'acid-lock' && (
                 <div className="px-5 pb-5 pt-2 text-xs text-[#B7C2B1] space-y-3 border-t border-[#344438]">
                   <p className="leading-relaxed">
-                    Physical infrastructure cannot be hot-swapped without resetting physical baseline states. IdleX enforces an atomic lock across two distinct intervals: the requested operational duration <code className="text-[#C7BC91] font-mono">[t_start, t_end]</code> and an automated recalibration buffer <code className="text-[#C7BC91] font-mono">[t_end, t_end + \Delta t_buffer]</code>.
+                    Physical infrastructure cannot be hot-swapped without resetting physical baseline states. Slotly enforces an atomic lock across two distinct intervals: the requested operational duration <code className="text-[#C7BC91] font-mono">[t_start, t_end]</code> and an automated recalibration buffer <code className="text-[#C7BC91] font-mono">[t_end, t_end + \Delta t_buffer]</code>.
                   </p>
                   <div className="p-3 bg-[#0D1812] rounded-lg border border-[#344438] font-mono text-[11px] text-[#7E8D77]">
                     <div className="text-[#F1F0E5] font-semibold mb-1">Buffer Calculation Function:</div>
@@ -277,7 +277,7 @@ export default function OverviewPage() {
               {openSection === 'promise-protection' && (
                 <div className="px-5 pb-5 pt-2 text-xs text-[#B7C2B1] space-y-3 border-t border-[#344438]">
                   <p className="leading-relaxed">
-                    When active jobs overrun scheduled durations, standard reservation software causes domino failure across upcoming teams. IdleX Promise Protection continuously calculates cascade risk:
+                    When active jobs overrun scheduled durations, standard reservation software causes domino failure across upcoming teams. Slotly Promise Protection continuously calculates cascade risk:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[11px]">
                     <div className="p-2.5 rounded bg-[#0D1812] border border-[#344438]">

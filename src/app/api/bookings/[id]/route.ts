@@ -97,6 +97,26 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const db = getDb();
+    const existing = db.prepare(`
+      SELECT b.user_id, r.owner_id 
+      FROM bookings b 
+      JOIN resources r ON b.resource_id = r.id 
+      WHERE b.id = ?
+    `).get(id) as any;
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+
+    const isBooker = user.id === existing.user_id;
+    const isOwner = user.id === existing.owner_id;
+    const isAdmin = user.role === 'admin';
+
+    if (!isBooker && !isOwner && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden: Insufficient privileges to alter this reservation.' }, { status: 403 });
+    }
+
     const { status, notes } = await request.json();
     if (!status) {
       return NextResponse.json({ error: 'Status is required' }, { status: 400 });

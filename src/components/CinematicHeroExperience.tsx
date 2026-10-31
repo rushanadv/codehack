@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import {
   createAtmosphericSkyDome,
   createHorizonMistBand,
@@ -128,7 +129,7 @@ function getAudioEngine(): AmbientAudioEngine {
 }
 
 // ============================================================================
-// IDLEX THREE CORE DIMENSIONS
+// SLOTLY THREE CORE DIMENSIONS
 // ============================================================================
 export interface DimensionItem {
   id: string;
@@ -322,8 +323,8 @@ export default function CinematicHeroExperience() {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const monolithGroupRef = useRef<THREE.Group | null>(null);
-  const artefactMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+  const artefactMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
 
   // Angular constants
   const SPACING = (2 * Math.PI) / 3; // 120° in radians
@@ -508,6 +509,15 @@ export default function CinematicHeroExperience() {
     renderer.toneMappingExposure = 1.05;
     holder.appendChild(renderer.domElement);
 
+    // Environment map for MeshPhysicalMaterial transmission & clearcoat refraction/reflection
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+    const roomEnv = new RoomEnvironment();
+    scene.environment = pmremGenerator.fromScene(roomEnv, 0.04).texture;
+    scene.environmentIntensity = 0.95;
+    roomEnv.dispose();
+    pmremGenerator.dispose();
+
     // 4. ATMOSPHERIC WORLD ENVIRONMENT
     // A. Vast Warm Desert Dusk Sky Dome
     const { mesh: skyDome, material: skyMat } = createAtmosphericSkyDome();
@@ -587,15 +597,13 @@ export default function CinematicHeroExperience() {
     contactShadow.position.set(0, -1.43, 0);
     scene.add(contactShadow);
 
-    // 7. LOAD 3D ASSETS VIA GLTFLoader
+    // 7. LOAD 3D HERO ARTEFACT VIA GLTFLoader (Restored Egg-Shaped Ovoid Model)
     const gltfLoader = new GLTFLoader();
-
-    // Primary: idlex-amber-crystal.glb
-    const artefactMat = createOrganicMonolithMaterial();
-    artefactMaterialRef.current = artefactMat;
+    const eggShaderMat = createOrganicMonolithMaterial();
+    artefactMaterialRef.current = eggShaderMat;
 
     gltfLoader.load(
-      '/models/idlex-amber-crystal.glb',
+      '/models/slotly_egg_artefact.glb',
       (gltf) => {
         const model = gltf.scene;
 
@@ -605,25 +613,38 @@ export default function CinematicHeroExperience() {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
+            // Apply custom futuristic amber glass volumetric shader
+            mesh.material = eggShaderMat;
+
             if (mesh.geometry) {
               mesh.geometry.computeVertexNormals();
             }
-
-            mesh.material = artefactMat;
           }
         });
 
-        // Center artefact vertically & laterally
+        // Compute true bounding box and center
         const bbox = new THREE.Box3().setFromObject(model);
         const center = new THREE.Vector3();
+        const size = new THREE.Vector3();
         bbox.getCenter(center);
+        bbox.getSize(size);
+
+        // Center model within pivot
+        const pivot = new THREE.Group();
         model.position.set(-center.x, -center.y, -center.z);
+        pivot.add(model);
+
+        // Target height in scene units: approx 3.25 for optimal hero framing
+        const targetHeight = 3.25;
+        const scale = targetHeight / Math.max(size.y, 0.001);
+        pivot.scale.setScalar(scale);
+        pivot.position.set(0, 0.06, 0);
 
         monolithGroup.clear();
-        monolithGroup.add(model);
+        monolithGroup.add(pivot);
       },
       undefined,
-      (err) => console.error('Error loading amber artefact:', err)
+      (err) => console.error('Error loading Slotly Hero GLB:', err)
     );
 
     // Terrain: idlex-terrain.glb
@@ -789,10 +810,10 @@ export default function CinematicHeroExperience() {
       updateMistBand(elapsedTime);
       fogSystem.update(elapsedTime, 0.5);
       updateDust(elapsedTime);
+
+      // Dynamic flow on amber glass volumetric artefact
       if (artefactMaterialRef.current) {
         artefactMaterialRef.current.uniforms.uTime.value = elapsedTime;
-        artefactMaterialRef.current.uniforms.uLightDirection.value.copy(keyLight.position).normalize();
-        artefactMaterialRef.current.uniforms.uBackLightDirection.value.copy(horizonRimLight.position).normalize();
       }
 
       // Monolith positioning & synchronized rotation
@@ -874,7 +895,7 @@ export default function CinematicHeroExperience() {
           <Link href="/" className="flex items-center gap-2.5 group">
             <span className="w-2.5 h-2.5 bg-[#82996D] rounded-xs group-hover:rotate-45 transition-transform" />
             <span className="font-sans font-bold text-base tracking-tight text-[#F1F0E5] uppercase">
-              IDLEX<span className="text-[#82996D]">.</span>
+              SLOTLY<span className="text-[#82996D]">.</span>
             </span>
           </Link>
           <span className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#17251B] border border-[#344438] text-[10px] font-mono tracking-wider text-[#B7C2B1]">
@@ -967,6 +988,12 @@ export default function CinematicHeroExperience() {
               <Link
                 key={d.id}
                 href={`/explore?category=${d.category}`}
+                onClick={(e) => {
+                  if (!isAct) {
+                    e.preventDefault();
+                    rotateToDimension(i);
+                  }
+                }}
                 className={`px-3.5 py-1.5 rounded-md border font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:translate-y-0.5 ${
                   isAct
                     ? 'bg-[#82996D] text-[#0B1510] border-[#82996D] shadow-md shadow-[#82996D]/15'
@@ -1165,7 +1192,7 @@ export default function CinematicHeroExperience() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="font-sans font-bold text-base tracking-tight text-[#F1F0E5] uppercase">
-              IDLEX<span className="text-[#82996D]">.</span>
+              SLOTLY<span className="text-[#82996D]">.</span>
             </div>
 
             <button
@@ -1180,12 +1207,12 @@ export default function CinematicHeroExperience() {
           {/* Editorial Manifesto Body */}
           <div className="max-w-3xl mx-auto w-full py-10 my-auto">
             <h1 className="text-3xl sm:text-5xl font-sans font-black tracking-tight text-[#F1F0E5] leading-tight mb-6">
-              IdleX, the intelligent institutional resource exchange.
+              Slotly, the intelligent institutional resource exchange.
             </h1>
 
             <p className="text-base sm:text-xl text-[#B7C2B1] font-light leading-relaxed mb-6">
               Across premier universities, national laboratories, and engineering clusters, over
-              ₹14.2 billion in specialized capital equipment sits dark after hours. IdleX builds
+              ₹14.2 billion in specialized capital equipment sits dark after hours. Slotly builds
               the real-time discovery, verified operator credentialing, and transactional integrity
               protocol to turn dormant capacity into breakthrough innovation.
             </p>
@@ -1193,7 +1220,7 @@ export default function CinematicHeroExperience() {
             <p className="text-sm text-[#7E8D77] font-light leading-relaxed mb-10">
               Departmental budgeting has traditionally incentivized hoarding. Without standardized
               condition handovers or automated fallback guarantees, researchers lose months
-              waiting for external commercial vendors. IdleX eliminates these opaque administrative
+              waiting for external commercial vendors. Slotly eliminates these opaque administrative
               walls.
             </p>
 
@@ -1252,8 +1279,8 @@ export default function CinematicHeroExperience() {
 
           {/* Footer inside About modal */}
           <div className="flex items-center justify-between text-xs font-mono text-[#7E8D77] pt-6 border-t border-[#344438]">
-            <span>IDLEX PROTOCOL V2.6</span>
-            <span>© 2026 IDLEX INC.</span>
+            <span>SLOTLY PROTOCOL V2.6</span>
+            <span>© 2026 SLOTLY INC.</span>
           </div>
         </div>
       )}

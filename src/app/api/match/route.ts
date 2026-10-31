@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { executeIdleXMatch } from '@/lib/match';
+import { executeSlotlyMatch } from '@/lib/match';
 
 export async function POST(request: Request) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Natural language prompt is required' }, { status: 400 });
     }
 
-    const matches = executeIdleXMatch({
+    const matches = executeSlotlyMatch({
       naturalLanguagePrompt: prompt,
       userId: user?.id || 'user-dev',
       maxBudget: maxBudget ? parseFloat(maxBudget) : undefined,

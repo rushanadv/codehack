@@ -28,7 +28,7 @@ export interface MatchResultItem {
   suitabilityHighlights: string[];
 }
 
-export function executeIdleXMatch(query: MatchQuery): MatchResultItem[] {
+export function executeSlotlyMatch(query: MatchQuery): MatchResultItem[] {
   const db = getDb();
   const promptLower = query.naturalLanguagePrompt.toLowerCase();
 
@@ -192,4 +192,7 @@ export function executeIdleXMatch(query: MatchQuery): MatchResultItem[] {
 
   return results;
 }
+
+// Backward-compatible alias for existing tests and routes
+export const executeIdleXMatch = executeSlotlyMatch;
 

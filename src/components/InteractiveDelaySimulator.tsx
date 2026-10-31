@@ -112,7 +112,7 @@ export function InteractiveDelaySimulator() {
             Simulate Upstream Session Delay
           </h3>
           <p className="text-xs text-[#B7C2B1] leading-relaxed">
-            Test IdleX autonomous promise protection. Inject an overstay delay on an active reservation to observe buffer absorption and immediate alternative rerouting.
+            Test Slotly autonomous promise protection. Inject an overstay delay on an active reservation to observe buffer absorption and immediate alternative rerouting.
           </p>
         </div>
 

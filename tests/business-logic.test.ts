@@ -4,10 +4,10 @@ import { seedDatabase } from '../src/lib/seed';
 import { createBooking } from '../src/lib/bookings';
 import { simulateDelay, resolveDisruption } from '../src/lib/promise-protection';
 import { evaluateFairShareAllocation, joinWaitlist } from '../src/lib/fairshare';
-import { executeIdleXMatch } from '../src/lib/match';
+import { executeSlotlyMatch } from '../src/lib/match';
 import { getDb } from '../src/lib/db';
 
-test('IdleX Core Architecture & Business Logic Suite', async (t) => {
+test('Slotly Core Architecture & Business Logic Suite', async (t) => {
   // Ensure pristine test database state
   seedDatabase();
 
@@ -36,6 +36,30 @@ test('IdleX Core Architecture & Business Logic Suite', async (t) => {
     // Verify in DB that no new booking was inserted
     const count = db.prepare('SELECT COUNT(*) as c FROM bookings WHERE purpose = ?').get('Conflicting test reservation') as any;
     assert.equal(count.c, 0, 'No conflicting row should exist in database');
+
+    // Attempt to book inside the post-job turnaround recalibration buffer (res-stratasys-450mc has 30m buffer)
+    const bufferOverlapStart = new Date(new Date(existing.end_time).getTime() + 10 * 60000).toISOString();
+    const bufferOverlapEnd = new Date(new Date(existing.end_time).getTime() + 70 * 60000).toISOString();
+    const bufferResult = createBooking({
+      resourceId: 'res-stratasys-450mc',
+      userId: 'user-dev',
+      startTime: bufferOverlapStart,
+      endTime: bufferOverlapEnd,
+      purpose: 'Buffer intrusion test reservation'
+    });
+    assert.equal(bufferResult.success, false, 'Booking inside turnaround buffer must fail');
+    assert.equal(bufferResult.conflict, true, 'Turnaround buffer conflict must be flagged');
+
+    // Attempt to book with invalid inverted time window (start >= end)
+    const invertedResult = createBooking({
+      resourceId: 'res-stratasys-450mc',
+      userId: 'user-dev',
+      startTime: overlapEnd,
+      endTime: overlapStart,
+      purpose: 'Inverted time reservation'
+    });
+    assert.equal(invertedResult.success, false, 'Inverted booking duration must fail');
+    assert.ok(invertedResult.error?.includes('Start time must precede end time'), 'Must return chronology error');
   });
 
   await t.test('2. SkillGate Eligibility Restriction Enforcement', () => {
@@ -134,8 +158,8 @@ test('IdleX Core Architecture & Business Logic Suite', async (t) => {
     assert.equal(wlEntry.status, 'waiting');
   });
 
-  await t.test('7. IdleX Match Natural Language Engine', () => {
-    const results = executeIdleXMatch({
+  await t.test('7. Slotly Match Natural Language Engine', () => {
+    const results = executeSlotlyMatch({
       naturalLanguagePrompt: 'I need an industrial 3D printer for carbon fiber prototype with budget under ₹500',
       userId: 'user-dev'
     });

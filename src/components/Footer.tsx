@@ -20,7 +20,7 @@ export function Footer() {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-[#82996D] rounded-xs" />
               <span className="font-sans font-bold text-base text-[#F1F0E5] uppercase tracking-tight">
-                IdleX<span className="text-[#82996D]">.</span>
+                Slotly<span className="text-[#82996D]">.</span>
               </span>
             </div>
             <p className="text-xs leading-relaxed text-[#B7C2B1]">
@@ -105,7 +105,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-[#344438]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#7E8D77] font-mono">
           <div>
-            IdleX Protocol v2.6 • High-Integrity Resource Exchange
+            Slotly Protocol v2.6 • High-Integrity Resource Exchange
           </div>
           <div>
             Synthetic Demo Environment • No real facilities or affiliations implied

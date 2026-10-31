@@ -32,7 +32,14 @@ export function createBooking(params: CreateBookingParams): BookingResult {
       return { success: false, error: 'Resource is currently flagged under offline maintenance.' };
     }
 
-    // 2. SkillGate Verification (Strict server-side check)
+    // 2. Validate time duration integrity
+    const start = new Date(params.startTime);
+    const end = new Date(params.endTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start.getTime() >= end.getTime()) {
+      return { success: false, error: 'Invalid reservation time window: Start time must precede end time.' };
+    }
+
+    // 3. SkillGate Verification (Strict server-side check)
     const requiredSkills = db.prepare(`
       SELECT s.id, s.name, rs.is_mandatory
       FROM resource_skills rs
@@ -59,29 +66,28 @@ export function createBooking(params: CreateBookingParams): BookingResult {
       }
     }
 
-    // 3. Concurrency & Overlap Prevention (ATOMIC CHECK IN TRANSACTION)
-    // Overlap condition: (existing.start < new.end) AND (existing.end > new.start)
+    // 4. Concurrency & Overlap Prevention (ATOMIC CHECK IN TRANSACTION)
+    // Enforces atomic lock across requested interval and automated turnaround buffer window
+    const bufferMins = resource.turnaround_buffer_mins || 0;
     const conflicting = db.prepare(`
       SELECT id, start_time, end_time, user_id 
       FROM bookings
       WHERE resource_id = ?
         AND status IN ('confirmed', 'in_progress', 'delayed')
-        AND (datetime(start_time) < datetime(?) AND datetime(end_time) > datetime(?))
+        AND (datetime(start_time) < datetime(?, '+' || ? || ' minutes') AND datetime(end_time, '+' || ? || ' minutes') > datetime(?))
       LIMIT 1
-    `).get(params.resourceId, params.endTime, params.startTime) as any;
+    `).get(params.resourceId, params.endTime, bufferMins, bufferMins, params.startTime) as any;
 
     if (conflicting) {
       return {
         success: false,
         conflict: true,
         conflictingBookingId: conflicting.id,
-        error: `Booking Conflict: The requested slot overlaps with confirmed reservation [${new Date(conflicting.start_time).toLocaleTimeString()} - ${new Date(conflicting.end_time).toLocaleTimeString()}]. Consider joining the FairShare waitlist or exploring IdleX Match alternatives.`
+        error: `Booking Conflict: The requested slot overlaps with confirmed reservation [${new Date(conflicting.start_time).toLocaleTimeString()} - ${new Date(conflicting.end_time).toLocaleTimeString()}]. Consider joining the FairShare waitlist or exploring Slotly Match alternatives.`
       };
     }
 
-    // 4. Calculate total cost
-    const start = new Date(params.startTime);
-    const end = new Date(params.endTime);
+    // 5. Calculate total cost
     const durationHours = Math.max(0.5, (end.getTime() - start.getTime()) / (1000 * 60 * 60));
     const totalCost = Math.round(durationHours * (resource.hourly_rate || 0));
 
